@@ -1,0 +1,354 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "ChillTalk",
+    "description": "API docs for appworks school final project.",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "host": "chilltalk.online",
+  "basePath": "/api/",
+  "schemes": ["https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/user/signup": {
+      "post": {
+        "tags": ["User"],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "test123@test.com"
+            }
+          },
+          {
+            "name": "password",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "test1234"
+            }
+          },
+          {
+            "name": "name",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "Test Account"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "string",
+                  "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6joiYXJ0aHVIjoxNjEzNTY3MzA0fQ.6EPCOfBGynidAfpVqlvbHGWHCJ5LZLtKvPaQ"
+                },
+                "access_expired": {
+                  "type": "number",
+                  "example": "86400"
+                },
+                "info": {
+                  "$ref": "#/definitions/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/login": {
+      "post": {
+        "tags": ["User"],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "test123@test.com"
+            }
+          },
+          {
+            "name": "password",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "test1234"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "string",
+                  "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6joiYXJ0aHVIjoxNjEzNTY3MzA0fQ.6EPCOfBGynidAfpVqlvbHGWHCJ5LZLtKvPaQ"
+                },
+                "access_expired": {
+                  "type": "number",
+                  "example": 86400
+                },
+                "info": {
+                  "$ref": "#/definitions/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/friend": {
+      "get": {
+        "tags": ["User"],
+        "summary": "User friends page.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "Access token preceding Bearer ",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "Bearer x48aDD534da8ADSD1XC4SD5S"
+            }
+          },
+          {
+            "name": "status",
+            "in": "path",
+            "description": "Filter friend status list. Prefix is all.",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "info": {
+                        "$ref": "#/definitions/User"
+                      },
+                      "status": {
+                        "type": "string",
+                        "example": "block"
+                      }
+                    }
+                  }
+                },
+                "next_paging": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "summary": "Delete a friend.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "Access token preceding Bearer ",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "Bearer x48aDD534da8ADSD1XC4SD5S"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 123456789
+            }
+          }
+        ]
+      }
+    },
+    "/room/create-room": {
+      "post": {
+        "tags": ["Room"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "Access token preceding Bearer ",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "Bearer x48aDD534da8ADSD1XC4SD5S"
+            }
+          },
+          {
+            "name": "picture",
+            "in": "body",
+            "description": "Room thumbnail picture",
+            "schema": {
+              "type": "string",
+              "example": "https://www.istockphoto.com/photos/yellow-duck"
+            }
+          },
+          {
+            "name": "roomName",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "Test Room"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Room"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "picture": {
+          "type": "string"
+        },
+        "background": {
+          "type": "string"
+        },
+        "introduction": {
+          "type": "string"
+        },
+        "online": {
+          "type": "boolean"
+        }
+      },
+      "example": {
+        "id": 123456789,
+        "name": "Test",
+        "email": "test123@test.com",
+        "picture": "https://www.istockphoto.com/photos/yellow-duck",
+        "background": "https://www.istockphoto.com/photos/yellow-duck",
+        "introduction": "This is a test account.",
+        "online": true
+      }
+    },
+    "Room": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 123456
+        },
+        "name": {
+          "type": "string",
+          "example": "Test Room"
+        },
+        "isMute": {
+          "type": "boolean",
+          "example": true
+        },
+        "notification": {
+          "type": "string",
+          "example": "all"
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Channel"
+          }
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/User"
+          }
+        }
+      }
+    },
+    "Channel": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,197 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+.room-side-bar {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  height: 100%;
+  width: 75px;
+  background-color: black;
+}
+
+.room-position {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 90px;
+}
+
+.room {
+  width: 50px;
+  height: 50px;
+  margin-top: 10px;
+  background-image: url("https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg");
+  background-size: cover;
+  border-radius: 100%;
+}
+
+.channel-side-bar {
+  position: absolute;
+  left: 75px;
+  width: 240px;
+  height: 100vh;
+  background-color: gray;
+}
+
+.room-name {
+  width: 100%;
+  height: 50px;
+  background-color: cadetblue;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+}
+
+.channels {
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.channel {
+  width: 95%;
+  height: 30px;
+  background-color: antiquewhite;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 2px;
+}
+
+.chat-room {
+  position: absolute;
+  width: calc(100vw - 315px);
+  height: calc(100vh - 50px);
+  left: 315px;
+}
+
+.top-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 50px;
+  background-color: darkgray;
+}
+
+.channel-name {
+  margin-left: 40px;
+  font-size: 1.25rem;
+}
+
+.chat {
+  position: absolute;
+  width: calc(100vw - 550px);
+  height: calc(100vh - 50px);
+  background-color: darkolivegreen;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.messages {
+  width: 100%;
+  margin-top: auto;
+  overflow-y: auto;
+}
+
+.message {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: darkseagreen;
+  border: 1px solid black;
+}
+
+.message-user-thumbnail {
+  width: 70px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.message-thumbnail-box {
+  width: 40px;
+  height: 40px;
+  background-image: url("https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg");
+  background-size: cover;
+  border-radius: 100%;
+  position: absolute;
+  bottom: 10px;
+}
+
+.message-text {
+  width: calc(100% - 70px);
+}
+
+.message-info {
+  display: flex;
+}
+
+.message-info > * {
+  margin: 10px 15px;
+}
+
+.message-description {
+  margin: 10px 15px;
+}
+
+.message-box {
+  width: 100%;
+  height: 80px;
+  background-color: brown;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.enter-message {
+  width: 95%;
+  height: 40px;
+  background-color: darkgrey;
+}
+
+.members {
+  background-color: rgb(5, 139, 139);
+  position: absolute;
+  width: 235px;
+  height: 100%;
+  right: 0;
+  overflow-y: auto;
+}
+
+.member {
+  width: 100%;
+  height: 70px;
+  background-color: beige;
+  border: 1px solid black;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.member-user-thumbnail {
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  background-image: url("https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg");
+  background-size: cover;
+  margin: 0 20px;
+}
