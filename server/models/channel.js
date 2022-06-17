@@ -15,4 +15,17 @@ module.exports = class Channel {
     let [result] = await db.query(sql, [channelId]);
     return result;
   }
+
+  static async save(type, name, roomId) {
+    let sql = `
+    INSERT INTO channels SET ?
+    `;
+    let data = {
+      channel_type: type,
+      name,
+      room_id: roomId,
+    };
+    let [result] = await db.query(sql, data);
+    return result.insertId;
+  }
 };
