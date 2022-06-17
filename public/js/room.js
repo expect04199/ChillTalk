@@ -4,15 +4,29 @@ let channelId = urlParams.get("channelId");
 
 const socket = io.connect("http://10.8.3.7:3000/");
 
+// user info
+let user = {
+  id: 123456789,
+  name: "Test",
+  email: "test123@test.com",
+  picture:
+    "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
+  background:
+    "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
+  introduction: "This is a test account.",
+  online: true,
+};
+
 window.onload = async () => {
   let room = await (
-    await fetch("/api/rooms/details?" + roomId, {
+    await fetch(`/api/rooms/details?roomId=${roomId}&userId=${user.id}`, {
       method: "GET",
       headers: {
         "content-type": "application/json",
       },
     })
   ).json();
+  socket.emit("connect-room", channelId);
   // render room name
   let roomNameDiv = document.querySelector(".room-name p");
   roomNameDiv.innerHTML = room.name;
@@ -62,6 +76,8 @@ window.onload = async () => {
       },
     })
   ).json();
+  let channelName = document.querySelector(".channel-name");
+  channelName.innerHTML = channel.name;
   let messages = channel.messages;
   let messagesDiv = document.querySelector(".messages");
   messages.forEach((message) => {
@@ -73,24 +89,13 @@ window.onload = async () => {
   messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
 };
 
-// user info
-let user = {
-  id: 123456789,
-  name: "Test",
-  email: "test123@test.com",
-  picture:
-    "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
-  background:
-    "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
-  introduction: "This is a test account.",
-  online: true,
-};
-
 // room link
 let rooms = document.querySelectorAll(".room");
 rooms.forEach((room) => {
   room.addEventListener("click", (e) => {
-    console.log(e.target.id);
+    let roomId = e.target.id;
+    let channelId = e.target.dataset.channel;
+    window.location.href = `/room.html?roomId=${roomId}&channelId=${channelId}`;
   });
 });
 console.log(rooms);
@@ -123,7 +128,7 @@ msgInput.addEventListener("keypress", (e) => {
   }
 });
 
-//listen to other people's message
+// listen to other people's message
 socket.on("message", (message) => {
   let messagesDiv = document.querySelector(".messages");
   let messageDiv = createMessage(message);
@@ -132,6 +137,11 @@ socket.on("message", (message) => {
   }
   messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
 });
+
+// disconnect socket when leave page
+window.onunload = window.onbeforeunload = () => {
+  socket.close();
+};
 
 function createMessage(message) {
   //if previous message is same name and sent in two minutes, append

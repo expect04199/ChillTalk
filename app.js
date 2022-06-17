@@ -49,18 +49,19 @@ server.listen(SERVER_PORT, () => {
 });
 
 //socket section
-let roomId = 123;
 io.sockets.on("error", (e) => console.log(e));
 
 io.sockets.on("connect", (socket) => {
   var clientIp = socket.request.connection.remoteAddress;
   console.log(clientIp);
 
-  socket.join(roomId);
+  socket.on("connect-room", (channelId) => {
+    socket.join(channelId);
+  });
 
   socket.on("message", async (message) => {
     console.log(message);
-    socket.to(roomId).emit("message", message);
+    socket.to(message.channelId).emit("message", message);
     await Message.save(message);
     console.log("done");
   });

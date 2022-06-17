@@ -6,17 +6,18 @@ module.exports.getDetail = async (req, res) => {
   let messages = [];
   let data = {};
   details.forEach((detail) => {
-    data.id = detail.channelId;
-    data.name = detail.name;
+    data.id = detail.id;
+    data.name = detail.channel_name;
     data.channel_type = detail.channel_type;
+    if (!detail.message_id) return;
     let message = {
       id: detail.message_id,
-      type: detail.type,
-      channel_id: detail.channel_id,
+      type: detail.message_type,
+      channel_id: detail.id,
       description: detail.description,
       time: detail.time,
       user_id: detail.user_id,
-      name: detail.name,
+      name: detail.user_name,
       picture: detail.url,
     };
     messages.push(message);

@@ -35,6 +35,7 @@ body {
   background-image: url("https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg");
   background-size: cover;
   border-radius: 100%;
+  cursor: pointer;
 }
 
 .channel-side-bar {
@@ -62,6 +63,16 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+}
+
+.create-channel {
+  width: 95%;
+  height: 30px;
+  background-color: cornflowerblue;
+  margin: 5px;
+  padding: 5px;
+  border: 2px;
+  cursor: pointer;
 }
 
 .channel {
