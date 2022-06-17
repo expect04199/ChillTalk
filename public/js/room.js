@@ -1,6 +1,9 @@
 const urlParams = new URLSearchParams(window.location.search);
 let roomId = urlParams.get("roomId");
 let channelId = urlParams.get("channelId");
+
+const socket = io.connect("http://10.8.3.7:3000/");
+
 window.onload = async () => {
   let room = await (
     await fetch("/api/rooms/details?" + roomId, {
@@ -67,8 +70,10 @@ window.onload = async () => {
       messagesDiv.append(messageDiv);
     }
   });
+  messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
 };
 
+// user info
 let user = {
   id: 123456789,
   name: "Test",
@@ -81,18 +86,29 @@ let user = {
   online: true,
 };
 
+// room link
+let rooms = document.querySelectorAll(".room");
+rooms.forEach((room) => {
+  room.addEventListener("click", (e) => {
+    console.log(e.target.id);
+  });
+});
+console.log(rooms);
+
 // enter message
 let msgInput = document.querySelector(".enter-message");
 msgInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
+  if (e.key === "Enter" && e.target.value !== "") {
     let description = e.target.value;
     let time = Date.now();
     let message = {
-      id: user.id,
-      name: user.name,
-      time: time,
-      picture: user.picture,
+      userId: user.id,
+      type: "text",
+      channelId: channelId,
       description: description,
+      time: time,
+      name: user.name,
+      picture: user.picture,
     };
     let messagesDiv = document.querySelector(".messages");
     let messageDiv = createMessage(message);
@@ -100,7 +116,21 @@ msgInput.addEventListener("keypress", (e) => {
       messagesDiv.append(messageDiv);
     }
     e.target.value = "";
+    messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
+
+    // send message to other people
+    socket.emit("message", message);
   }
+});
+
+//listen to other people's message
+socket.on("message", (message) => {
+  let messagesDiv = document.querySelector(".messages");
+  let messageDiv = createMessage(message);
+  if (messageDiv) {
+    messagesDiv.append(messageDiv);
+  }
+  messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
 });
 
 function createMessage(message) {

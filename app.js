@@ -5,6 +5,9 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
+// models
+const Message = require("./server/models/message");
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -23,6 +26,15 @@ const swaggerOpt = {
   },
 };
 
+// Initialize socket server
+const http = require("http");
+const server = http.createServer(app);
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
 // API docs
 app.use(
   "/api-docs", // 設定查看api文件的路徑
@@ -32,6 +44,24 @@ app.use(
 
 app.use("/api", [require("./server/routes/room"), require("./server/routes/channel")]);
 
-app.listen(SERVER_PORT, () => {
+server.listen(SERVER_PORT, () => {
   console.log("Server Connected.");
+});
+
+//socket section
+let roomId = 123;
+io.sockets.on("error", (e) => console.log(e));
+
+io.sockets.on("connect", (socket) => {
+  var clientIp = socket.request.connection.remoteAddress;
+  console.log(clientIp);
+
+  socket.join(roomId);
+
+  socket.on("message", async (message) => {
+    console.log(message);
+    socket.to(roomId).emit("message", message);
+    await Message.save(message);
+    console.log("done");
+  });
 });

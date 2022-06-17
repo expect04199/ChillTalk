@@ -1,35 +1,26 @@
+const Channel = require("../models/channel");
+
 module.exports.getDetail = async (req, res) => {
-  let channelId = req.query.channelId;
-  let data = {
-    id: channelId,
-    name: "Test channel",
-    type: "text",
-    messages: [
-      {
-        id: 12345,
-        name: "Carl Lin",
-        time: 1655357505298,
-        picture:
-          "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
-        description: "Test1",
-      },
-      {
-        id: 12345,
-        name: "Carl Lin",
-        time: 1655367505298,
-        picture:
-          "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
-        description: "Test2",
-      },
-      {
-        id: 12345,
-        name: "Carl Lin",
-        time: 1655377505298,
-        picture:
-          "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
-        description: "Test3",
-      },
-    ],
-  };
+  const { roomId, channelId } = req.query;
+  let details = await Channel.getDetail(channelId);
+  let messages = [];
+  let data = {};
+  details.forEach((detail) => {
+    data.id = detail.channelId;
+    data.name = detail.name;
+    data.channel_type = detail.channel_type;
+    let message = {
+      id: detail.message_id,
+      type: detail.type,
+      channel_id: detail.channel_id,
+      description: detail.description,
+      time: detail.time,
+      user_id: detail.user_id,
+      name: detail.name,
+      picture: detail.url,
+    };
+    messages.push(message);
+  });
+  data.messages = messages;
   return res.json(data);
 };
