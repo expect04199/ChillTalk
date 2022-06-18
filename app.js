@@ -42,7 +42,11 @@ app.use(
   swaggerUi.setup(swaggerDocument, swaggerOpt)
 );
 
-app.use("/api", [require("./server/routes/room"), require("./server/routes/channel")]);
+app.use("/api", [
+  require("./server/routes/room"),
+  require("./server/routes/channel"),
+  require("./server/routes/user"),
+]);
 
 server.listen(SERVER_PORT, () => {
   console.log("Server Connected.");

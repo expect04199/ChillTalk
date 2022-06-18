@@ -19,4 +19,10 @@ module.exports = class Room {
     let [result] = await db.query(sql, [roomId, userId]);
     return result;
   }
+
+  static async isExisted(roomId) {
+    let sql = "SELECT * FROM rooms WHERE id = ?";
+    let [result] = await db.query(sql, [roomId]);
+    return result.length !== 0;
+  }
 };

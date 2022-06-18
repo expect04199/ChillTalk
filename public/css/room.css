@@ -41,8 +41,10 @@ body {
   width: 50px;
   height: 50px;
   margin-top: 10px;
-  background-image: url("https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg");
+  background-color: darkgray;
+  background-image: url("https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Plus_symbol.svg/500px-Plus_symbol.svg.png");
   background-size: cover;
+  background-position: center;
   border-radius: 100%;
   cursor: pointer;
 }
@@ -323,4 +325,73 @@ body {
   border: none;
   border-radius: 10px;
   cursor: pointer;
+}
+
+.join-room-box {
+  background-color: darkkhaki;
+  width: 450px;
+  height: 450px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 10px;
+}
+
+.create-room-box {
+  margin: 20px;
+  margin-bottom: 0px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+}
+
+.create-room-box h2 {
+  font-size: 2rem;
+}
+
+.create-room-image {
+  margin: 20px;
+  align-self: center;
+}
+
+.create-room-name {
+  margin: 10px;
+  width: 70%;
+  height: 30px;
+  align-self: center;
+  outline: none;
+  border: none;
+}
+
+.create-room-btn {
+  margin: 10px;
+  width: 20%;
+  height: 30px;
+  align-self: flex-end;
+}
+
+.join-exist-room {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+}
+
+.join-exist-room h3 {
+  font-size: 2rem;
+}
+
+.join-room-id {
+  margin: 20px;
+  width: 70%;
+  height: 30px;
+  align-self: center;
+  outline: none;
+  border: none;
+}
+
+.join-room-btn {
+  margin: 10px;
+  width: 20%;
+  height: 30px;
+  align-self: flex-end;
 }

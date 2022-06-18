@@ -6,7 +6,7 @@ const socket = io.connect("http://10.8.3.7:3000/");
 
 // user info
 let user = {
-  id: 123456789,
+  id: 1234,
   name: "Carl",
   email: "test123@test.com",
   picture:
@@ -24,7 +24,7 @@ let roomsData = [
     picture:
       "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
     alert: true,
-    channel_id: 1234567,
+    channel_id: 1,
   },
 ];
 
@@ -145,9 +145,55 @@ msgInput.addEventListener("keypress", (e) => {
   }
 });
 
+// create new room
+let createRoom = document.querySelector(".create-room");
+let maskDiv = document.querySelector(".mask");
+createRoom.addEventListener("click", (e) => {
+  e.preventDefault();
+  maskDiv.classList.add("enable");
+  maskDiv.innerHTML = `
+  <div class="join-room-box">
+  <div class="create-room-box">
+    <h2>建立房間</h2>
+    <h3>幫你的房間選個圖示及名稱</h3>
+    <input type="file" class="create-room-image" placeholder="上傳房間圖片">
+    <input type="text" class="create-room-name" placeholder="輸入房間名稱">
+    <button class="create-room-btn">建立房間</button>
+  </div>
+  <div class="join-exist-room">
+    <h3>加入房間</h3>
+    <input type="text" class="join-room-id" placeholder="輸入房間ID" value="">
+    <button class="join-room-btn">加入房間</button>
+  </div>
+</div>`;
+
+  // join exist room
+  let existRoomId = document.querySelector(".join-room-id");
+  let joinRoomBtn = document.querySelector(".join-room-btn");
+  joinRoomBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    if (existRoomId.value === "") return;
+    let roomId = existRoomId.value;
+    let userId = user.id;
+    let body = {
+      room_id: roomId,
+      user_id: userId,
+    };
+    let roomData = await (
+      await fetch("/api/user/join-room", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+    ).json();
+    window.location.href = `/room.html?roomId=${roomData.id}&channelId=${roomData.channel_id}`;
+  });
+});
+
 // create new channel
 let createChannel = document.querySelector(".channel-create-btn");
-let maskDiv = document.querySelector(".mask");
 createChannel.addEventListener("click", (e) => {
   e.preventDefault();
   maskDiv.classList.add("enable");
