@@ -3,6 +3,6 @@ const channelController = require("../controllers/channel");
 
 router.get("/channels/details", channelController.getDetail);
 
-router.post("/channel/create", channelController.createChannel);
+router.post("/channels/create", channelController.createChannel);
 
 module.exports = router;

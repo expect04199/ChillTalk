@@ -1,15 +1,28 @@
 const db = require("../../util/database");
 
 module.exports = class User {
-  static async joinRoom(roomId, userId) {
-    let sql = `INSERT INTO room_members SET ?`;
-    let data = {
-      room_id: roomId,
-      user_id: userId,
-      mute: Date.now(),
-      notification: "all",
-    };
-    let [result] = await db.query(sql, data);
-    return result.insertId;
+  static async save(name, email, password) {
+    try {
+      let sql = `
+        INSERT INTO users SET ?
+        `;
+      let data = {
+        name,
+        email,
+        password,
+        online: true,
+        last_login: Date.now(),
+      };
+      let [result] = await db.query(sql, data);
+      delete data.password;
+      data.id = result.insertId;
+      return data;
+    } catch (error) {
+      console.log(error);
+      return {
+        error: "Email Already Exists",
+        status: 403,
+      };
+    }
   }
 };

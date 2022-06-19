@@ -5,26 +5,17 @@ let channelId = urlParams.get("channelId");
 const socket = io.connect("http://10.8.3.7:3000/");
 
 // user info
-let user = {
-  id: 1234,
-  name: "Carl",
-  email: "test123@test.com",
-  picture:
-    "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
-  background:
-    "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
-  introduction: "This is a test account.",
-  online: true,
-};
+let user = JSON.parse(localStorage.getItem("info"));
+console.log(user);
 
 let roomsData = [
   {
-    id: 123456,
+    id: roomId,
     name: "Test Room",
     picture:
       "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
     alert: true,
-    channel_id: 1,
+    channel_id: channelId,
   },
 ];
 
@@ -35,7 +26,8 @@ window.onload = async () => {
     let roomDiv = createRoomfn(room);
     roomPosition.append(roomDiv);
   });
-
+  enableRooms();
+  if (!roomId) return;
   let room = await (
     await fetch(`/api/rooms/details?roomId=${roomId}&userId=${user.id}`, {
       method: "GET",
@@ -72,7 +64,9 @@ window.onload = async () => {
     // user thumbnail
     let thumbnailDiv = document.createElement("div");
     thumbnailDiv.classList.add("member-user-thumbnail");
-    thumbnailDiv.style.backgroundImage = `url('${member.picture}')`;
+    thumbnailDiv.style.backgroundImage = member.picture
+      ? `url('${member.picture}')`
+      : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
     // user name
     let nameDiv = document.createElement("div");
     nameDiv.classList.add("member-user-name");
@@ -95,7 +89,7 @@ window.onload = async () => {
     })
   ).json();
   let channelName = document.querySelector(".channel-name");
-  channelName.innerHTML = channel.name;
+  channelName.innerHTML = channel.name || "";
   let messages = channel.messages;
   let messagesDiv = document.querySelector(".messages");
   messages.forEach((message) => {
@@ -108,14 +102,17 @@ window.onload = async () => {
 };
 
 // room link
-let rooms = document.querySelectorAll(".room");
-rooms.forEach((room) => {
-  room.addEventListener("click", (e) => {
-    let roomId = e.target.id;
-    let channelId = e.target.dataset.channel;
-    window.location.href = `/room.html?roomId=${roomId}&channelId=${channelId}`;
+function enableRooms() {
+  let rooms = document.querySelectorAll(".room");
+  rooms.forEach((room) => {
+    room.addEventListener("click", (e) => {
+      console.log("hi");
+      let roomId = e.target.id;
+      let channelId = e.target.dataset.channel;
+      window.location.href = `/room.html?roomId=${roomId}&channelId=${channelId}`;
+    });
   });
-});
+}
 
 // enter message
 let msgInput = document.querySelector(".enter-message");
@@ -166,6 +163,29 @@ createRoom.addEventListener("click", (e) => {
     <button class="join-room-btn">加入房間</button>
   </div>
 </div>`;
+  // create new room
+  let createRoomName = document.querySelector(".create-room-name");
+  let createRoomBtn = document.querySelector(".create-room-btn");
+  createRoomBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    if (createRoomName.value === "") return;
+    let name = createRoomName.value;
+    let userId = user.id;
+    let body = {
+      room_name: name,
+      user_id: userId,
+    };
+    let roomData = await (
+      await fetch("/api/rooms/create", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+    ).json();
+    window.location.href = `/room.html?roomId=${roomData.id}`;
+  });
 
   // join exist room
   let existRoomId = document.querySelector(".join-room-id");
@@ -180,7 +200,7 @@ createRoom.addEventListener("click", (e) => {
       user_id: userId,
     };
     let roomData = await (
-      await fetch("/api/user/join-room", {
+      await fetch("/api/rooms/join", {
         method: "POST",
         body: JSON.stringify(body),
         headers: {
@@ -212,7 +232,7 @@ createChannel.addEventListener("click", (e) => {
   <input type='text' class='create-channel-name' placeholder='請輸入頻道名稱'>
   <div class='create-channel-btns'>
     <button type='button' class='create-channel-cancel'>取消</button>
-    <button type='button' class='create-channel-btn'>建立頻道</button>
+    <button type='button' class='create-channel-btn' data-type="text">建立頻道</button>
   </div>
 </div>`;
 
@@ -237,7 +257,7 @@ createChannel.addEventListener("click", (e) => {
         room_id: roomId,
       };
       let channelDetail = await (
-        await fetch("/api/channel/create", {
+        await fetch("/api/channels/create", {
           method: "POST",
           body: JSON.stringify(data),
           headers: {
@@ -308,7 +328,9 @@ function createMessage(message) {
   thumbnailBox.classList.add("message-thumbnail-box");
   let thumbnail = document.createElement("div");
   thumbnail.classList.add("message-user-thumbnail");
-  thumbnail.style.backgroundImage = `url('${message.picture}')`;
+  thumbnail.style.backgroundImage = message.picture
+    ? `url('${message.picture}')`
+    : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
   thumbnailBox.append(thumbnail);
 
   // render user text

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./css/signin.css" />
+    <title>Sign In / Sign up</title>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="container">
+        <div class="sign-up-container">
+          <form>
+            <h1>建立新帳號</h1>
+            <input type="text" placeholder="Name" id="signup-name" />
+            <input type="email" placeholder="Email" id="signup-email" />
+            <input type="password" placeholder="Password" id="signup-password" />
+            <button class="form_btn" id="user-sign-up">繼續</button>
+          </form>
+        </div>
+        <div class="sign-in-container">
+          <form>
+            <h1>登入</h1>
+            <input type="email" placeholder="Email" id="signin-email" />
+            <input type="password" placeholder="Password" id="signin-password" />
+            <button class="form_btn" id="user-sign-in">繼續</button>
+          </form>
+        </div>
+        <div class="overlay-container">
+          <div class="overlay-left">
+            <h1>歡迎來到ChillTalk</h1>
+            <p>註冊新帳號，跟我們一起踏上旅程吧！</p>
+            <button id="signIn" class="overlay_btn">登入</button>
+          </div>
+          <div class="overlay-right">
+            <h1>歡迎回來</h1>
+            <p>我們很高興又見到您了！</p>
+            <button id="signUp" class="overlay_btn">建立新帳號</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="./js/signin.js"></script>
+  </body>
+</html>

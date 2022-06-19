@@ -11,7 +11,7 @@ module.exports = class Message {
     this.description = description;
   }
 
-  static async isExist(id) {
+  static async isExisted(id) {
     let sql = "SELECT * FROM messages WHERE id = ?";
     let result = await db.query(sql, [id]);
     return result.length !== 0;
