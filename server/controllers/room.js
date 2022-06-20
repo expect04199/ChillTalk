@@ -4,7 +4,7 @@ const Room = require("../models/room");
 module.exports.getDetail = async (req, res) => {
   const roomId = +req.query.roomId;
   const userId = +req.query.userId;
-  let details = await Room.getDetail(roomId);
+  let details = await Room.getDetail(roomId, userId);
   let data = {};
   let channels = [];
   let members = {};
@@ -67,6 +67,7 @@ module.exports.postCreateRoom = async (req, res) => {
     id: roomDetail[0].id,
     name: roomDetail[0].room_name,
     picture: roomDetail[0].room_picture,
+    host_id: userId,
     alert: true,
   };
   return res.json(data);

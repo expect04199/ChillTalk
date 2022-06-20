@@ -9,6 +9,31 @@ signInBtn.addEventListener("click", () => {
   container.classList.remove("right-panel-active");
 });
 
+// user sign in
+let userSignIn = document.querySelector("#user-sign-in");
+userSignIn.addEventListener("click", async (e) => {
+  e.preventDefault();
+  let email = document.querySelector("#signin-email").value;
+  let password = document.querySelector("#signin-password").value;
+  let body = {
+    email,
+    password,
+  };
+  let user = await (
+    await fetch("/api/users/signin", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "content-type": "application/json",
+      },
+    })
+  ).json();
+  localStorage.setItem("token", user.access_token);
+  localStorage.setItem("info", JSON.stringify(user.info));
+  localStorage.setItem("rooms", JSON.stringify(user.rooms));
+  window.location.href = "/room.html";
+});
+
 // user sign up
 let userSignUp = document.querySelector("#user-sign-up");
 userSignUp.addEventListener("click", async (e) => {
@@ -35,5 +60,6 @@ userSignUp.addEventListener("click", async (e) => {
   ).json();
   localStorage.setItem("token", user.access_token);
   localStorage.setItem("info", JSON.stringify(user.info));
+  localStorage.setItem("rooms", JSON.stringify([]));
   window.location.href = "/room.html";
 });

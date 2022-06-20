@@ -6,18 +6,8 @@ const socket = io.connect("http://10.8.3.7:3000/");
 
 // user info
 let user = JSON.parse(localStorage.getItem("info"));
-console.log(user);
 
-let roomsData = [
-  {
-    id: roomId,
-    name: "Test Room",
-    picture:
-      "https://i.epochtimes.com/assets/uploads/2021/08/id13156667-shutterstock_376153318-600x400.jpg",
-    alert: true,
-    channel_id: channelId,
-  },
-];
+let roomsData = JSON.parse(localStorage.getItem("rooms"));
 
 window.onload = async () => {
   // //render room side bar
@@ -106,10 +96,13 @@ function enableRooms() {
   let rooms = document.querySelectorAll(".room");
   rooms.forEach((room) => {
     room.addEventListener("click", (e) => {
-      console.log("hi");
       let roomId = e.target.id;
       let channelId = e.target.dataset.channel;
-      window.location.href = `/room.html?roomId=${roomId}&channelId=${channelId}`;
+      if (channelId) {
+        window.location.href = `/room.html?roomId=${roomId}&channelId=${channelId}`;
+      } else {
+        window.location.href = `/room.html?roomId=${roomId}`;
+      }
     });
   });
 }
@@ -184,6 +177,7 @@ createRoom.addEventListener("click", (e) => {
         },
       })
     ).json();
+    updateStorage("room", roomData);
     window.location.href = `/room.html?roomId=${roomData.id}`;
   });
 
@@ -208,6 +202,7 @@ createRoom.addEventListener("click", (e) => {
         },
       })
     ).json();
+    updateStorage("room", roomData);
     window.location.href = `/room.html?roomId=${roomData.id}&channelId=${roomData.channel_id}`;
   });
 });
@@ -248,7 +243,7 @@ createChannel.addEventListener("click", (e) => {
     createChannelBtn.dataset.type = "voice";
   });
   createChannelBtn.addEventListener("click", async (e) => {
-    if (createChannelInput.value !== "") {
+    if (createChannelInput.value !== "" && roomId) {
       let channelType = e.target.dataset.type;
       let channelName = createChannelInput.value;
       let data = {
@@ -374,13 +369,29 @@ function createChannelfn(channel) {
     window.location.href = `/room.html?roomId=${roomId}&channelId=${channel.id}`;
   });
   channelsDiv.append(channelDiv);
+  updateStorage("channel", channel);
 }
 
 function createRoomfn(room) {
   let roomDiv = document.createElement("div");
   roomDiv.classList.add("room");
   roomDiv.id = room.id;
-  roomDiv.dataset.channel = room.channel_id;
   roomDiv.style.backgroundImage = `url('${room.picture}')`;
+  if (room.channel_id) {
+    roomDiv.dataset.channel = room.channel_id;
+  }
   return roomDiv;
+}
+
+function updateStorage(scope, data) {
+  if (scope === "room") {
+    let rooms = JSON.parse(localStorage.getItem("rooms"));
+    rooms.push(data);
+    localStorage.setItem("rooms", JSON.stringify(rooms));
+  } else if (scope === "channel") {
+    let rooms = JSON.parse(localStorage.getItem("rooms"));
+    let currentRoom = rooms.find((room) => +room.id === +roomId);
+    currentRoom.channel_id = data.id;
+    localStorage.setItem("rooms", JSON.stringify(rooms));
+  }
 }
