@@ -5,8 +5,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./css/room.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
-    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js" integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css"
+    />
+    <script
+      src="https://cdn.socket.io/4.5.0/socket.io.min.js"
+      integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k"
+      crossorigin="anonymous"
+    ></script>
     <title>Test Room</title>
   </head>
   <body>
@@ -33,7 +41,7 @@
       </div>
       <div class="chat">
         <div class="messages">
-          <!-- <div class="message">
+          <div class="message">
             <div class="message-thumbnail-box">
               <div class="message-user-thumbnail"></div>
             </div>
@@ -42,14 +50,23 @@
                 <div class="message-name">Carl Lin</div>
                 <div class="message-time">2022/06/15</div>
               </div>
-              <div class="message-description">This is a test.</div>
-              <div class="message-description">This is a test.</div>
-              <div class="message-description">This is a test.</div>
+              <div class="message-description">
+                <p>This is a test.</p>
+                <div class="message-edit"><i class="bars icon"></i></div>
+              </div>
+              <div class="message-description">
+                <p>This is a test.</p>
+                <div class="message-edit"><i class="bars icon"></i></div>
+              </div>
+              <div class="message-description">
+                <p>This is a test.</p>
+                <div class="message-edit"><i class="bars icon"></i></div>
+              </div>
             </div>
-          </div> -->
+          </div>
         </div>
         <div class="message-box">
-          <input class="enter-message" type="text" value=""></input>
+          <input class="enter-message" type="text" value="" />
         </div>
       </div>
       <div class="members">
@@ -139,6 +156,8 @@
         </div> -->
       </div>
     </div>
-    <script src="./js/room.js"></script>
+    <!-- <script src="./js/room.js"></script> -->
+
+    <script src="./js/fake.js"></script>
   </body>
 </html>

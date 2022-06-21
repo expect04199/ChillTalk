@@ -48,6 +48,7 @@ app.use("/api", [
   require("./server/routes/room"),
   require("./server/routes/channel"),
   require("./server/routes/user"),
+  require("./server/routes/message"),
 ]);
 
 server.listen(SERVER_PORT, () => {

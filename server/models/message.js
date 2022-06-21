@@ -25,7 +25,6 @@ module.exports = class Message {
         user_id: message.userId,
         channel_id: message.channelId,
         last_update: message.time,
-        is_deleted: 0,
       };
       let result = await db.query(messageSql, msg);
       let insertId = result[0].insertId;
@@ -43,6 +42,24 @@ module.exports = class Message {
     } catch (error) {
       await db.query("ROLLBACK");
       console.log(error);
+    }
+  }
+
+  static async update(id, type, description) {
+    try {
+      let sql = `INSERT INTO message_contents SET ?`;
+      let time = Date.now();
+      let message = {
+        message_id: id,
+        type,
+        description,
+        time,
+      };
+      await db.query(sql, message);
+      return true;
+    } catch (error) {
+      console.log(error);
+      return { error };
     }
   }
 };

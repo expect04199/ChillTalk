@@ -9,14 +9,14 @@ module.exports = class Channel {
     d.id AS user_id, d.name AS user_name,
     e.source AS pic_src, e.type AS pic_type, e.image AS pic_img, e.preset
     FROM channels a
-    LEFT JOIN chilltalk.messages b on a.id = b.channel_id
-    LEFT JOIN chilltalk.message_contents c on b.id = c.message_id
-    LEFT JOIN chilltalk.users d on b.user_id = d.id
-    LEFT JOIN chilltalk.pictures e on d.id = e.source_id AND e.source = "user" AND e.type = "picture"
+    LEFT JOIN messages b on a.id = b.channel_id
+    LEFT JOIN message_contents c on b.id = c.message_id
+    LEFT JOIN users d on b.user_id = d.id
+    LEFT JOIN pictures e on d.id = e.source_id AND e.source = "user" AND e.type = "picture"
     WHERE a.id = ?
     `;
     let [details] = await db.query(sql, [channelId]);
-    let messages = [];
+    let messageMap = {};
     details.forEach((detail) => {
       let userPic = detail.preset
         ? `${CDN_IP}/preset/1/${detail.pic_type}/${detail.pic_img}`
@@ -32,9 +32,11 @@ module.exports = class Channel {
         name: detail.user_name,
         picture: userPic,
       };
-      messages.push(message);
+      if (!messageMap[message.id] || messageMap[message.id].time < message.time) {
+        messageMap[message.id] = message;
+      }
     });
-
+    let messages = Object.values(messageMap);
     let channelDetail = {
       id: details[0].id,
       name: details[0].name,
