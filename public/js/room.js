@@ -164,17 +164,17 @@ createRoom.addEventListener("click", (e) => {
     if (createRoomName.value === "") return;
     let name = createRoomName.value;
     let userId = user.id;
-    let body = {
-      room_name: name,
-      user_id: userId,
-    };
+    let body = new FormData();
+    let imageInput = document.querySelector(".create-room-image");
+    if (imageInput.files[0]) {
+      body.append("picture", imageInput.files[0]);
+    }
+    body.append("room_name", name);
+    body.append("user_id", userId);
     let roomData = await (
       await fetch("/api/rooms/create", {
         method: "POST",
-        body: JSON.stringify(body),
-        headers: {
-          "content-type": "application/json",
-        },
+        body,
       })
     ).json();
     updateStorage("room", roomData);

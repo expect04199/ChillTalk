@@ -4,6 +4,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const multer = require("multer");
 
 // models
 const Message = require("./server/models/message");
