@@ -28,7 +28,6 @@ module.exports = class User {
       let updateSql = `UPDATE users SET online = ?, last_login = ?`;
       await db.query(updateSql, [1, lastLogin]);
       await db.query("COMMIT");
-      console.log(typeof user.pic_preset);
       let userPicture = user.pic_preset
         ? `${CDN_IP}/preset/1/${user.pic_type}/${user.pic_img}`
         : `${CDN_IP}/${user.pic_src}/${user.id}/${user.pic_type}/${user.pic_img}`;
@@ -139,5 +138,16 @@ module.exports = class User {
       }
     });
     return Object.values(roomMap);
+  }
+
+  static async online(userId) {
+    let time = Date.now();
+    let sql = `UPDATE users SET online = 1, last_login = ${time} WHERE id = ?`;
+    await db.query(sql, [userId]);
+  }
+
+  static async offline(userId) {
+    let sql = `UPDATE users SET online = 0 WHERE id = ?`;
+    await db.query(sql, [userId]);
   }
 };

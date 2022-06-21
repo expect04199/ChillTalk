@@ -8,6 +8,7 @@ const multer = require("multer");
 
 // models
 const Message = require("./server/models/message");
+const User = require("./server/models/user");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -54,10 +55,11 @@ server.listen(SERVER_PORT, () => {
 });
 
 //socket section
-io.sockets.on("error", (e) => console.log(e));
+let channelIO = io.of("/channel");
+channelIO.on("error", (e) => console.log(e));
 
-io.sockets.on("connect", (socket) => {
-  var clientIp = socket.request.connection.remoteAddress;
+channelIO.on("connect", (socket) => {
+  let clientIp = socket.request.connection.remoteAddress;
   console.log(clientIp);
 
   socket.on("connect-room", (channelId) => {
@@ -68,6 +70,32 @@ io.sockets.on("connect", (socket) => {
     console.log(message);
     socket.to(message.channelId).emit("message", message);
     await Message.save(message);
-    console.log("done");
+  });
+});
+
+let roomIO = io.of("/room");
+roomIO.on("error", (e) => console.log(e));
+
+roomIO.on("connect", (socket) => {
+  console.log("Room connected");
+  socket.on("connect-room", (rooms) => {
+    let roomsId = rooms.map((room) => room.id);
+    socket.join(roomsId);
+  });
+
+  socket.on("self-signin", async (data) => {
+    await User.online(data.userId);
+    let rooms = data.rooms;
+    rooms.forEach((room) => {
+      socket.to(room.id).emit("other-signin", data.userId);
+    });
+  });
+
+  socket.on("self-signout", async (data) => {
+    await User.offline(data.userId);
+    let rooms = data.rooms;
+    rooms.forEach((room) => {
+      socket.to(room.id).emit("other-signout", data.userId);
+    });
   });
 });

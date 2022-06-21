@@ -330,7 +330,7 @@ body {
 .join-room-box {
   background-color: darkkhaki;
   width: 450px;
-  height: 450px;
+  height: 500px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -394,4 +394,15 @@ body {
   width: 20%;
   height: 30px;
   align-self: flex-end;
+}
+
+.sign-out {
+  position: absolute;
+  bottom: 40px;
+  cursor: pointer;
+}
+
+.sign-out i::before {
+  color: white;
+  font-size: 2rem;
 }

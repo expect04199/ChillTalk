@@ -2,11 +2,11 @@ const urlParams = new URLSearchParams(window.location.search);
 let roomId = urlParams.get("roomId");
 let channelId = urlParams.get("channelId");
 
-const socket = io.connect("http://10.8.3.7:3000/");
+const channelSocket = io.connect("http://10.8.3.7:3000/channel");
+const roomSocket = io.connect("http://10.8.3.7:3000/room");
 
 // user info
 let user = JSON.parse(localStorage.getItem("info"));
-
 let roomsData = JSON.parse(localStorage.getItem("rooms"));
 
 window.onload = async () => {
@@ -26,7 +26,8 @@ window.onload = async () => {
       },
     })
   ).json();
-  socket.emit("connect-room", channelId);
+  channelSocket.emit("connect-room", channelId);
+  roomSocket.emit("connect-room", roomsData);
   // render room name
   let roomNameDiv = document.querySelector(".room-name p");
   roomNameDiv.innerHTML = room.name;
@@ -65,6 +66,9 @@ window.onload = async () => {
     let onlineDiv = document.createElement("div");
     onlineDiv.classList.add("member-user-online");
     onlineDiv.innerHTML = member.online ? "online" : "offline";
+
+    // append userId on memberDiv
+    memberDiv.dataset.id = member.id;
     memberDiv.append(thumbnailDiv, nameDiv, onlineDiv);
     membersDiv.append(memberDiv);
   });
@@ -80,6 +84,7 @@ window.onload = async () => {
   ).json();
   let channelName = document.querySelector(".channel-name");
   channelName.innerHTML = channel.name || "";
+  // render messages
   let messages = channel.messages;
   let messagesDiv = document.querySelector(".messages");
   messages.forEach((message) => {
@@ -131,7 +136,7 @@ msgInput.addEventListener("keypress", (e) => {
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
 
     // send message to other people
-    socket.emit("message", message);
+    channelSocket.emit("message", message);
   }
 });
 
@@ -178,6 +183,7 @@ createRoom.addEventListener("click", (e) => {
       })
     ).json();
     updateStorage("room", roomData);
+    roomSocket.emit("connect-room", [roomData.id]);
     window.location.href = `/room.html?roomId=${roomData.id}`;
   });
 
@@ -203,6 +209,7 @@ createRoom.addEventListener("click", (e) => {
       })
     ).json();
     updateStorage("room", roomData);
+    roomSocket.emit("connect-room", [roomData.id]);
     window.location.href = `/room.html?roomId=${roomData.id}&channelId=${roomData.channel_id}`;
   });
 });
@@ -282,8 +289,33 @@ maskDiv.addEventListener("click", (e) => {
   }
 });
 
+// when user sign in, call server to update status
+if (document.referrer.includes("signin.html")) {
+  roomSocket.emit("self-signin", { userId: user.id, rooms: roomsData });
+}
+
+// when other people signin, update status
+roomSocket.on("other-signin", (userId) => {
+  let membersDiv = document.querySelectorAll(".member");
+  membersDiv.forEach((memberDiv) => {
+    if (+memberDiv.dataset.id === +userId) {
+      memberDiv.querySelector(".member-user-online").innerHTML = "online";
+    }
+  });
+});
+
+// when other people signout, update status
+roomSocket.on("other-signout", (userId) => {
+  let membersDiv = document.querySelectorAll(".member");
+  membersDiv.forEach((memberDiv) => {
+    if (+memberDiv.dataset.id === +userId) {
+      memberDiv.querySelector(".member-user-online").innerHTML = "offline";
+    }
+  });
+});
+
 // listen to other people's message
-socket.on("message", (message) => {
+channelSocket.on("message", (message) => {
   let messagesDiv = document.querySelector(".messages");
   let messageDiv = createMessage(message);
   if (messageDiv) {
@@ -294,7 +326,8 @@ socket.on("message", (message) => {
 
 // disconnect socket when leave page
 window.onunload = window.onbeforeunload = () => {
-  socket.close();
+  channelSocket.close();
+  roomSocket.close();
 };
 
 function createMessage(message) {
@@ -352,6 +385,14 @@ function createMessage(message) {
   messageDiv.append(thumbnailBox, textBox);
   return messageDiv;
 }
+
+// log out button
+let singOutDiv = document.querySelector(".sign-out");
+singOutDiv.addEventListener("click", (e) => {
+  localStorage.clear();
+  roomSocket.emit("self-signout", { userId: user.id, rooms: roomsData });
+  window.location.href = "/signin.html";
+});
 
 function timeTransform(timestamp) {
   let date = new Date(timestamp);
