@@ -207,6 +207,49 @@ i.sign-out.icon {
   height: 50px;
   background-color: black;
   color: white;
+  position: relative;
+}
+
+.tools {
+  color: #8e8e8e;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  right: 100px;
+  list-style-type: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.tools li {
+  margin: 0px 12px;
+}
+
+.tools li:hover {
+  color: #dcdddc;
+}
+
+.room-search input {
+  border: none;
+  background-color: #292929;
+  caret-color: #dcdddc;
+  border-radius: 5px;
+  padding: 5px 10px;
+  width: 100px;
+  font-size: 1.25rem;
+  color: #dcdddc;
+}
+
+.room-search input:focus {
+  outline: none;
+  transition: 0.5s;
+  width: 250px;
+}
+
+.room-search input:not(:focus) {
+  outline: none;
+  transition: 0.5s;
+  width: 100px;
 }
 
 .channel-name {
@@ -293,15 +336,51 @@ i.sign-out.icon {
   margin: 5px 15px;
   padding: 2px 0px;
   position: relative;
-  /* border: 1px solid white; */
 }
 
-.message-edit {
+.message-options {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  width: 15%;
+  list-style-type: none;
+  font-size: 1.25rem;
+  color: #8e8e8e;
+  opacity: 0;
+}
+
+.message-delete {
+  color: #cd0000;
+}
+
+.message-description:hover .message-options {
+  transition: 0.2s;
+  opacity: 1;
+}
+
+.message-options > * {
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 2px;
+}
+
+.message-options > *:hover {
+  background-color: #292929;
+}
+
+.message-options i::before {
+  margin-left: 2px;
+}
+
+/* .message-edit {
   width: 20px;
   height: 20px;
   color: #8e8e8e;
   cursor: pointer;
-  /* background-color: red; */
+  background-color: red;
   position: absolute;
   bottom: 4px;
   right: 10px;
@@ -313,7 +392,7 @@ i.sign-out.icon {
 
 .message-edit i::before {
   margin-left: 2px;
-}
+} */
 
 .message-box {
   width: 100%;

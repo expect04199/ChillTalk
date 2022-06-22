@@ -136,7 +136,6 @@ msgInput.addEventListener("keypress", (e) => {
     }
     e.target.value = "";
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
-
     // send message to other people
     channelSocket.emit("message", message);
   }
@@ -318,7 +317,7 @@ createChannel.addEventListener("click", (e) => {
   });
 });
 
-// when click mask, enable it
+// when click mask, disable it
 maskDiv.addEventListener("click", (e) => {
   if (e.target.classList.contains("mask")) {
     e.target.innerHTML = "";
@@ -378,9 +377,12 @@ function createMessage(message) {
   ) {
     let messageDiv = document.createElement("div");
     messageDiv.classList.add("message-description");
+    messageDiv.dataset.messageId = message.id;
+    messageDiv.dataset.name = message.name;
     let content = document.createElement("p");
     content.innerHTML = message.description;
     messageDiv.append(content);
+    enableMessageOptions(messageDiv);
     latestMessage.querySelector(".message-text").append(messageDiv);
     return;
   }
@@ -418,9 +420,16 @@ function createMessage(message) {
   // render description
   let description = document.createElement("div");
   description.classList.add("message-description");
+  description.dataset.messageId = message.id;
+  description.dataset.name = message.name;
   let content = document.createElement("p");
   content.innerHTML = message.description;
+  if (message.is_edit) {
+    content.dataset.isEdit = true;
+    content.innerHTML += "<small>(已編輯)<small>";
+  }
   description.append(content);
+  enableMessageOptions(description);
   textBox.append(infoBox, description);
 
   messageDiv.append(thumbnailBox, textBox);
@@ -486,4 +495,65 @@ function readURL(input, preview) {
     };
     reader.readAsDataURL(input.files[0]);
   }
+}
+
+function enableMessageOptions(description) {
+  let optionList = document.createElement("ul");
+  optionList.classList.add("message-options");
+
+  let content = description.querySelector("p");
+
+  let edit = document.createElement("li");
+  edit.classList.add("message-edit");
+  edit.innerHTML = `<i class="pencil alternate icon">`;
+  edit.addEventListener("click", (e) => {
+    content.setAttribute("contentEditable", true);
+    content.focus();
+    let current = content.innerHTML;
+    content.addEventListener("focusout", async (e) => {
+      if (e.target.innerHTML !== current) {
+        let body = {
+          message_id: description.dataset.messageId,
+          type: "text",
+          description: e.target.innerHTML,
+        };
+        console.log("hihi");
+        await fetch("/api/messages/update", {
+          method: "POST",
+          body: JSON.stringify(body),
+          headers: {
+            "content-type": "application/json",
+          },
+        });
+        e.target.innerHTML += "<small>  (已編輯)<small>";
+        e.target.dataset.isEdit = true;
+      }
+      e.target.setAttribute("contentEditable", false);
+    });
+  });
+
+  let pin = document.createElement("li");
+  pin.classList.add("message-pin");
+  pin.innerHTML = `<i class="thumbtack icon">`;
+
+  let reply = document.createElement("li");
+  reply.classList.add("message-reply");
+  reply.innerHTML = `<i class="reply icon">`;
+
+  let unread = document.createElement("li");
+  unread.classList.add("message-unread");
+  unread.innerHTML = `<i class="eraser icon">`;
+
+  let del = document.createElement("li");
+  del.classList.add("message-delete");
+  del.innerHTML = `<i class="trash alternate icon">`;
+
+  let postUserName = description.dataset.name;
+  if (postUserName === user.name) {
+    optionList.append(edit, pin, reply, unread, del);
+  } else {
+    optionList.append(pin, reply, unread);
+  }
+
+  description.append(optionList);
 }

@@ -32,8 +32,14 @@ module.exports = class Channel {
         name: detail.user_name,
         picture: userPic,
       };
-      if (!messageMap[message.id] || messageMap[message.id].time < message.time) {
+      if (!messageMap[message.id]) {
         messageMap[message.id] = message;
+      } else if (messageMap[message.id].time < message.time) {
+        messageMap[message.id].description = message.description;
+        messageMap[message.id].is_edit = true;
+      } else if (messageMap[message.id].time > message.time) {
+        messageMap[message.id].time = message.time;
+        messageMap[message.id].is_edit = true;
       }
     });
     let messages = Object.values(messageMap);
