@@ -12,12 +12,12 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #ebecf0;
+  background: rgb(23, 23, 23);
   overflow: hidden;
 }
 .container {
   border-radius: 10px;
-  box-shadow: -5px -5px 10px #fff, 5px 5px 10px #babebc;
+  box-shadow: -3px -3px 5px #babebc, 3px 3px 5px #babebc;
   position: absolute;
   width: 768px;
   min-height: 480px;
@@ -62,9 +62,9 @@ button {
   box-shadow: inset 1px 1px 2px #babebc, inset -1px -1px 2px #fff;
 }
 .overlay_btn {
-  background-color: #e50914;
+  background-color: black;
   color: #fff;
-  box-shadow: -5px -5px 10px #ff6b3f, 5px 5px 8px #bf4b2b;
+  box-shadow: -3px -3px 5px #babebc, 5px 5px 8px black;
 }
 .sign-in-container {
   position: absolute;
@@ -92,7 +92,7 @@ button {
   width: 50%;
   height: 100%;
   opacity: 0;
-  background-color: #e50914;
+  background-color: black;
   color: #fff;
   transition: all 0.5s;
 }
@@ -106,7 +106,7 @@ button {
   right: 0;
   width: 50%;
   height: 100%;
-  background-color: #e50914;
+  background-color: black;
   color: #fff;
   transition: all 0.5s;
 }

@@ -10,7 +10,7 @@ let user = JSON.parse(localStorage.getItem("info"));
 let roomsData = JSON.parse(localStorage.getItem("rooms"));
 
 window.onload = async () => {
-  // //render room side bar
+  // render room side bar
   let roomPosition = document.querySelector(".room-position");
   roomsData.forEach((room) => {
     let roomDiv = createRoomfn(room);
@@ -65,11 +65,13 @@ window.onload = async () => {
     // user online
     let onlineDiv = document.createElement("div");
     onlineDiv.classList.add("member-user-online");
-    onlineDiv.innerHTML = member.online ? "online" : "offline";
+    onlineDiv.style.backgroundColor = member.online ? "#00EE00" : "#CD0000";
+    let blackCircle = document.createElement("div");
+    blackCircle.classList.add("black-circle");
 
     // append userId on memberDiv
     memberDiv.dataset.id = member.id;
-    memberDiv.append(thumbnailDiv, nameDiv, onlineDiv);
+    memberDiv.append(onlineDiv, blackCircle, thumbnailDiv, nameDiv);
     membersDiv.append(memberDiv);
   });
 
@@ -151,16 +153,33 @@ createRoom.addEventListener("click", (e) => {
   <div class="create-room-box">
     <h2>建立房間</h2>
     <h3>幫你的房間選個圖示及名稱</h3>
-    <input type="file" class="create-room-image" placeholder="上傳房間圖片">
-    <input type="text" class="create-room-name" placeholder="輸入房間名稱">
+    <div class="avatar-upload">
+      <div class="avatar-edit">
+        <input type="file" id="room-image-upload" accept=".png, .jpg, .jpeg" />
+        <label for="room-image-upload"><i class="plus icon"></i></label>
+      </div>
+      <div class="avatar-preview">
+        <div id="room-image-preview"></div>
+      </div>
+    </div>
+    <input type="text" class="create-room-name" placeholder="輸入房間名稱" />
     <button class="create-room-btn">建立房間</button>
-  </div>
-  <div class="join-exist-room">
-    <h3>加入房間</h3>
-    <input type="text" class="join-room-id" placeholder="輸入房間ID" value="">
-    <button class="join-room-btn">加入房間</button>
-  </div>
-</div>`;
+    <p>或 加入房間</p>
+    </div>
+    <div class="join-exist-room">
+      <h2>加入房間</h2>
+      <h3>和朋友們一起聊天吧！</h3>
+      <input type="text" class="join-room-id" placeholder="輸入房間ID" value="" />
+      <button class="join-room-btn">加入房間</button>
+      <p>返回</p>
+    </div>
+  </div>`;
+
+  // upload image
+  let roomImage = document.querySelector("#room-image-upload");
+  roomImage.addEventListener("change", function () {
+    readURL(this, "#room-image-preview");
+  });
   // create new room
   let createRoomName = document.querySelector(".create-room-name");
   let createRoomBtn = document.querySelector(".create-room-btn");
@@ -170,7 +189,7 @@ createRoom.addEventListener("click", (e) => {
     let name = createRoomName.value;
     let userId = user.id;
     let body = new FormData();
-    let imageInput = document.querySelector(".create-room-image");
+    let imageInput = roomImage;
     if (imageInput.files[0]) {
       body.append("picture", imageInput.files[0]);
     }
@@ -185,6 +204,26 @@ createRoom.addEventListener("click", (e) => {
     updateStorage("room", roomData);
     roomSocket.emit("connect-room", [roomData.id]);
     window.location.href = `/room.html?roomId=${roomData.id}`;
+  });
+
+  // when click join room, show join room form
+  let createRoomBox = document.querySelector(".create-room-box");
+  let joinRoomLink = document.querySelector(".create-room-box p");
+
+  let joinRoomBox = document.querySelector(".join-room-box");
+  let joinExistRoom = document.querySelector(".join-exist-room");
+  joinRoomLink.addEventListener("click", () => {
+    createRoomBox.style.animation = "create-room-fadeout 0.1s forwards";
+    joinRoomBox.style.animation = "join-room-box-small 0.3s forwards";
+    joinExistRoom.style.animation = "exist-room-fadein 0.3s forwards";
+  });
+
+  // when click return, show create room form
+  let createRoomLink = document.querySelector(".join-exist-room p");
+  createRoomLink.addEventListener("click", () => {
+    createRoomBox.style.animation = "create-room-fadein 0.3s forwards";
+    joinRoomBox.style.animation = "join-room-box-big 0.3s forwards";
+    joinExistRoom.style.animation = "exist-room-fadeout 0.1s forwards";
   });
 
   // join exist room
@@ -219,24 +258,24 @@ let createChannel = document.querySelector(".channel-create-btn");
 createChannel.addEventListener("click", (e) => {
   e.preventDefault();
   maskDiv.classList.add("enable");
-  maskDiv.innerHTML = `<div class='create-channel-box '>
-  <div class='create-channel-headline'>
-    <h3>建立頻道</h3>
-  </div>
-  <div class='create-text-channel'>
-    <h3>Text</h3>
-    <h4>輸入訊息及文字</h4>
-  </div>
-  <div class='create-voice-channel'>
-    <h3>Voice</h3>
-    <h4>語音通話、視訊通話及畫面交流</h4>
-  </div>
-  <input type='text' class='create-channel-name' placeholder='請輸入頻道名稱'>
-  <div class='create-channel-btns'>
-    <button type='button' class='create-channel-cancel'>取消</button>
-    <button type='button' class='create-channel-btn' data-type="text">建立頻道</button>
-  </div>
-</div>`;
+  maskDiv.innerHTML = `
+  <div class="create-channel-box">
+    <div class="create-channel-headline">
+      <h3>建立頻道</h3>
+    </div>
+    <div class="create-text-channel">
+      <i class="hashtag icon"></i>
+      <h3>Text</h3>
+      <h4>輸入訊息及文字</h4>
+    </div>
+    <div class="create-voice-channel">
+      <i class="volume up icon"></i>
+      <h3>Voice</h3>
+      <h4>語音通話、視訊通話及畫面交流</h4>
+    </div>
+    <input type="text" class="create-channel-name" placeholder="請輸入頻道名稱" />
+    <button type="button" class="create-channel-btn" data-type="text">建立頻道</button>
+  </div>`;
 
   let createText = document.querySelector(".create-text-channel");
   let createVoice = document.querySelector(".create-voice-channel");
@@ -244,9 +283,13 @@ createChannel.addEventListener("click", (e) => {
   let createChannelBtn = document.querySelector(".create-channel-btn");
   let createChannelCancel = document.querySelector(".create-channel-cancel");
   createText.addEventListener("click", (e) => {
+    createText.style.backgroundColor = "rgb(26, 26, 26)";
+    createVoice.style.backgroundColor = "rgb(45, 46, 46)";
     createChannelBtn.dataset.type = "text";
   });
   createVoice.addEventListener("click", (e) => {
+    createVoice.style.backgroundColor = "rgb(26, 26, 26)";
+    createText.style.backgroundColor = "rgb(45, 46, 46)";
     createChannelBtn.dataset.type = "voice";
   });
   createChannelBtn.addEventListener("click", async (e) => {
@@ -273,15 +316,9 @@ createChannel.addEventListener("click", (e) => {
       createChannelfn(channelDetail);
     }
   });
-
-  createChannelCancel.addEventListener("click", (e) => {
-    createChannelInput.value = "";
-    maskDiv.classList.remove("enable");
-    maskDiv.innerHTML = "";
-  });
 });
 
-// when click mask, disable it
+// when click mask, enable it
 maskDiv.addEventListener("click", (e) => {
   if (e.target.classList.contains("mask")) {
     e.target.innerHTML = "";
@@ -299,7 +336,7 @@ roomSocket.on("other-signin", (userId) => {
   let membersDiv = document.querySelectorAll(".member");
   membersDiv.forEach((memberDiv) => {
     if (+memberDiv.dataset.id === +userId) {
-      memberDiv.querySelector(".member-user-online").innerHTML = "online";
+      memberDiv.querySelector(".member-user-online").style.backgroundColor = "#00EE00";
     }
   });
 });
@@ -309,7 +346,7 @@ roomSocket.on("other-signout", (userId) => {
   let membersDiv = document.querySelectorAll(".member");
   membersDiv.forEach((memberDiv) => {
     if (+memberDiv.dataset.id === +userId) {
-      memberDiv.querySelector(".member-user-online").innerHTML = "offline";
+      memberDiv.querySelector(".member-user-online").style.backgroundColor = "#CD0000";
     }
   });
 });
@@ -341,7 +378,9 @@ function createMessage(message) {
   ) {
     let messageDiv = document.createElement("div");
     messageDiv.classList.add("message-description");
-    messageDiv.innerHTML = message.description;
+    let content = document.createElement("p");
+    content.innerHTML = message.description;
+    messageDiv.append(content);
     latestMessage.querySelector(".message-text").append(messageDiv);
     return;
   }
@@ -379,7 +418,9 @@ function createMessage(message) {
   // render description
   let description = document.createElement("div");
   description.classList.add("message-description");
-  description.innerHTML = message.description;
+  let content = document.createElement("p");
+  content.innerHTML = message.description;
+  description.append(content);
   textBox.append(infoBox, description);
 
   messageDiv.append(thumbnailBox, textBox);
@@ -434,5 +475,15 @@ function updateStorage(scope, data) {
     let currentRoom = rooms.find((room) => +room.id === +roomId);
     currentRoom.channel_id = data.id;
     localStorage.setItem("rooms", JSON.stringify(rooms));
+  }
+}
+
+function readURL(input, preview) {
+  if (input.files && input.files[0]) {
+    let reader = new FileReader();
+    reader.onload = function (e) {
+      document.querySelector(preview).style.backgroundImage = "url(" + e.target.result + ")";
+    };
+    reader.readAsDataURL(input.files[0]);
   }
 }

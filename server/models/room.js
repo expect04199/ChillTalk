@@ -1,7 +1,7 @@
 const db = require("../../util/database");
 const Util = require("../../util/util");
 const { CDN_IP } = process.env;
-const PRESET_PICTURE = "doge.png";
+const PRESET_PICTURE = "dogee.png";
 const PRESET_BACKGROUND = "portal-to-another-world-1024×768.jpg";
 
 module.exports = class Room {

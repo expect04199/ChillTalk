@@ -2,7 +2,7 @@ const db = require("../../util/database");
 const bcrypt = require("bcryptjs");
 
 const { CDN_IP } = process.env;
-const PRESET_PICTURE = "doge.png";
+const PRESET_PICTURE = "dogee.png";
 const PRESET_BACKGROUND = "portal-to-another-world-1024×768.jpg";
 const PRESET_INTRODUCTION = "No content";
 
