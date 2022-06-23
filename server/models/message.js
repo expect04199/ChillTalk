@@ -26,6 +26,9 @@ module.exports = class Message {
         channel_id: message.channelId,
         last_update: message.time,
       };
+      if (message.reply) {
+        msg.reply = +message.reply;
+      }
       let result = await db.query(messageSql, msg);
       let insertId = result[0].insertId;
 

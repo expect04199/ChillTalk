@@ -5,7 +5,7 @@ const { CDN_IP } = process.env;
 module.exports = class Channel {
   static async getDetail(channelId) {
     let sql = `
-    SELECT a.id, a.name, a.type, b.id AS message_id, c.type AS message_type, c.description AS message_description, c.time, 
+    SELECT a.id, a.name, a.type, b.id AS message_id, b.reply, c.type AS message_type, c.description AS message_description, c.time, 
     d.id AS user_id, d.name AS user_name,
     e.source AS pic_src, e.type AS pic_type, e.image AS pic_img, e.preset
     FROM channels a
@@ -32,6 +32,9 @@ module.exports = class Channel {
         name: detail.user_name,
         picture: userPic,
       };
+      if (detail.reply) {
+        message.reply = detail.reply;
+      }
       if (!messageMap[message.id]) {
         messageMap[message.id] = message;
       } else if (messageMap[message.id].time < message.time) {

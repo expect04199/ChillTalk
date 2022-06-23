@@ -115,9 +115,8 @@ function enableRooms() {
 }
 
 // enter message
-let msgInput = document.querySelector(".enter-message");
-msgInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter" && e.target.value !== "") {
+document.addEventListener("keypress", (e) => {
+  if (e.key === "Enter" && e.target.value !== "" && e.target.classList.contains("enter-message")) {
     let description = e.target.value;
     let time = Date.now();
     let message = {
@@ -129,6 +128,11 @@ msgInput.addEventListener("keypress", (e) => {
       name: user.name,
       picture: user.picture,
     };
+    let enterReply = document.querySelector(".enter-reply");
+    if (enterReply) {
+      message.reply = enterReply.dataset.replyId;
+      enterReply.remove();
+    }
     let messagesDiv = document.querySelector(".messages");
     let messageDiv = createMessage(message);
     if (messageDiv) {
@@ -393,7 +397,8 @@ function createMessage(message) {
   if (
     latestMessage &&
     message.name === latestMessage.dataset.name &&
-    message.time < +latestMessage.dataset.time + 5000
+    message.time < +latestMessage.dataset.time + 5000 &&
+    !message.reply
   ) {
     let messageDiv = document.createElement("div");
     messageDiv.classList.add("message-description");
@@ -425,6 +430,24 @@ function createMessage(message) {
   // render user text
   let textBox = document.createElement("div");
   textBox.classList.add("message-text");
+
+  // if message reply to some message, add reply div
+  if (message.reply) {
+    let reply = document.querySelector(`.message-description[data-message-id="${message.reply}"]`);
+    let replyName = reply.dataset.name;
+    let replyContent = reply.children[0].innerHTML;
+    let replyPic = reply.parentElement.parentElement.children[0].children[0].style.backgroundImage;
+    textBox.innerHTML += `
+    <div class="reply-to">
+      <div class="reply-thumbnail"></div>
+      <div class="reply-name">${replyName}</div>
+      <div class="reply-description">${replyContent}</div>
+    </div>
+    `;
+    let replyThumbnail = textBox.querySelector(".reply-thumbnail");
+    replyThumbnail.style.backgroundImage = replyPic;
+    thumbnail.classList.add("reply");
+  }
 
   // user info
   let infoBox = document.createElement("div");
@@ -530,7 +553,6 @@ function enableMessageOptions(description) {
   let edit = document.createElement("li");
   edit.classList.add("message-edit");
   edit.innerHTML = `<i class="pencil alternate icon">`;
-  console.log(textMessage);
   textMessage.addEventListener("click", (e) => {
     console.log(e.target);
     if (e.target.classList.contains("pencil")) {
@@ -573,6 +595,23 @@ function enableMessageOptions(description) {
   let reply = document.createElement("li");
   reply.classList.add("message-reply");
   reply.innerHTML = `<i class="reply icon">`;
+  textMessage.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("reply")) {
+      let messageBox = document.querySelector(".message-box");
+      let replyName = description.dataset.name;
+      let messageId = description.dataset.messageId;
+      messageBox.innerHTML += `
+      <div class="enter-reply" data-reply-id="${messageId}">
+        <p>回覆 ${replyName}</p>
+        <div class="reply-cancel">取消</div>
+      </div>
+      `;
+      let cancel = document.querySelector(".reply-cancel");
+      cancel.addEventListener("click", (e) => {
+        e.target.parentElement.remove();
+      });
+    }
+  });
 
   let unread = document.createElement("li");
   unread.classList.add("message-unread");

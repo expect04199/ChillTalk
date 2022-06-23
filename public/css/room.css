@@ -325,7 +325,8 @@ i.sign-out.icon {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background-color: green;
+  background-size: cover;
+  background-position: center;
 }
 
 .message-user-thumbnail.reply {
@@ -379,6 +380,11 @@ i.sign-out.icon {
   opacity: 0;
 }
 
+.message-options i {
+  width: 0;
+  height: 0;
+}
+
 .message-delete {
   color: #cd0000;
 }
@@ -430,6 +436,36 @@ i.sign-out.icon {
   justify-content: center;
   align-items: center;
   margin-bottom: 1rem;
+  position: relative;
+}
+
+.enter-reply {
+  width: 100%;
+  height: 30px;
+  position: absolute;
+  top: -13px;
+  background-color: #282727;
+  font-size: 1.2rem;
+  /* position: relative; */
+}
+
+.message-box p {
+  color: #b2b0b0;
+  position: absolute;
+  top: 3px;
+  left: 88px;
+}
+
+.reply-cancel {
+  color: #b2b0b0;
+  position: absolute;
+  right: 200px;
+  top: 3px;
+  cursor: pointer;
+}
+
+.reply-cancel:hover {
+  color: #dcdddc;
 }
 
 .message-box i {
@@ -442,7 +478,7 @@ i.sign-out.icon {
   font-size: 2.2rem;
   position: absolute;
   left: 30px;
-  bottom: 45px;
+  bottom: 30px;
   cursor: pointer;
 }
 
