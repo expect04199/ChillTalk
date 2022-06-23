@@ -357,6 +357,7 @@ roomSocket.on("other-signout", (userId) => {
 // listen to other people's message
 channelSocket.on("message", (message) => {
   if (message.userId !== user.id) {
+    console.log("hi");
     let messagesDiv = document.querySelector(".messages");
     let messageDiv = createMessage(message);
     if (messageDiv) {
@@ -364,6 +365,7 @@ channelSocket.on("message", (message) => {
     }
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
   } else {
+    console.log("hii");
     let descriptions = document.querySelectorAll(".message-description");
     descriptions.forEach((description) => {
       if (description.dataset.messageId === "undefined") {
@@ -382,6 +384,17 @@ channelSocket.on("update-message", (data) => {
       description.innerHTML += "<small>(已編輯)<small>";
     }
   });
+});
+
+// listen to other people delete message
+channelSocket.on("delete-message", (messageId) => {
+  let description = document.querySelector(`.message-description[data-message-id="${messageId}"]`);
+  let messageDiv = description.parentElement.parentElement;
+  if (messageDiv.querySelectorAll(".message-description").length === 1) {
+    messageDiv.remove();
+  } else {
+    description.remove();
+  }
 });
 
 // disconnect socket when leave page
@@ -510,6 +523,7 @@ function createChannelfn(channel) {
 }
 
 function createRoomfn(room) {
+  console.log(room);
   let roomDiv = document.createElement("div");
   roomDiv.classList.add("room");
   roomDiv.id = room.id;
@@ -635,6 +649,11 @@ function enableMessageOptions(description) {
           "content-type": "application/json",
         },
       });
+      let data = {
+        messageId: description.dataset.messageId,
+        channelId,
+      };
+      channelSocket.emit("delete-message", data);
     }
   });
 

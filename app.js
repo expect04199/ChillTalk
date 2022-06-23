@@ -77,6 +77,10 @@ channelIO.on("connect", (socket) => {
   socket.on("update-message", (data) => {
     socket.to(data.channelId).emit("update-message", data);
   });
+
+  socket.on("delete-message", (data) => {
+    socket.to(data.channelId).emit("delete-message", data.messageId);
+  });
 });
 
 let roomIO = io.of("/room");
