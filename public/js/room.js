@@ -352,12 +352,32 @@ roomSocket.on("other-signout", (userId) => {
 
 // listen to other people's message
 channelSocket.on("message", (message) => {
-  let messagesDiv = document.querySelector(".messages");
-  let messageDiv = createMessage(message);
-  if (messageDiv) {
-    messagesDiv.append(messageDiv);
+  if (message.userId !== user.id) {
+    let messagesDiv = document.querySelector(".messages");
+    let messageDiv = createMessage(message);
+    if (messageDiv) {
+      messagesDiv.append(messageDiv);
+    }
+    messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
+  } else {
+    let descriptions = document.querySelectorAll(".message-description");
+    descriptions.forEach((description) => {
+      if (description.dataset.messageId === "undefined") {
+        description.dataset.messageId = message.id;
+      }
+    });
   }
-  messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
+});
+
+// listen to other people update message
+channelSocket.on("update-message", (data) => {
+  let descriptions = document.querySelectorAll(".message-description");
+  descriptions.forEach((description) => {
+    if (+description.dataset.messageId === +data.id) {
+      description.querySelector("p").innerHTML = data.description;
+      description.innerHTML += "<small>(已編輯)<small>";
+    }
+  });
 });
 
 // disconnect socket when leave page
@@ -382,8 +402,8 @@ function createMessage(message) {
     let content = document.createElement("p");
     content.innerHTML = message.description;
     messageDiv.append(content);
-    enableMessageOptions(messageDiv);
     latestMessage.querySelector(".message-text").append(messageDiv);
+    enableMessageOptions(messageDiv);
     return;
   }
 
@@ -424,15 +444,17 @@ function createMessage(message) {
   description.dataset.name = message.name;
   let content = document.createElement("p");
   content.innerHTML = message.description;
+  description.append(content);
   if (message.is_edit) {
     content.dataset.isEdit = true;
-    content.innerHTML += "<small>(已編輯)<small>";
+    if (description.innerHTML.indexOf("<small>(已編輯)<small>") === -1) {
+      description.innerHTML += "<small>(已編輯)<small>";
+    }
   }
-  description.append(content);
-  enableMessageOptions(description);
   textBox.append(infoBox, description);
-
   messageDiv.append(thumbnailBox, textBox);
+  enableMessageOptions(description);
+
   return messageDiv;
 }
 
@@ -446,7 +468,8 @@ singOutDiv.addEventListener("click", (e) => {
 
 function timeTransform(timestamp) {
   let date = new Date(timestamp);
-  let time = date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + date.getDate();
+  moment.locale("zh-tw");
+  let time = moment(date).fromNow();
   return time;
 }
 
@@ -498,6 +521,7 @@ function readURL(input, preview) {
 }
 
 function enableMessageOptions(description) {
+  let textMessage = description.parentElement;
   let optionList = document.createElement("ul");
   optionList.classList.add("message-options");
 
@@ -506,30 +530,40 @@ function enableMessageOptions(description) {
   let edit = document.createElement("li");
   edit.classList.add("message-edit");
   edit.innerHTML = `<i class="pencil alternate icon">`;
-  edit.addEventListener("click", (e) => {
-    content.setAttribute("contentEditable", true);
-    content.focus();
-    let current = content.innerHTML;
-    content.addEventListener("focusout", async (e) => {
-      if (e.target.innerHTML !== current) {
-        let body = {
-          message_id: description.dataset.messageId,
-          type: "text",
-          description: e.target.innerHTML,
-        };
-        console.log("hihi");
-        await fetch("/api/messages/update", {
-          method: "POST",
-          body: JSON.stringify(body),
-          headers: {
-            "content-type": "application/json",
-          },
-        });
-        e.target.innerHTML += "<small>  (已編輯)<small>";
-        e.target.dataset.isEdit = true;
-      }
-      e.target.setAttribute("contentEditable", false);
-    });
+  console.log(textMessage);
+  textMessage.addEventListener("click", (e) => {
+    console.log(e.target);
+    if (e.target.classList.contains("pencil")) {
+      content.setAttribute("contentEditable", true);
+      content.focus();
+      let current = content.innerHTML;
+      content.addEventListener("focusout", async (e) => {
+        if (e.target.innerHTML !== current) {
+          let body = {
+            message_id: description.dataset.messageId,
+            type: "text",
+            description: e.target.innerHTML,
+          };
+          await fetch("/api/messages/update", {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: {
+              "content-type": "application/json",
+            },
+          });
+          if (e.target.parentElement.innerHTML.indexOf("<small>(已編輯)<small>") === -1) {
+            e.target.parentElement.innerHTML += "<small>(已編輯)<small>";
+          }
+          e.target.dataset.isEdit = true;
+          channelSocket.emit("update-message", {
+            id: +description.dataset.messageId,
+            channelId: channelId,
+            description: e.target.innerHTML,
+          });
+        }
+        e.target.setAttribute("contentEditable", false);
+      });
+    }
   });
 
   let pin = document.createElement("li");
@@ -547,6 +581,23 @@ function enableMessageOptions(description) {
   let del = document.createElement("li");
   del.classList.add("message-delete");
   del.innerHTML = `<i class="trash alternate icon">`;
+  textMessage.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("trash")) {
+      let messageDiv = description.parentElement.parentElement;
+      if (messageDiv.querySelectorAll(".message-description").length === 1) {
+        messageDiv.remove();
+      } else {
+        description.remove();
+      }
+      await fetch("/api/messages/delete", {
+        method: "POST",
+        body: JSON.stringify({ message_id: description.dataset.messageId }),
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+    }
+  });
 
   let postUserName = description.dataset.name;
   if (postUserName === user.name) {

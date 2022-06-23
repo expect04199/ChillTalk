@@ -62,4 +62,15 @@ module.exports = class Message {
       return { error };
     }
   }
+
+  static async delete(id) {
+    try {
+      let sql = "DELETE FROM messages WHERE id = ?";
+      await db.query(sql, id);
+      return true;
+    } catch (error) {
+      console.log(error);
+      return { error };
+    }
+  }
 };

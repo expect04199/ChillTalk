@@ -299,6 +299,7 @@ i.sign-out.icon {
   position: absolute;
   top: 10px;
   left: 30px;
+  background-color: #cd0000;
   background-size: cover;
   border-radius: 50%;
   cursor: pointer;
@@ -307,6 +308,28 @@ i.sign-out.icon {
 .message-text {
   width: calc(100% - 70px);
   height: auto;
+}
+
+.reply-to {
+  color: #dcdddc;
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+}
+
+.reply-to > * {
+  margin: 0px 2px;
+}
+
+.reply-thumbnail {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: green;
+}
+
+.message-user-thumbnail.reply {
+  top: 30px;
 }
 
 .message-info {
@@ -329,6 +352,10 @@ i.sign-out.icon {
   margin: 0;
   font-size: 1.25rem;
   display: flex;
+  color: #dcdddc;
+}
+
+.message-description small {
   color: #dcdddc;
 }
 
