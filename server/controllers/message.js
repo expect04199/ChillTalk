@@ -17,3 +17,33 @@ module.exports.deleteContent = async (req, res) => {
   }
   return res.status(200).json({ message_id: messageId });
 };
+
+module.exports.pinContent = async (req, res) => {
+  const { message_id } = req.body;
+  let result = await Message.pin(message_id);
+  return res.status(200);
+};
+
+module.exports.unpinContent = async (req, res) => {
+  const { message_id } = req.body;
+  let result = await Message.unpin(message_id);
+  return res.status(200);
+};
+
+module.exports.postThumbsUp = async (req, res) => {
+  const { user_id: userId, message_id: messageId } = req.body;
+  let result = await Message.postThumbsUp(userId, messageId);
+  if (result.error) {
+    return res.status(500).json("Can not save thumbs up");
+  }
+  return res.status(200).json(result);
+};
+
+module.exports.deleteThumbsUp = async (req, res) => {
+  const { user_id: userId, message_id: messageId } = req.body;
+  let result = await Message.deleteThumbsUp(userId, messageId);
+  if (result.error) {
+    return res.status(500).json("Can not delelte thumbs up");
+  }
+  return res.status(200).json(result);
+};

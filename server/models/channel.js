@@ -5,15 +5,16 @@ const { CDN_IP } = process.env;
 module.exports = class Channel {
   static async getDetail(channelId) {
     let sql = `
-    SELECT a.id, a.name, a.type, b.id AS message_id, b.reply, c.type AS message_type, c.description AS message_description, c.time, 
+    SELECT a.id, a.name, a.type, b.id AS message_id, b.reply, b.pinned,c.type AS message_type, c.description AS message_description, c.time, 
     d.id AS user_id, d.name AS user_name,
-    e.source AS pic_src, e.type AS pic_type, e.image AS pic_img, e.preset
+    e.source AS pic_src, e.type AS pic_type, e.image AS pic_img, e.preset, JSON_ARRAYAGG(f.user_id) AS thumbs
     FROM channels a
     LEFT JOIN messages b on a.id = b.channel_id
     LEFT JOIN message_contents c on b.id = c.message_id
     LEFT JOIN users d on b.user_id = d.id
     LEFT JOIN pictures e on d.id = e.source_id AND e.source = "user" AND e.type = "picture"
-    WHERE a.id = ?
+    LEFT JOIN likes f on b.id = f.message_id 
+    WHERE a.id = ? GROUP BY b.id
     `;
     let [details] = await db.query(sql, [channelId]);
     let messageMap = {};
@@ -34,6 +35,12 @@ module.exports = class Channel {
       };
       if (detail.reply) {
         message.reply = detail.reply;
+      }
+      if (detail.pinned) {
+        message.pinned = detail.pinned;
+      }
+      if (detail.thumbs[0]) {
+        message.thumbs = detail.thumbs;
       }
       if (!messageMap[message.id]) {
         messageMap[message.id] = message;

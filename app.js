@@ -81,6 +81,22 @@ channelIO.on("connect", (socket) => {
   socket.on("delete-message", (data) => {
     socket.to(data.channelId).emit("delete-message", data.messageId);
   });
+
+  socket.on("pin-message", (data) => {
+    socket.to(data.channelId).emit("pin-message", data.messageId);
+  });
+
+  socket.on("unpin-message", (data) => {
+    socket.to(data.channelId).emit("unpin-message", data.messageId);
+  });
+
+  socket.on("thumbs-up", (data) => {
+    socket.to(data.channelId).emit("thumbs-up", data.messageId);
+  });
+
+  socket.on("not-thumbs-up", (data) => {
+    socket.to(data.channelId).emit("not-thumbs-up", data.messageId);
+  });
 });
 
 let roomIO = io.of("/room");

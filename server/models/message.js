@@ -69,7 +69,57 @@ module.exports = class Message {
   static async delete(id) {
     try {
       let sql = "DELETE FROM messages WHERE id = ?";
+      await db.query(sql, +id);
+      return true;
+    } catch (error) {
+      console.log(error);
+      return { error };
+    }
+  }
+
+  static async pin(id) {
+    try {
+      let sql = `UPDATE messages SET pinned = 1 WHERE id = ?`;
       await db.query(sql, id);
+      return true;
+    } catch (error) {
+      console.log(error);
+      return { error };
+    }
+  }
+
+  static async unpin(id) {
+    try {
+      let sql = `UPDATE messages SET pinned = 0 WHERE id = ?`;
+      await db.query(sql, id);
+      return true;
+    } catch (error) {
+      console.log(error);
+      return { error };
+    }
+  }
+
+  static async postThumbsUp(userId, messageId) {
+    let data = {
+      user_id: userId,
+      message_id: messageId,
+    };
+    let sql = `INSERT INTO likes SET ?`;
+    try {
+      let [result] = await db.query(sql, data);
+      await db.query("COMMIT");
+      return result.insertId;
+    } catch (error) {
+      console.log(error);
+      return { error };
+    }
+  }
+
+  static async deleteThumbsUp(userId, messageId) {
+    let sql = `DELETE FROM likes WHERE user_id = ? AND message_id = ?`;
+    try {
+      let [result] = await db.query(sql, [userId, messageId]);
+      await db.query("COMMIT");
       return true;
     } catch (error) {
       console.log(error);

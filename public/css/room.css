@@ -218,14 +218,34 @@ i.sign-out.icon {
   right: 100px;
   list-style-type: none;
   font-size: 1.5rem;
-  cursor: pointer;
 }
 
 .tools li {
   margin: 0px 12px;
+  position: relative;
 }
 
-.tools li:hover {
+.tools li i:nth-child(1):hover {
+  color: #dcdddc;
+  cursor: pointer;
+}
+
+.pin-messages-box {
+  width: 300px;
+  height: 400px;
+  background-color: rgb(66, 66, 66);
+  position: absolute;
+  z-index: 100;
+  top: 30px;
+  right: 20px;
+  border-radius: 10px;
+}
+
+.pin-box-headline {
+  background-color: #282727;
+  height: 40px;
+  padding-top: 10px;
+  padding-left: 40px;
   color: #dcdddc;
 }
 
@@ -274,6 +294,7 @@ i.sign-out.icon {
   width: 100%;
   margin-top: auto;
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 .message {
@@ -366,6 +387,18 @@ i.sign-out.icon {
   position: relative;
 }
 
+.thumbs-up {
+  display: flex;
+}
+
+.thumbs-up-emoji {
+  padding: 3px 8px;
+  background-color: #3e3e3e;
+  margin: 3px;
+  color: #ffffff;
+  border-radius: 5px;
+}
+
 .message-options {
   display: flex;
   align-items: center;
@@ -376,8 +409,12 @@ i.sign-out.icon {
   width: 15%;
   list-style-type: none;
   font-size: 1.25rem;
+  color: black;
+}
+
+.message-description:hover .message-options {
+  transition: 0.2s;
   color: #8e8e8e;
-  opacity: 0;
 }
 
 .message-options i {
@@ -385,13 +422,17 @@ i.sign-out.icon {
   height: 0;
 }
 
-.message-delete {
+.message-description:hover .message-delete {
+  transition: 0.2s;
   color: #cd0000;
 }
 
-.message-description:hover .message-options {
-  transition: 0.2s;
-  opacity: 1;
+.red {
+  color: red;
+}
+
+.yellow {
+  color: yellow;
 }
 
 .message-options > * {

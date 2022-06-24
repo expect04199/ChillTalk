@@ -129,9 +129,10 @@ document.addEventListener("keypress", (e) => {
       picture: user.picture,
     };
     let enterReply = document.querySelector(".enter-reply");
+
     if (enterReply) {
       message.reply = enterReply.dataset.replyId;
-      enterReply.remove();
+      document.querySelector(".message-box").removeChild(enterReply);
     }
     let messagesDiv = document.querySelector(".messages");
     let messageDiv = createMessage(message);
@@ -284,7 +285,6 @@ createChannel.addEventListener("click", (e) => {
   let createVoice = document.querySelector(".create-voice-channel");
   let createChannelInput = document.querySelector(".create-channel-name");
   let createChannelBtn = document.querySelector(".create-channel-btn");
-  let createChannelCancel = document.querySelector(".create-channel-cancel");
   createText.addEventListener("click", (e) => {
     createText.style.backgroundColor = "rgb(26, 26, 26)";
     createVoice.style.backgroundColor = "rgb(45, 46, 46)";
@@ -357,7 +357,6 @@ roomSocket.on("other-signout", (userId) => {
 // listen to other people's message
 channelSocket.on("message", (message) => {
   if (message.userId !== user.id) {
-    console.log("hi");
     let messagesDiv = document.querySelector(".messages");
     let messageDiv = createMessage(message);
     if (messageDiv) {
@@ -365,7 +364,6 @@ channelSocket.on("message", (message) => {
     }
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
   } else {
-    console.log("hii");
     let descriptions = document.querySelectorAll(".message-description");
     descriptions.forEach((description) => {
       if (description.dataset.messageId === "undefined") {
@@ -381,7 +379,11 @@ channelSocket.on("update-message", (data) => {
   descriptions.forEach((description) => {
     if (+description.dataset.messageId === +data.id) {
       description.querySelector("p").innerHTML = data.description;
-      description.innerHTML += "<small>(已編輯)<small>";
+      if (description.innerHTML.indexOf("(已編輯)") === -1) {
+        let small = document.createElement("small");
+        small.innerHTML = "(已編輯)";
+        description.appendChild(small);
+      }
     }
   });
 });
@@ -394,6 +396,52 @@ channelSocket.on("delete-message", (messageId) => {
     messageDiv.remove();
   } else {
     description.remove();
+  }
+});
+
+// listen to other people pin message
+channelSocket.on("pin-message", (messageId) => {
+  let description = document.querySelector(`.message-description[data-message-id="${messageId}"]`);
+  let pin = description.querySelector(".thumbtack");
+  pin.classList.add("red");
+});
+
+channelSocket.on("unpin-message", (messageId) => {
+  let description = document.querySelector(`.message-description[data-message-id="${messageId}"]`);
+  let pin = description.querySelector(".thumbtack");
+  pin.classList.remove("red");
+});
+
+// listen to thumbs up
+channelSocket.on("thumbs-up", (messageId) => {
+  let description = document.querySelector(`.message-description[data-message-id="${messageId}"]`);
+  let thumbsUpDiv = description.querySelector(".thumbs-up");
+  if (!thumbsUpDiv) {
+    thumbsUpDiv = document.createElement("div");
+    thumbsUpDiv.classList.add("thumbs-up");
+    let thumbsUpEmoji = document.createElement("div");
+    thumbsUpEmoji.classList.add("thumbs-up-emoji");
+    thumbsUpEmoji.innerHTML = `&#128077; 1`;
+    thumbsUpDiv.append(thumbsUpEmoji);
+    description.append(thumbsUpDiv);
+  } else {
+    let thumbsUpEmoji = thumbsUpDiv.querySelector(".thumbs-up-emoji");
+    let count = +thumbsUpEmoji.innerHTML.slice(2);
+    count++;
+    thumbsUpEmoji.innerHTML = `&#128077; ${count}`;
+  }
+});
+
+channelSocket.on("not-thumbs-up", (messageId) => {
+  let description = document.querySelector(`.message-description[data-message-id="${messageId}"]`);
+  let thumbsUpDiv = description.querySelector(".thumbs-up");
+  let thumbsUpEmoji = description.querySelector(".thumbs-up-emoji");
+  let count = +thumbsUpEmoji.innerHTML.slice(2);
+  if (count > 1) {
+    count--;
+    thumbsUpEmoji.innerHTML = `&#128077; ${count}`;
+  } else {
+    thumbsUpDiv.remove();
   }
 });
 
@@ -417,10 +465,32 @@ function createMessage(message) {
     messageDiv.classList.add("message-description");
     messageDiv.dataset.messageId = message.id;
     messageDiv.dataset.name = message.name;
+    messageDiv.dataset.pinned = +message.pinned || 0;
     let content = document.createElement("p");
     content.innerHTML = message.description;
     messageDiv.append(content);
     latestMessage.querySelector(".message-text").append(messageDiv);
+    if (message.is_edit) {
+      content.dataset.isEdit = true;
+      if (messageDiv.innerHTML.indexOf("(已編輯)") === -1) {
+        let small = document.createElement("small");
+        small.innerHTML = "(已編輯)";
+        messageDiv.appendChild(small);
+      }
+    }
+
+    if (message.thumbs) {
+      thumbsUpDiv = document.createElement("div");
+      thumbsUpDiv.classList.add("thumbs-up");
+      let thumbsUpEmoji = document.createElement("div");
+      thumbsUpEmoji.classList.add("thumbs-up-emoji");
+      thumbsUpEmoji.innerHTML = `&#128077; ${message.thumbs.length}`;
+      thumbsUpDiv.append(thumbsUpEmoji);
+      messageDiv.append(thumbsUpDiv);
+      if (message.thumbs.includes(user.id)) {
+        messageDiv.dataset.isLiked = 1;
+      }
+    }
     enableMessageOptions(messageDiv);
     return;
   }
@@ -478,13 +548,28 @@ function createMessage(message) {
   description.classList.add("message-description");
   description.dataset.messageId = message.id;
   description.dataset.name = message.name;
+  description.dataset.pinned = +message.pinned || 0;
   let content = document.createElement("p");
   content.innerHTML = message.description;
   description.append(content);
   if (message.is_edit) {
     content.dataset.isEdit = true;
-    if (description.innerHTML.indexOf("<small>(已編輯)<small>") === -1) {
-      description.innerHTML += "<small>(已編輯)<small>";
+    if (description.innerHTML.indexOf("(已編輯)") === -1) {
+      let small = document.createElement("small");
+      small.innerHTML = "(已編輯)";
+      description.appendChild(small);
+    }
+  }
+  if (message.thumbs) {
+    thumbsUpDiv = document.createElement("div");
+    thumbsUpDiv.classList.add("thumbs-up");
+    let thumbsUpEmoji = document.createElement("div");
+    thumbsUpEmoji.classList.add("thumbs-up-emoji");
+    thumbsUpEmoji.innerHTML = `&#128077; ${message.thumbs.length}`;
+    thumbsUpDiv.append(thumbsUpEmoji);
+    description.append(thumbsUpDiv);
+    if (message.thumbs.includes(user.id)) {
+      description.dataset.isLiked = 1;
     }
   }
   textBox.append(infoBox, description);
@@ -523,7 +608,6 @@ function createChannelfn(channel) {
 }
 
 function createRoomfn(room) {
-  console.log(room);
   let roomDiv = document.createElement("div");
   roomDiv.classList.add("room");
   roomDiv.id = room.id;
@@ -558,59 +642,202 @@ function readURL(input, preview) {
 }
 
 function enableMessageOptions(description) {
-  let textMessage = description.parentElement;
   let optionList = document.createElement("ul");
   optionList.classList.add("message-options");
 
-  let content = description.querySelector("p");
+  let thumbsUp = document.createElement("li");
+  thumbsUp.classList.add("message-thumbs");
+  thumbsUp.innerHTML = `<i class="thumbs up icon"></i>`;
+  if (+description.dataset.isLiked) {
+    thumbsUp.children[0].classList.add("yellow");
+  }
+  thumbsUp.addEventListener("click", showThumbsUp);
 
   let edit = document.createElement("li");
   edit.classList.add("message-edit");
   edit.innerHTML = `<i class="pencil alternate icon">`;
-  textMessage.addEventListener("click", (e) => {
-    console.log(e.target);
-    if (e.target.classList.contains("pencil")) {
-      content.setAttribute("contentEditable", true);
-      content.focus();
-      let current = content.innerHTML;
-      content.addEventListener("focusout", async (e) => {
-        if (e.target.innerHTML !== current) {
-          let body = {
-            message_id: description.dataset.messageId,
-            type: "text",
-            description: e.target.innerHTML,
-          };
-          await fetch("/api/messages/update", {
+  edit.addEventListener("click", editMessage);
+
+  let pin = document.createElement("li");
+  pin.classList.add("message-pin");
+  if (+description.dataset.pinned) {
+    pin.innerHTML = `<i class="thumbtack icon red">`;
+  } else {
+    pin.innerHTML = `<i class="thumbtack icon">`;
+  }
+  pin.addEventListener("click", pinMessage);
+
+  let reply = document.createElement("li");
+  reply.classList.add("message-reply");
+  reply.innerHTML = `<i class="reply icon">`;
+  reply.addEventListener("click", replyMessage);
+
+  let unread = document.createElement("li");
+  unread.classList.add("message-unread");
+  unread.innerHTML = `<i class="eraser icon">`;
+
+  let del = document.createElement("li");
+  del.classList.add("message-delete");
+  del.innerHTML = `<i class="trash alternate icon">`;
+  del.addEventListener("click", deletedescription);
+
+  let postUserName = description.dataset.name;
+  if (postUserName === user.name) {
+    optionList.append(thumbsUp, edit, pin, reply, unread, del);
+  } else {
+    optionList.append(thumbsUp, pin, reply, unread);
+  }
+
+  description.append(optionList);
+
+  async function showThumbsUp(e) {
+    e.stopPropagation();
+    let messageId = description.dataset.messageId;
+    if (e.target.classList.contains("up")) {
+      if (!e.target.classList.contains("yellow")) {
+        e.target.classList.add("yellow");
+        let thumbsUpDiv = description.querySelector(".thumbs-up");
+        let body = {
+          user_id: user.id,
+          message_id: messageId,
+        };
+        await (
+          await fetch("/api/messages/thumbs-up", {
             method: "POST",
             body: JSON.stringify(body),
             headers: {
               "content-type": "application/json",
             },
-          });
-          if (e.target.parentElement.innerHTML.indexOf("<small>(已編輯)<small>") === -1) {
-            e.target.parentElement.innerHTML += "<small>(已編輯)<small>";
-          }
-          e.target.dataset.isEdit = true;
-          channelSocket.emit("update-message", {
-            id: +description.dataset.messageId,
-            channelId: channelId,
-            description: e.target.innerHTML,
-          });
+          })
+        ).json();
+        if (!thumbsUpDiv) {
+          thumbsUpDiv = document.createElement("div");
+          thumbsUpDiv.classList.add("thumbs-up");
+          let thumbsUpEmoji = document.createElement("div");
+          thumbsUpEmoji.classList.add("thumbs-up-emoji");
+          thumbsUpEmoji.innerHTML = `&#128077; 1`;
+          thumbsUpDiv.append(thumbsUpEmoji);
+          description.append(thumbsUpDiv);
+        } else {
+          let thumbsUpEmoji = thumbsUpDiv.querySelector(".thumbs-up-emoji");
+          let count = +thumbsUpEmoji.innerHTML.slice(2);
+          count++;
+          thumbsUpEmoji.innerHTML = `&#128077; ${count}`;
         }
-        e.target.setAttribute("contentEditable", false);
+        channelSocket.emit("thumbs-up", { channelId, messageId });
+      } else {
+        e.target.classList.remove("yellow");
+        let thumbsUpDiv = description.querySelector(".thumbs-up");
+        let body = {
+          user_id: user.id,
+          message_id: description.dataset.messageId,
+        };
+        await (
+          await fetch("/api/messages/thumbs-up", {
+            method: "delete",
+            body: JSON.stringify(body),
+            headers: {
+              "content-type": "application/json",
+            },
+          })
+        ).json();
+        let thumbsUpEmoji = thumbsUpDiv.querySelector(".thumbs-up-emoji");
+        let count = +thumbsUpEmoji.innerHTML.slice(2);
+        if (count > 1) {
+          count--;
+          thumbsUpEmoji.innerHTML = `&#128077; ${count}`;
+        } else {
+          thumbsUpDiv.remove();
+        }
+        channelSocket.emit("not-thumbs-up", { channelId, messageId });
+      }
+    }
+  }
+
+  async function deletedescription(e) {
+    if (e.target.classList.contains("trash")) {
+      e.stopPropagation();
+      let messageDiv = description.parentElement.parentElement;
+
+      if (messageDiv.querySelectorAll(".message-description").length === 1) {
+        messageDiv.remove();
+      } else {
+        description.remove();
+      }
+
+      await fetch("/api/messages/delete", {
+        method: "POST",
+        body: JSON.stringify({ message_id: description.dataset.messageId }),
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+      let data = {
+        messageId: description.dataset.messageId,
+        channelId,
+      };
+      channelSocket.emit("delete-message", data);
+    }
+  }
+
+  let content = description.querySelector("p");
+  let current;
+  async function editMessage(e) {
+    e.stopPropagation();
+    if (content.isContentEditable === true) {
+      return;
+    }
+    content.setAttribute("contentEditable", true);
+    content.focus();
+    content.addEventListener("focusout", editFocusOut);
+
+    current = content.innerHTML;
+  }
+
+  async function editFocusOut(e) {
+    if (e.target.innerHTML === "") {
+      e.target.innerHTML = current;
+      return;
+    }
+    if (e.target.innerHTML !== current) {
+      let body = {
+        message_id: description.dataset.messageId,
+        type: "text",
+        description: e.target.innerHTML,
+      };
+      await fetch("/api/messages/update", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+      e.target.dataset.isEdit = true;
+      channelSocket.emit("update-message", {
+        id: +description.dataset.messageId,
+        channelId: channelId,
+        description: e.target.innerHTML,
       });
     }
-  });
+    e.target.setAttribute("contentEditable", false);
+    e.target.removeEventListener("focusout", editFocusOut);
+    if (
+      e.target.parentElement.innerHTML.indexOf("(已編輯)") === -1 &&
+      e.target.innerHTML !== current
+    ) {
+      let small = document.createElement("small");
+      small.innerHTML = "(已編輯)";
+      e.target.parentElement.appendChild(small);
+    }
+    return;
+  }
 
-  let pin = document.createElement("li");
-  pin.classList.add("message-pin");
-  pin.innerHTML = `<i class="thumbtack icon">`;
-
-  let reply = document.createElement("li");
-  reply.classList.add("message-reply");
-  reply.innerHTML = `<i class="reply icon">`;
-  textMessage.addEventListener("click", async (e) => {
+  async function replyMessage(e) {
+    if (document.querySelector(".enter-reply")) {
+      return;
+    }
     if (e.target.classList.contains("reply")) {
+      e.stopPropagation();
       let messageBox = document.querySelector(".message-box");
       let replyName = description.dataset.name;
       let messageId = description.dataset.messageId;
@@ -625,44 +852,33 @@ function enableMessageOptions(description) {
         e.target.parentElement.remove();
       });
     }
-  });
-
-  let unread = document.createElement("li");
-  unread.classList.add("message-unread");
-  unread.innerHTML = `<i class="eraser icon">`;
-
-  let del = document.createElement("li");
-  del.classList.add("message-delete");
-  del.innerHTML = `<i class="trash alternate icon">`;
-  textMessage.addEventListener("click", async (e) => {
-    if (e.target.classList.contains("trash")) {
-      let messageDiv = description.parentElement.parentElement;
-      if (messageDiv.querySelectorAll(".message-description").length === 1) {
-        messageDiv.remove();
-      } else {
-        description.remove();
-      }
-      await fetch("/api/messages/delete", {
-        method: "POST",
-        body: JSON.stringify({ message_id: description.dataset.messageId }),
-        headers: {
-          "content-type": "application/json",
-        },
-      });
-      let data = {
-        messageId: description.dataset.messageId,
-        channelId,
-      };
-      channelSocket.emit("delete-message", data);
-    }
-  });
-
-  let postUserName = description.dataset.name;
-  if (postUserName === user.name) {
-    optionList.append(edit, pin, reply, unread, del);
-  } else {
-    optionList.append(pin, reply, unread);
   }
 
-  description.append(optionList);
+  async function pinMessage(e) {
+    if (e.target.classList.contains("thumbtack")) {
+      let messageId = description.dataset.messageId;
+      if (e.target.classList.contains("red")) {
+        e.target.classList.remove("red");
+        channelSocket.emit("unpin-message", { messageId, channelId });
+        await fetch("/api/messages/unpin", {
+          method: "POST",
+          body: JSON.stringify({ message_id: messageId }),
+          headers: {
+            "content-type": "application/json",
+          },
+        });
+        console.log("done");
+      } else {
+        e.target.classList.add("red");
+        channelSocket.emit("pin-message", { messageId, channelId });
+        await fetch("/api/messages/pin", {
+          method: "POST",
+          body: JSON.stringify({ message_id: messageId }),
+          headers: {
+            "content-type": "application/json",
+          },
+        });
+      }
+    }
+  }
 }

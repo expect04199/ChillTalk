@@ -51,7 +51,15 @@
         </div>
         <ul class="tools">
           <li class="room-notification"><i class="bell slash icon"></i></li>
-          <li class="room-pin"><i class="thumbtack icon"></i></li>
+          <li class="room-pin">
+            <i class="thumbtack icon"></i>
+            <!-- <div class="pin-messages-box">
+              <div class="pin-box-headline">已釘選的訊息</div>
+              <div class="pin-content-box">
+                <div class="pin-thumbnail"></div>
+              </div>
+            </div> -->
+          </li>
           <li class="room-search"><input type="text" placeholder="搜尋" /></li>
           <li class="messagebox"><i class="envelope open icon"></i></li>
         </ul>
@@ -75,12 +83,17 @@
               <div class="message-description">
                 <p>This is a test.</p>
                 <ul class="message-options">
+                  <li class="message-thumbs-up"><i class="thumbs up icon"></i></li>
                   <li class="message-edit"><i class="pencil alternate icon"></i></li>
                   <li class="message-pin"><i class="thumbtack icon"></i></li>
                   <li class="message-reply"><i class="reply icon"></i></li>
                   <li class="message-unread"><i class="eraser icon"></i></li>
                   <li class="message-delete"><i class="trash alternate icon"></i></li>
                 </ul>
+                <small>(已編輯)</small>
+                <div class="thumbs-up">
+                  <div class="thumbs-up-emoji">&#128077; 10</div>
+                </div>
               </div>
               <div class="message-description">
                 <p>This is a test.</p>
@@ -91,6 +104,9 @@
                   <li class="message-unread"><i class="eraser icon"></i></li>
                   <li class="message-delete"><i class="trash alternate icon"></i></li>
                 </ul>
+                <div class="thumbs-up">
+                  <div class="thumbs-up-emoji">&#128077; 0</div>
+                </div>
               </div>
               <div class="message-description">
                 <p>This is a test.</p>
