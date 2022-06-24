@@ -1,8 +1,8 @@
 const Channel = require("../models/channel");
 
 module.exports.getDetail = async (req, res) => {
-  const { channelId } = req.query;
-  let detail = await Channel.getDetail(channelId);
+  const { channelId, pinned } = req.query;
+  let detail = await Channel.getDetail(channelId, pinned);
   return res.status(200).json(detail);
 };
 

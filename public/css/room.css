@@ -232,21 +232,77 @@ i.sign-out.icon {
 
 .pin-messages-box {
   width: 300px;
-  height: 400px;
+  height: 390px;
   background-color: rgb(66, 66, 66);
   position: absolute;
   z-index: 100;
   top: 30px;
   right: 20px;
-  border-radius: 10px;
+}
+
+.tool-enable {
+  color: #dcdddc;
 }
 
 .pin-box-headline {
   background-color: #282727;
   height: 40px;
   padding-top: 10px;
-  padding-left: 40px;
+  padding-left: 25px;
   color: #dcdddc;
+}
+
+.pin-messages {
+  overflow-y: scroll;
+  height: 350px;
+}
+
+.pin-message-box {
+  width: 100%;
+  min-height: 50px;
+  background-color: #5a5959;
+  border-bottom: 1px solid gray;
+  display: flex;
+  flex-direction: column;
+  color: #dcdddc;
+  position: relative;
+}
+
+.pin-thumbnail {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-position: center;
+  background-size: cover;
+  position: absolute;
+  top: 10px;
+  left: 20px;
+}
+
+.pin-name {
+  font-size: 1rem;
+  color: darkorange;
+  margin-right: 5px;
+}
+
+.pin-time {
+  font-size: 0.4rem;
+  color: #aea0a0;
+}
+
+.pin-info {
+  display: flex;
+  align-items: center;
+  margin-left: 60px;
+  margin-top: 7px;
+}
+
+.pin-description {
+  width: 60%;
+  margin-left: 60px;
+  font-size: 1rem;
+  word-wrap: break-word;
+  word-break: break-all;
 }
 
 .room-search input {
@@ -262,13 +318,13 @@ i.sign-out.icon {
 
 .room-search input:focus {
   outline: none;
-  transition: 0.5s;
+  transition: 0.3s;
   width: 250px;
 }
 
 .room-search input:not(:focus) {
   outline: none;
-  transition: 0.5s;
+  transition: 0.3s;
   width: 100px;
 }
 
@@ -375,6 +431,10 @@ i.sign-out.icon {
   font-size: 1.25rem;
   display: flex;
   color: #dcdddc;
+  width: 70%;
+  word-wrap: break-word;
+  word-break: break-all;
+  overflow: hidden;
 }
 
 .message-description small {

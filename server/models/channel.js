@@ -3,7 +3,7 @@ const db = require("../../util/database");
 const { CDN_IP } = process.env;
 
 module.exports = class Channel {
-  static async getDetail(channelId) {
+  static async getDetail(channelId, pinned) {
     let sql = `
     SELECT a.id, a.name, a.type, b.id AS message_id, b.reply, b.pinned,c.type AS message_type, c.description AS message_description, c.time, 
     d.id AS user_id, d.name AS user_name,
@@ -14,9 +14,18 @@ module.exports = class Channel {
     LEFT JOIN users d on b.user_id = d.id
     LEFT JOIN pictures e on d.id = e.source_id AND e.source = "user" AND e.type = "picture"
     LEFT JOIN likes f on b.id = f.message_id 
-    WHERE a.id = ? GROUP BY b.id
     `;
+
+    if (pinned) {
+      sql += ` WHERE a.id = ? AND b.pinned = 1 GROUP BY b.id `;
+    } else {
+      sql += ` WHERE a.id = ? GROUP BY b.id `;
+    }
+
     let [details] = await db.query(sql, [channelId]);
+    if (!details.length) {
+      return details;
+    }
     let messageMap = {};
     details.forEach((detail) => {
       let userPic = detail.preset

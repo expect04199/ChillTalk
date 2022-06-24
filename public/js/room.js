@@ -334,6 +334,49 @@ if (document.referrer.includes("signin.html")) {
   roomSocket.emit("self-signin", { userId: user.id, rooms: roomsData });
 }
 
+// when click channel pin message, render pin message box
+let pin = document.querySelector(".room-pin");
+pin.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("thumbtack")) {
+    e.target.classList.toggle("tool-enable");
+    let pinDiv = e.target.parentElement;
+    let pinMessagesBox = pinDiv.querySelector(".pin-messages-box");
+    if (!pinMessagesBox) {
+      let data = await (
+        await fetch(`/api/channels/details?channelId=${channelId}&pinned=true`)
+      ).json();
+      let messages = data.messages;
+
+      // create pin messages box
+      pinMessagesBox = document.createElement("div");
+      pinMessagesBox.classList.add("pin-messages-box");
+      pinDiv.append(pinMessagesBox);
+
+      // create pin headline
+      let pinHeadline = document.createElement("div");
+      pinHeadline.classList.add("pin-box-headline");
+      pinHeadline.innerHTML = messages ? "已釘選的訊息" : "目前暫無釘選訊息";
+
+      // create messages
+      let pinMessages = document.createElement("div");
+      pinMessages.classList.add("pin-messages");
+
+      pinMessagesBox.append(pinHeadline, pinMessages);
+
+      if (!messages) {
+        return;
+      }
+      // create message boxes
+      messages.forEach((message) => {
+        let pinMessageBox = createPinMessage(message);
+        pinMessages.append(pinMessageBox);
+      });
+    } else {
+      pinMessagesBox.remove();
+    }
+  }
+});
+
 // when other people signin, update status
 roomSocket.on("other-signin", (userId) => {
   let membersDiv = document.querySelectorAll(".member");
@@ -450,6 +493,14 @@ window.onunload = window.onbeforeunload = () => {
   channelSocket.close();
   roomSocket.close();
 };
+
+// log out button
+let singOutDiv = document.querySelector(".sign-out");
+singOutDiv.addEventListener("click", (e) => {
+  localStorage.clear();
+  roomSocket.emit("self-signout", { userId: user.id, rooms: roomsData });
+  window.location.href = "/signin.html";
+});
 
 function createMessage(message) {
   //if previous message is same name and sent in two minutes, append
@@ -578,14 +629,6 @@ function createMessage(message) {
 
   return messageDiv;
 }
-
-// log out button
-let singOutDiv = document.querySelector(".sign-out");
-singOutDiv.addEventListener("click", (e) => {
-  localStorage.clear();
-  roomSocket.emit("self-signout", { userId: user.id, rooms: roomsData });
-  window.location.href = "/signin.html";
-});
 
 function timeTransform(timestamp) {
   let date = new Date(timestamp);
@@ -881,4 +924,39 @@ function enableMessageOptions(description) {
       }
     }
   }
+}
+
+function createPinMessage(message) {
+  // create message box
+  let pinMessage = document.createElement("div");
+  pinMessage.classList.add("pin-message-box");
+
+  // create thumbnail box
+  let thumbnail = document.createElement("div");
+  thumbnail.classList.add("pin-thumbnail");
+  thumbnail.style.backgroundImage = `url("${message.picture}")`;
+
+  // create info box
+  let info = document.createElement("div");
+  info.classList.add("pin-info");
+
+  // create name
+  let name = document.createElement("div");
+  name.classList.add("pin-name");
+  name.innerHTML = message.name;
+
+  // create time
+  let time = document.createElement("div");
+  time.classList.add("pin-time");
+  time.innerHTML = timeTransform(message.time);
+
+  info.append(name, time);
+
+  // create description
+  let description = document.createElement("div");
+  description.classList.add("pin-description");
+  description.innerHTML = message.description;
+
+  pinMessage.append(thumbnail, info, description);
+  return pinMessage;
 }
