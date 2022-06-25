@@ -84,6 +84,11 @@ module.exports = class Message {
       contraints.push(takeCount, startCount);
     }
     const [result] = await db.query(sql, contraints);
+    let next_paging;
+    if (result.length > PAGESIZE) {
+      next_paging = ++paging;
+      result.pop();
+    }
     const messages = [];
     result.forEach((msg) => {
       const userPic = Util.getImage(
@@ -125,7 +130,7 @@ module.exports = class Message {
       }
       messages.push(message);
     });
-    return messages;
+    return { messages, next_paging };
   }
 
   static async update(id, type, description) {

@@ -6,8 +6,8 @@ module.exports.getMessages = async (req, res) => {
   if (!channelId) {
     return res.status(400).send("Bad Request");
   }
-  let messages = await Message.get(channelId, paging);
-  return res.status(200).json({ messages });
+  let result = await Message.get(channelId, paging);
+  return res.status(200).json(result);
 };
 
 module.exports.updateContent = async (req, res) => {
