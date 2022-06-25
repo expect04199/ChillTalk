@@ -305,6 +305,77 @@ i.sign-out.icon {
   word-break: break-all;
 }
 
+.search-messages-box {
+  width: 300px;
+  height: 390px;
+  background-color: rgb(66, 66, 66);
+  position: absolute;
+  z-index: 100;
+  top: 35px;
+  right: -50px;
+}
+
+.search-box-headline {
+  background-color: #282727;
+  height: 40px;
+  padding-top: 10px;
+  padding-left: 25px;
+  color: #dcdddc;
+}
+
+.search-messages {
+  overflow-y: scroll;
+  height: 350px;
+}
+
+.search-message-box {
+  width: 100%;
+  min-height: 50px;
+  background-color: #5a5959;
+  border-bottom: 1px solid gray;
+  display: flex;
+  flex-direction: column;
+  color: #dcdddc;
+  position: relative;
+}
+
+.search-thumbnail {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-position: center;
+  background-size: cover;
+  position: absolute;
+  top: 10px;
+  left: 20px;
+}
+
+.search-name {
+  font-size: 1rem;
+  color: darkorange;
+  margin-right: 5px;
+}
+
+.search-time {
+  font-size: 0.4rem;
+  color: #aea0a0;
+}
+
+.search-info {
+  display: flex;
+  align-items: center;
+  margin-left: 60px;
+  margin-top: 7px;
+}
+
+.search-description {
+  width: 60%;
+  margin-left: 60px;
+  font-size: 1rem;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
 .room-search input {
   border: none;
   background-color: #292929;
@@ -314,18 +385,51 @@ i.sign-out.icon {
   width: 100px;
   font-size: 1.25rem;
   color: #dcdddc;
+  transition: 0.3s;
 }
 
-.room-search input:focus {
-  outline: none;
-  transition: 0.3s;
+.search-options {
+  position: absolute;
+  top: 40px;
+  right: 0px;
   width: 250px;
+  height: 120px;
+  background-color: #5a5959;
+  z-index: 100;
+  border-radius: 5px;
 }
 
-.room-search input:not(:focus) {
+.search-options ul {
+  height: 100%;
+  list-style-type: none;
+  display: flex;
+  flex-direction: column;
+  font-size: 1.25rem;
+}
+
+.search-options ul li {
+  padding: 8px 10px;
+  margin: 0;
+  color: #dcdddc;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search-options ul li:hover {
+  background-color: #818181;
+  border-radius: 5px;
+}
+
+.search-options ul li p {
+  margin: 0;
+}
+
+.search-options ul li input {
+  position: absolute;
+  right: 10px;
   outline: none;
-  transition: 0.3s;
-  width: 100px;
+  caret-color: #dcdddc;
 }
 
 .channel-name {

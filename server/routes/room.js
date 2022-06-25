@@ -26,4 +26,5 @@ router.post(
   Util.errorCatcher(roomController.postCreateRoom)
 );
 
+router.get("/rooms/search", Util.errorCatcher(roomController.getSearchResult));
 module.exports = router;

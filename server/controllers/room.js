@@ -46,3 +46,15 @@ module.exports.postCreateRoom = async (req, res) => {
   };
   return res.status(200).json(data);
 };
+
+module.exports.getSearchResult = async (req, res) => {
+  const {
+    room_id: roomId,
+    from_user: fromUser,
+    channel_name: channelName,
+    pinned,
+    content,
+  } = req.query;
+  let messages = await Room.search(content, roomId, fromUser, channelName, pinned);
+  return res.status(200).json({ messages });
+};

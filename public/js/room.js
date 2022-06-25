@@ -377,6 +377,107 @@ pin.addEventListener("click", async (e) => {
   }
 });
 
+// when click search box, show search options
+let search = document.querySelector(".room-search input#search");
+search.addEventListener("focusin", expandSearch);
+
+function expandSearch(e) {
+  e.stopPropagation();
+  let searchInput = document.querySelector(".room-search input");
+  searchInput.style.outline = "none";
+  searchInput.style.transition = "width 0.3s";
+  searchInput.style.width = "250px";
+
+  // create search options div
+  let searchOptionsDiv = document.createElement("div");
+  searchOptionsDiv.classList.add("search-options");
+  searchOptionsDiv.innerHTML = `
+    <ul>
+      <li class="from-user-name"><p>從：使用者</p><input type="text" placeholder="輸入名稱"/></li>
+      <li class="in-channel"><p>在：頻道</p><input type="text" placeholder="輸入名稱"/></li>
+      <li class="message-pinned"><p>已釘選</p></li>
+    </ul>
+  `;
+  e.target.parentElement.appendChild(searchOptionsDiv);
+  search = document.querySelector(".room-search input");
+  search.focus();
+
+  // add event listeners
+  let pin = document.querySelector(".message-pinned");
+  pin.style.cursor = "pointer";
+  pin.addEventListener("click", (e) => {
+    pin.querySelector("p").classList.toggle("red");
+  });
+}
+
+document.addEventListener("click", shrinkSearch);
+function shrinkSearch(e) {
+  e.stopPropagation();
+  let roomSearch = document.querySelector(".room-search");
+  if (document.querySelector(".search-messages-box")) {
+    document.querySelector(".search-messages-box").remove();
+  }
+  if (roomSearch.contains(e.target)) {
+    return;
+  }
+  let searchInput = document.querySelector(".room-search input");
+  searchInput.style.transition = "width 0.3s";
+  searchInput.style.width = "100px";
+  searchInput.value = "";
+  if (document.querySelector(".search-options")) {
+    document.querySelector(".search-options").remove();
+  }
+  document.removeEventListener("click", this);
+}
+
+// when enter search params, show result
+document.addEventListener("keypress", async (e) => {
+  let roomSearchInput = document.querySelector(".room-search input");
+  let searchOptions = document.querySelector(".search-options");
+  let fromUserInput = searchOptions.querySelector(".from-user-name input");
+  let inChannelInput = searchOptions.querySelector(".in-channel input");
+  let messagePinned = searchOptions.querySelector(".message-pinned p");
+  if (e.key === "Enter" && roomSearchInput.parentElement.contains(e.target)) {
+    if (document.querySelector(".search-options")) {
+      document.querySelector(".search-options").remove();
+    }
+    let fromUser = fromUserInput.value;
+    let inChannel = inChannelInput.value;
+    let isPinned = messagePinned.classList.contains("red");
+    let content = roomSearchInput.value;
+    let data = await (
+      await fetch(
+        `/api/rooms/search?room_id=${roomId}&from_user=${fromUser}&channel_name=${inChannel}&pinned=${isPinned}&content=${content}`
+      )
+    ).json();
+    let messages = data.messages;
+
+    // create pin messages box
+    let searchMessagesBox = document.createElement("div");
+    searchMessagesBox.classList.add("search-messages-box");
+    roomSearchInput.parentElement.append(searchMessagesBox);
+
+    // create pin headline
+    let searchHeadline = document.createElement("div");
+    searchHeadline.classList.add("search-box-headline");
+    searchHeadline.innerHTML = "搜尋結果";
+
+    // create messages
+    let searchMessages = document.createElement("div");
+    searchMessages.classList.add("search-messages");
+
+    searchMessagesBox.append(searchHeadline, searchMessages);
+    if (!messages) {
+      return;
+    }
+    // create message boxes
+    messages.forEach((message) => {
+      let searchMessageBox = createSearchMessage(message);
+      searchMessages.append(searchMessageBox);
+    });
+  }
+});
+
 // when other people signin, update status
 roomSocket.on("other-signin", (userId) => {
   let membersDiv = document.querySelectorAll(".member");
@@ -959,4 +1060,39 @@ function createPinMessage(message) {
 
   pinMessage.append(thumbnail, info, description);
   return pinMessage;
+}
+
+function createSearchMessage(message) {
+  // create message box
+  let searchMessage = document.createElement("div");
+  searchMessage.classList.add("search-message-box");
+
+  // create thumbnail box
+  let thumbnail = document.createElement("div");
+  thumbnail.classList.add("search-thumbnail");
+  thumbnail.style.backgroundImage = `url("${message.picture}")`;
+
+  // create info box
+  let info = document.createElement("div");
+  info.classList.add("search-info");
+
+  // create name
+  let name = document.createElement("div");
+  name.classList.add("search-name");
+  name.innerHTML = message.name;
+
+  // create time
+  let time = document.createElement("div");
+  time.classList.add("search-time");
+  time.innerHTML = timeTransform(message.time);
+
+  info.append(name, time);
+
+  // create description
+  let description = document.createElement("div");
+  description.classList.add("search-description");
+  description.innerHTML = message.description;
+
+  searchMessage.append(thumbnail, info, description);
+  return searchMessage;
 }

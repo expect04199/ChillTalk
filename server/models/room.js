@@ -141,4 +141,56 @@ module.exports = class Room {
       return { error };
     }
   }
+
+  static async search(content, roomId, fromUser, channelName, pinned) {
+    let sql = `
+    SELECT  a.id, a.channel_id, a.initial_time, b.type, b.description, c.id AS user_id, c.name AS user_name,
+    d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset
+    FROM chilltalk.messages a
+    LEFT JOIN chilltalk.message_contents b ON a.id = b.message_id
+    INNER JOIN (SELECT max(id) id FROM chilltalk.message_contents GROUP BY message_id) b1 ON b.id = b1.id
+    LEFT JOIN chilltalk.users c ON a.user_id = c.id
+    LEFT JOIN chilltalk.pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
+    LEFT JOIN chilltalk.channels e ON a.channel_id = e.id WHERE e.room_id = ? `;
+    let constraints = [roomId];
+
+    if (content) {
+      sql += "AND b.description LIKE ? ";
+      constraints.push(`%${content}%`);
+    }
+
+    if (fromUser) {
+      sql += "AND c.name = ? ";
+      constraints.push(fromUser);
+    }
+
+    if (channelName) {
+      sql += "AND e.name = ? ";
+      constraints.push(channelName);
+    }
+
+    if (pinned === "true") {
+      sql += "AND a.pinned = 1";
+    }
+
+    let [result] = await db.query(sql, constraints);
+    let messages = [];
+    result.forEach((data) => {
+      let userPic = data.preset
+        ? `${CDN_IP}/preset/1/${data.pic_type}/${data.pic_img}`
+        : `${CDN_IP}/${data.pic_src}/${data.user_id}/${data.pic_type}/${data.pic_img}`;
+      let message = {
+        id: data.id,
+        type: data.type,
+        channel_id: data.channel_id,
+        description: data.description,
+        time: data.initial_time,
+        user_id: data.user_id,
+        name: data.user_name,
+        picture: userPic,
+      };
+      messages.push(message);
+    });
+    return messages;
+  }
 };

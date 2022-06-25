@@ -24,7 +24,7 @@ module.exports = class Message {
       let msg = {
         user_id: message.userId,
         channel_id: message.channelId,
-        last_update: message.time,
+        initial_time: message.time,
       };
       if (message.reply) {
         msg.reply = +message.reply;

@@ -20,6 +20,7 @@
       integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
       crossorigin="anonymous"
     ></script>
+    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.7/semantic.min.js"></script>
     <script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script>
     <script
       src="https://cdn.socket.io/4.5.0/socket.io.min.js"
@@ -109,7 +110,47 @@
               </div>
             </div> -->
           </li>
-          <li class="room-search"><input type="text" placeholder="搜尋" /></li>
+          <li class="room-search" id="search">
+            <input type="text" placeholder="搜尋" id="search" />
+            <!-- <div class="search-options">
+              <ul>
+                <li class="from-user-name"><p>從：使用者</p><input type="text"/></li>
+                <li class="in-channel"><p>在：頻道</p><input type="text"/></li>
+                <li class="message-pinned"><p>已釘選</p></li>
+              </ul>
+            </div> -->
+            <!-- <div class="search-messages-box">
+              <div class="search-box-headline">搜尋結果</div>
+              <div class="search-messages">
+                <div class="search-message-box">
+                  <div
+                    class="search-thumbnail"
+                    style="
+                      background-image: url('https://d28ad0xxqchuot.cloudfront.net/preset/1/picture/dogee.png');
+                    "
+                  ></div>
+                  <div class="search-info">
+                    <div class="search-name">Carl</div>
+                    <div class="search-time">6 分鐘前</div>
+                  </div>
+                  <div class="search-description">465</div>
+                </div>
+                <div class="search-message-box">
+                  <div
+                    class="search-thumbnail"
+                    style="
+                      background-image: url('https://d28ad0xxqchuot.cloudfront.net/preset/1/picture/dogee.png');
+                    "
+                  ></div>
+                  <div class="search-info">
+                    <div class="search-name">Carl</div>
+                    <div class="search-time">6 分鐘前</div>
+                  </div>
+                  <div class="search-description">789</div>
+                </div>
+              </div>
+            </div> -->
+          </li>
           <li class="messagebox"><i class="envelope open icon"></i></li>
         </ul>
       </div>

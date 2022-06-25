@@ -7,7 +7,7 @@ module.exports = class Channel {
     let sql = `
     SELECT a.id, a.name, a.type, b.id AS message_id, b.reply, b.pinned,c.type AS message_type, c.description AS message_description, c.time, 
     d.id AS user_id, d.name AS user_name,
-    e.source AS pic_src, e.type AS pic_type, e.image AS pic_img, e.preset, JSON_ARRAYAGG(f.user_id) AS thumbs
+    e.source AS pic_src, e.type AS pic_type, e.image AS pic_img, e.preset, f.user_id AS thumb
     FROM channels a
     LEFT JOIN messages b on a.id = b.channel_id
     LEFT JOIN message_contents c on b.id = c.message_id
@@ -19,7 +19,7 @@ module.exports = class Channel {
     if (pinned) {
       sql += ` WHERE a.id = ? AND b.pinned = 1 GROUP BY b.id `;
     } else {
-      sql += ` WHERE a.id = ? GROUP BY b.id `;
+      sql += ` WHERE a.id = ?`;
     }
 
     let [details] = await db.query(sql, [channelId]);
@@ -48,17 +48,27 @@ module.exports = class Channel {
       if (detail.pinned) {
         message.pinned = detail.pinned;
       }
-      if (detail.thumbs[0]) {
-        message.thumbs = detail.thumbs;
+      if (detail.thumb) {
+        message.thumbs = [detail.thumb];
       }
       if (!messageMap[message.id]) {
         messageMap[message.id] = message;
       } else if (messageMap[message.id].time < message.time) {
         messageMap[message.id].description = message.description;
         messageMap[message.id].is_edit = true;
+        if (message.thumbs) {
+          messageMap[message.id].thumbs.push(message.thumbs[0]);
+        }
       } else if (messageMap[message.id].time > message.time) {
         messageMap[message.id].time = message.time;
         messageMap[message.id].is_edit = true;
+        if (message.thumbs) {
+          messageMap[message.id].thumbs.push(message.thumbs[0]);
+        }
+      } else {
+        if (message.thumbs) {
+          messageMap[message.id].thumbs.push(message.thumbs[0]);
+        }
       }
     });
     let messages = Object.values(messageMap);
