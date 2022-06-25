@@ -129,7 +129,6 @@ module.exports = class User {
           name: room.name,
           picture: roomPicture,
           host_id: room.host_id,
-          alert: true,
         };
         if (room.channel_id) {
           data.channel_id = room.channel_id;

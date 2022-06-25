@@ -2,6 +2,8 @@ const { S3_ACCESS_KEY, S3_SECRET_KEY, TOKEN_SECRET } = process.env;
 const aws = require("aws-sdk");
 const jwt = require("jsonwebtoken");
 
+const { CDN_IP } = process.env;
+
 module.exports = class Util {
   static async imageUpload(files, src, srcId, type) {
     const s3 = new aws.S3({
@@ -41,5 +43,12 @@ module.exports = class Util {
     const user = jwt.verify(accessToken, TOKEN_SECRET);
     req.user = user;
     return;
+  }
+
+  static getImage(preset, src, id, type, img) {
+    let image = preset
+      ? `${CDN_IP}/preset/1/${type}/${img}`
+      : `${CDN_IP}/${src}/${id}/${type}/${img}`;
+    return image;
   }
 };

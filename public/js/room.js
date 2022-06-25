@@ -1,6 +1,6 @@
 const urlParams = new URLSearchParams(window.location.search);
-let roomId = urlParams.get("roomId");
-let channelId = urlParams.get("channelId");
+const roomId = urlParams.get("roomId");
+const channelId = urlParams.get("channelId");
 
 const channelSocket = io.connect("http://10.8.3.7:3000/channel");
 const roomSocket = io.connect("http://10.8.3.7:3000/room");
@@ -75,18 +75,18 @@ window.onload = async () => {
     membersDiv.append(memberDiv);
   });
 
-  // get channel content
+  // render channel-name
+  let channelName = document.querySelector(".channel-name");
+  channelName.innerHTML = channels.find((channel) => (channel.id = channelId)).name;
+  // render messages
   let channel = await (
-    await fetch(`/api/channels/details?channelId=${channelId}`, {
+    await fetch(`/api/messages?channelId=${channelId}&paging=1`, {
       method: "GET",
       headers: {
         "content-type": "application/json",
       },
     })
   ).json();
-  let channelName = document.querySelector(".channel-name");
-  channelName.innerHTML = channel.name || "";
-  // render messages
   let messages = channel.messages;
   let messagesDiv = document.querySelector(".messages");
   messages.forEach((message) => {
@@ -622,7 +622,7 @@ function createMessage(message) {
     content.innerHTML = message.description;
     messageDiv.append(content);
     latestMessage.querySelector(".message-text").append(messageDiv);
-    if (message.is_edit) {
+    if (message.is_edited) {
       content.dataset.isEdit = true;
       if (messageDiv.innerHTML.indexOf("(已編輯)") === -1) {
         let small = document.createElement("small");
@@ -668,19 +668,16 @@ function createMessage(message) {
 
   // if message reply to some message, add reply div
   if (message.reply) {
-    let reply = document.querySelector(`.message-description[data-message-id="${message.reply}"]`);
-    let replyName = reply.dataset.name;
-    let replyContent = reply.children[0].innerHTML;
-    let replyPic = reply.parentElement.parentElement.children[0].children[0].style.backgroundImage;
+    let reply = message.reply;
     textBox.innerHTML += `
     <div class="reply-to">
       <div class="reply-thumbnail"></div>
-      <div class="reply-name">${replyName}</div>
-      <div class="reply-description">${replyContent}</div>
+      <div class="reply-name">${reply.name}</div>
+      <div class="reply-description">${reply.description}</div>
     </div>
     `;
     let replyThumbnail = textBox.querySelector(".reply-thumbnail");
-    replyThumbnail.style.backgroundImage = replyPic;
+    replyThumbnail.style.backgroundImage = reply.picture;
     thumbnail.classList.add("reply");
   }
 
@@ -704,7 +701,7 @@ function createMessage(message) {
   let content = document.createElement("p");
   content.innerHTML = message.description;
   description.append(content);
-  if (message.is_edit) {
+  if (message.is_edited) {
     content.dataset.isEdit = true;
     if (description.innerHTML.indexOf("(已編輯)") === -1) {
       let small = document.createElement("small");

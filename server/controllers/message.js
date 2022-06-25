@@ -1,5 +1,15 @@
 const Message = require("../models/message");
 
+module.exports.getMessages = async (req, res) => {
+  const { channelId } = req.query;
+  const paging = +req.query.paging || 1;
+  if (!channelId) {
+    return res.status(400).send("Bad Request");
+  }
+  let messages = await Message.get(channelId, paging);
+  return res.status(200).json({ messages });
+};
+
 module.exports.updateContent = async (req, res) => {
   const { message_id: messageId, type, description } = req.body;
   let result = await Message.update(messageId, type, description);
