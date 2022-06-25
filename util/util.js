@@ -1,5 +1,6 @@
-const { S3_ACCESS_KEY, S3_SECRET_KEY } = process.env;
+const { S3_ACCESS_KEY, S3_SECRET_KEY, TOKEN_SECRET } = process.env;
 const aws = require("aws-sdk");
+const jwt = require("jsonwebtoken");
 
 module.exports = class Util {
   static async imageUpload(files, src, srcId, type) {
@@ -24,5 +25,21 @@ module.exports = class Util {
     return function (req, res, next) {
       cb(req, res, next).catch(next);
     };
+  }
+
+  static isAuth(req, res, next) {
+    let accessToken = req.get("Authorization");
+    if (!accessToken) {
+      res.status(401).send({ error: "Unauthorized" });
+      return;
+    }
+    accessToken = accessToken.replace("Bearer ", "");
+    if (accessToken == "null") {
+      res.status(401).send({ error: "Unauthorized" });
+      return;
+    }
+    const user = jwt.verify(accessToken, TOKEN_SECRET);
+    req.user = user;
+    return;
   }
 };
