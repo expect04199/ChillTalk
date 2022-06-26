@@ -135,7 +135,8 @@ module.exports = class Message {
 
   static async update(id, type, description) {
     try {
-      let sql = `INSERT INTO message_contents SET ?`;
+      await db.query("START TRANSACTION");
+      let insertSql = `INSERT INTO message_contents SET ?`;
       let time = Date.now();
       let message = {
         message_id: id,
@@ -143,9 +144,14 @@ module.exports = class Message {
         description,
         time,
       };
-      await db.query(sql, message);
+      await db.query(insertSql, message);
+
+      let updateSql = `UPDATE messages SET is_edited = 1 WHERE id = ?`;
+      await db.query(updateSql, [id]);
+      await db.query("COMMIT");
       return true;
     } catch (error) {
+      await db.query("ROLLBACK");
       console.log(error);
       return { error };
     }
@@ -205,6 +211,23 @@ module.exports = class Message {
     try {
       let [result] = await db.query(sql, [userId, messageId]);
       await db.query("COMMIT");
+      return true;
+    } catch (error) {
+      console.log(error);
+      return { error };
+    }
+  }
+
+  static async read(userId, roomId, channelId, messageId) {
+    try {
+      let sql = `INSERT INTO user_read_status SET ?`;
+      let data = {
+        user_id: userId,
+        room_id: roomId,
+        channel_id: channelId,
+        message_id: messageId,
+      };
+      await db.query(sql, data);
       return true;
     } catch (error) {
       console.log(error);

@@ -57,3 +57,15 @@ module.exports.deleteThumbsUp = async (req, res) => {
   }
   return res.status(200).json(result);
 };
+
+module.exports.postReadStatus = async (req, res) => {
+  const {
+    user_id: userId,
+    room_id: roomId,
+    channel_id: channelId,
+    message_id: messageId,
+  } = req.body;
+  let result = await Message.read(userId, roomId, channelId, messageId);
+  if (result.error) return res.status(400).send("Bad Request");
+  return res.status(200).send("success");
+};

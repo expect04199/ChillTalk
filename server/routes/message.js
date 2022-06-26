@@ -14,6 +14,8 @@ router.post("/messages/thumbs-up", Util.errorCatcher(msgController.postThumbsUp)
 
 router.delete("/messages/thumbs-up", Util.errorCatcher(msgController.deleteThumbsUp));
 
-router.get("/messages", Util.errorCatcher(msgController.getMessages));
+router.post("/messages/read", Util.errorCatcher(msgController.postReadStatus));
+
+router.get("/messages", Util.isAuth, Util.errorCatcher(msgController.getMessages));
 
 module.exports = router;

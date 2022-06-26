@@ -12,6 +12,7 @@ module.exports.postSignin = async (req, res) => {
   }
   let rooms = await User.findRooms(info.id);
   const access_token = jwt.sign(info, TOKEN_SECRET, { expiresIn: "24h" });
+  console.log(access_token);
   let data = {
     access_token,
     access_expired: 86400,

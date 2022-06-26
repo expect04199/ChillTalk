@@ -6,8 +6,9 @@ const channelSocket = io.connect("http://localhost:3000/channel");
 const roomSocket = io.connect("http://localhost:3000/room");
 
 // user info
-let user = JSON.parse(localStorage.getItem("info"));
-let roomsData = JSON.parse(localStorage.getItem("rooms"));
+const user = JSON.parse(localStorage.getItem("info"));
+const roomsData = JSON.parse(localStorage.getItem("rooms"));
+const token = localStorage.getItem("token");
 
 window.onload = async () => {
   // render room side bar
@@ -85,6 +86,7 @@ window.onload = async () => {
       method: "GET",
       headers: {
         "content-type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     })
   ).json();
@@ -112,6 +114,7 @@ window.onload = async () => {
           method: "GET",
           headers: {
             "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         })
       ).json();

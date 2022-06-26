@@ -41,8 +41,8 @@ module.exports = class Util {
       return;
     }
     const user = jwt.verify(accessToken, TOKEN_SECRET);
-    req.user = user;
-    return;
+    req.user = user.info;
+    return next();
   }
 
   static getImage(preset, src, id, type, img) {
