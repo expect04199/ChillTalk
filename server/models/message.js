@@ -108,6 +108,7 @@ module.exports = class Message {
         name: msg.user_name,
         picture: userPic,
         is_edited: msg.is_edited,
+        pinned: msg.pinned,
       };
       if (msg.thumbs[0]) {
         message.thumbs = msg.thumbs;

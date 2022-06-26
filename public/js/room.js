@@ -180,9 +180,13 @@ document.addEventListener("keypress", (e) => {
       picture: user.picture,
     };
     let enterReply = document.querySelector(".enter-reply");
-
     if (enterReply) {
-      message.reply = enterReply.dataset.replyId;
+      message.reply = {
+        id: enterReply.dataset.replyId,
+        name: enterReply.dataset.replyName,
+        description: enterReply.dataset.replyDescription,
+        picture: enterReply.dataset.replyPicture,
+      };
       document.querySelector(".message-box").removeChild(enterReply);
     }
     let messagesDiv = document.querySelector(".messages");
@@ -193,6 +197,9 @@ document.addEventListener("keypress", (e) => {
     e.target.value = "";
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
     // send message to other people
+    if (message.reply) {
+      message.reply = message.reply.id;
+    }
     channelSocket.emit("message", message);
   }
 });
@@ -1031,11 +1038,15 @@ function enableMessageOptions(description) {
     }
     if (e.target.classList.contains("reply")) {
       e.stopPropagation();
+      const messageDiv = description.parentElement.parentElement;
       let messageBox = document.querySelector(".message-box");
       let replyName = description.dataset.name;
       let messageId = description.dataset.messageId;
+      let replyDesc = description.querySelector("p").textContent;
+      let replyPic = messageDiv.querySelector(".message-user-thumbnail").style.backgroundImage;
+      replyPic = replyPic.slice(5, replyPic.length - 2);
       messageBox.innerHTML += `
-      <div class="enter-reply" data-reply-id="${messageId}">
+      <div class="enter-reply" data-reply-id="${messageId}" data-reply-name="${replyName}" data-reply-description="${replyDesc}" data-reply-picture="${replyPic}">
         <p>回覆 ${replyName}</p>
         <div class="reply-cancel">取消</div>
       </div>
@@ -1060,7 +1071,6 @@ function enableMessageOptions(description) {
             "content-type": "application/json",
           },
         });
-        console.log("done");
       } else {
         e.target.classList.add("red");
         channelSocket.emit("pin-message", { messageId, channelId });
