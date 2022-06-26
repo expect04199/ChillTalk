@@ -1,6 +1,6 @@
 const db = require("../../util/database");
 const Util = require("../../util/util");
-const PAGESIZE = 2;
+const PAGESIZE = 30;
 
 module.exports = class Message {
   constructor(userId, channelId, time, isDeleted, reply, pinned, description) {
@@ -80,7 +80,7 @@ module.exports = class Message {
     if (paging) {
       const takeCount = PAGESIZE + 1;
       const startCount = (paging - 1) * PAGESIZE;
-      sql += "LIMIT ? OFFSET ?";
+      sql += "ORDER BY a.id DESC LIMIT ? OFFSET ?";
       contraints.push(takeCount, startCount);
     }
     const [result] = await db.query(sql, contraints);
@@ -118,7 +118,7 @@ module.exports = class Message {
           msg.reply_pic_src,
           msg.reply_user_id,
           msg.reply_pic_type,
-          msg.reply_img
+          msg.reply_pic_img
         );
         let reply = {
           id: msg.reply_id,

@@ -2,8 +2,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
 
-const channelSocket = io.connect("http://10.8.3.7:3000/channel");
-const roomSocket = io.connect("http://10.8.3.7:3000/room");
+const channelSocket = io.connect("http://localhost:3000/channel");
+const roomSocket = io.connect("http://localhost:3000/room");
 
 // user info
 let user = JSON.parse(localStorage.getItem("info"));
@@ -77,9 +77,10 @@ window.onload = async () => {
 
   // render channel-name
   let channelName = document.querySelector(".channel-name");
+  let messagePage = 1;
   channelName.innerHTML = channels.find((channel) => (channel.id = channelId)).name;
   // render messages
-  let channel = await (
+  let result = await (
     await fetch(`/api/messages?channelId=${channelId}&paging=1`, {
       method: "GET",
       headers: {
@@ -87,14 +88,61 @@ window.onload = async () => {
       },
     })
   ).json();
-  let messages = channel.messages;
+  messagePage = result.next_paging;
+  let messages = result.messages.reverse();
   let messagesDiv = document.querySelector(".messages");
   messages.forEach((message) => {
-    let messageDiv = createMessage(message);
+    let messageDiv = createMessage(message, document);
     if (messageDiv) {
       messagesDiv.append(messageDiv);
     }
   });
+
+  // when user scroll messages to top, show previous content
+  let options = {
+    rootMargin: "0px",
+    threshold: 1,
+  };
+
+  const callback = async (entries, observer) => {
+    for (let entry of entries) {
+      if (!entry.isIntersecting || !messagePage) return;
+      let result = await (
+        await fetch(`/api/messages?channelId=${channelId}&paging=${messagePage}`, {
+          method: "GET",
+          headers: {
+            "content-type": "application/json",
+          },
+        })
+      ).json();
+      messagePage = result.next_paging;
+
+      const messages = result.messages.reverse();
+      let tempDiv = document.createElement("div");
+
+      messages.forEach((message) => {
+        let messageDiv = createMessage(message, tempDiv);
+        if (messageDiv) {
+          tempDiv.appendChild(messageDiv);
+        }
+      });
+      let length = tempDiv.childNodes.length;
+      for (let i = length; i > 0; i--) {
+        messagesDiv.prepend(tempDiv.childNodes[i - 1]);
+      }
+
+      observer.unobserve(entry.target);
+      if (entry.target === messagesDiv.querySelectorAll(".message-description")[0]) return;
+    }
+
+    observer.observe(messagesDiv.querySelectorAll(".message-description")[0]);
+  };
+
+  const observer = new IntersectionObserver(callback, options);
+  const firstDesc = document.querySelectorAll(".message-description");
+  if (firstDesc[0]) {
+    observer.observe(firstDesc[0]);
+  }
   messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
 };
 
@@ -135,7 +183,7 @@ document.addEventListener("keypress", (e) => {
       document.querySelector(".message-box").removeChild(enterReply);
     }
     let messagesDiv = document.querySelector(".messages");
-    let messageDiv = createMessage(message);
+    let messageDiv = createMessage(message, document);
     if (messageDiv) {
       messagesDiv.append(messageDiv);
     }
@@ -433,11 +481,11 @@ function shrinkSearch(e) {
 // when enter search params, show result
 document.addEventListener("keypress", async (e) => {
   let roomSearchInput = document.querySelector(".room-search input");
-  let searchOptions = document.querySelector(".search-options");
-  let fromUserInput = searchOptions.querySelector(".from-user-name input");
-  let inChannelInput = searchOptions.querySelector(".in-channel input");
-  let messagePinned = searchOptions.querySelector(".message-pinned p");
   if (e.key === "Enter" && roomSearchInput.parentElement.contains(e.target)) {
+    let searchOptions = document.querySelector(".search-options");
+    let fromUserInput = searchOptions.querySelector(".from-user-name input");
+    let inChannelInput = searchOptions.querySelector(".in-channel input");
+    let messagePinned = searchOptions.querySelector(".message-pinned p");
     if (document.querySelector(".search-options")) {
       document.querySelector(".search-options").remove();
     }
@@ -502,7 +550,7 @@ roomSocket.on("other-signout", (userId) => {
 channelSocket.on("message", (message) => {
   if (message.userId !== user.id) {
     let messagesDiv = document.querySelector(".messages");
-    let messageDiv = createMessage(message);
+    let messageDiv = createMessage(message, scope);
     if (messageDiv) {
       messagesDiv.append(messageDiv);
     }
@@ -603,9 +651,9 @@ singOutDiv.addEventListener("click", (e) => {
   window.location.href = "/signin.html";
 });
 
-function createMessage(message) {
+function createMessage(message, scope) {
   //if previous message is same name and sent in two minutes, append
-  let latestMessage = document.querySelectorAll(".message");
+  let latestMessage = scope.querySelectorAll(".message");
   latestMessage = latestMessage ? latestMessage[latestMessage.length - 1] : null;
   if (
     latestMessage &&
@@ -643,6 +691,7 @@ function createMessage(message) {
         messageDiv.dataset.isLiked = 1;
       }
     }
+
     enableMessageOptions(messageDiv);
     return;
   }
@@ -677,7 +726,7 @@ function createMessage(message) {
     </div>
     `;
     let replyThumbnail = textBox.querySelector(".reply-thumbnail");
-    replyThumbnail.style.backgroundImage = reply.picture;
+    replyThumbnail.style.backgroundImage = `url("${reply.picture}")`;
     thumbnail.classList.add("reply");
   }
 
