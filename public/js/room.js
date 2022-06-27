@@ -83,6 +83,7 @@ window.onload = async () => {
   let channelName = document.querySelector(".channel-name");
   let nextPage;
   let prevPage;
+  let readSession;
   channelName.innerHTML = channels.find((channel) => (channel.id = channelId)).name;
   // render messages
   let result = await (
@@ -96,13 +97,12 @@ window.onload = async () => {
   ).json();
   nextPage = result.next_paging;
   prevPage = result.prev_paging;
+  readSession = result.read_session || null;
   let messages = result.messages;
   let messagesDiv = document.querySelector(".messages");
-  messages.forEach((message) => {
-    let messageDiv = createMessage(message, document);
-    if (messageDiv) {
-      messagesDiv.append(messageDiv);
-    }
+  let sessions = createSession(messages);
+  sessions.forEach((session) => {
+    messagesDiv.append(session);
   });
 
   // when user scroll messages to top, show oldest content
@@ -125,17 +125,10 @@ window.onload = async () => {
       ).json();
       nextPage = result.next_paging;
       const messages = result.messages;
-      let tempDiv = document.createElement("div");
-      messages.forEach((message) => {
-        let messageDiv = createMessage(message, tempDiv);
-        if (messageDiv) {
-          tempDiv.appendChild(messageDiv);
-        }
+      let sessions = createSession(messages);
+      sessions.reverse().forEach((session) => {
+        messagesDiv.prepend(session);
       });
-      let length = tempDiv.childNodes.length;
-      for (let i = length; i > 0; i--) {
-        messagesDiv.prepend(tempDiv.childNodes[i - 1]);
-      }
 
       observer.unobserve(entry.target);
       if (entry.target === messagesDiv.querySelectorAll(".message-description")[0]) return;
@@ -170,29 +163,10 @@ window.onload = async () => {
       ).json();
       prevPage = result.prev_paging;
       const messages = result.messages;
-      let tempDiv = document.createElement("div");
-      // messages.forEach((message) => {
-      //   let messageDiv = createMessage(message, tempDiv);
-      //   if (messageDiv) {
-      //     tempDiv.appendChild(messageDiv);
-      //   }
-      // });
-
-      for (let message of messages) {
-        let messageDiv = createMessage(message, tempDiv);
-        if (messageDiv) {
-          tempDiv.appendChild(messageDiv);
-          if (message.id === 40) {
-            console.log(messageDiv);
-            console.log(tempDiv);
-          }
-        }
-      }
-
-      let length = tempDiv.children.length;
-      for (let i = 0; i < length; i++) {
-        messagesDiv.append(tempDiv.children[i]);
-      }
+      let sessions = createSession(messages);
+      sessions.forEach((session) => {
+        messagesDiv.append(session);
+      });
 
       observer.unobserve(entry.target);
       let descs = messagesDiv.querySelectorAll(".message-description");
@@ -201,12 +175,20 @@ window.onload = async () => {
     let descs = messagesDiv.querySelectorAll(".message-description");
     observer.observe(descs[descs.length - 1]);
   };
-  // messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
 
   const prevObserver = new IntersectionObserver(prevCallback, prevOptions);
   const lastDesc = document.querySelectorAll(".message-description");
   if (lastDesc[lastDesc.length - 1] && prevPage) {
     prevObserver.observe(lastDesc[lastDesc.length - 1]);
+  }
+
+  if (readSession) {
+    let div = document.querySelector(`.message[data-session='${readSession}']`);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
+    div.scrollIntoView({ behavior: "smooth", block: "center" });
+    div.style.borderTop = "1px solid red";
+  } else {
+    messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
   }
 
   // let div = document.querySelector(".message-description[data-message-id='130']");
@@ -1240,4 +1222,127 @@ function createSearchMessage(message) {
 
   searchMessage.append(thumbnail, info, description);
   return searchMessage;
+}
+
+function createSession(messages) {
+  const result = [];
+  messages.forEach((message) => {
+    let sessionHead = result.find((r) => +r.dataset.session === +message.session);
+    if (sessionHead) {
+      let descDiv = document.createElement("div");
+      descDiv.classList.add("message-description");
+      descDiv.dataset.messageId = message.id;
+      descDiv.dataset.name = message.name;
+      descDiv.dataset.pinned = +message.pinned || 0;
+      let content = document.createElement("p");
+      content.innerHTML = message.description;
+      descDiv.append(content);
+      sessionHead.querySelector(".message-text").append(descDiv);
+      if (message.is_edited) {
+        content.dataset.isEdit = true;
+        if (descDiv.innerHTML.indexOf("(已編輯)") === -1) {
+          let small = document.createElement("small");
+          small.innerHTML = "(已編輯)";
+          descDiv.appendChild(small);
+        }
+      }
+
+      if (message.thumbs) {
+        thumbsUpDiv = document.createElement("div");
+        thumbsUpDiv.classList.add("thumbs-up");
+        let thumbsUpEmoji = document.createElement("div");
+        thumbsUpEmoji.classList.add("thumbs-up-emoji");
+        thumbsUpEmoji.innerHTML = `&#128077; ${message.thumbs.length}`;
+        thumbsUpDiv.append(thumbsUpEmoji);
+        descDiv.append(thumbsUpDiv);
+        if (message.thumbs.includes(user.id)) {
+          descDiv.dataset.isLiked = 1;
+        }
+      }
+
+      enableMessageOptions(descDiv);
+      return;
+    }
+    let messageDiv = document.createElement("div");
+    messageDiv.classList.add("message");
+    messageDiv.dataset.name = message.name;
+    messageDiv.dataset.time = message.time;
+    messageDiv.dataset.session = message.session;
+
+    // render user thumbnail
+    let thumbnailBox = document.createElement("div");
+    thumbnailBox.classList.add("message-thumbnail-box");
+    let thumbnail = document.createElement("div");
+    thumbnail.classList.add("message-user-thumbnail");
+    thumbnail.style.backgroundImage = message.picture
+      ? `url('${message.picture}')`
+      : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
+    thumbnailBox.append(thumbnail);
+
+    // render user text
+    let textBox = document.createElement("div");
+    textBox.classList.add("message-text");
+
+    // if message reply to some message, add reply div
+    if (message.reply) {
+      let reply = message.reply;
+      textBox.innerHTML += `
+      <div class="reply-to">
+        <div class="reply-thumbnail"></div>
+        <div class="reply-name">${reply.name}</div>
+        <div class="reply-description">${reply.description}</div>
+      </div>
+      `;
+      let replyThumbnail = textBox.querySelector(".reply-thumbnail");
+      replyThumbnail.style.backgroundImage = `url("${reply.picture}")`;
+      thumbnail.classList.add("reply");
+    }
+
+    // user info
+    let infoBox = document.createElement("div");
+    infoBox.classList.add("message-info");
+    let name = document.createElement("div");
+    name.classList.add("message-name");
+    name.innerHTML = message.name;
+    let time = document.createElement("div");
+    time.classList.add("message-time");
+    time.innerHTML = timeTransform(message.time);
+    infoBox.append(name, time);
+
+    // render description
+    let description = document.createElement("div");
+    description.classList.add("message-description");
+    description.dataset.messageId = message.id || -1;
+    description.dataset.name = message.name;
+    description.dataset.pinned = +message.pinned || 0;
+    let content = document.createElement("p");
+    content.innerHTML = message.description;
+    description.append(content);
+    if (message.is_edited) {
+      content.dataset.isEdit = true;
+      if (description.innerHTML.indexOf("(已編輯)") === -1) {
+        let small = document.createElement("small");
+        small.innerHTML = "(已編輯)";
+        description.appendChild(small);
+      }
+    }
+    if (message.thumbs) {
+      thumbsUpDiv = document.createElement("div");
+      thumbsUpDiv.classList.add("thumbs-up");
+      let thumbsUpEmoji = document.createElement("div");
+      thumbsUpEmoji.classList.add("thumbs-up-emoji");
+      thumbsUpEmoji.innerHTML = `&#128077; ${message.thumbs.length}`;
+      thumbsUpDiv.append(thumbsUpEmoji);
+      description.append(thumbsUpDiv);
+      if (message.thumbs.includes(user.id)) {
+        description.dataset.isLiked = 1;
+      }
+    }
+    textBox.append(infoBox, description);
+    messageDiv.append(thumbnailBox, textBox);
+    enableMessageOptions(description);
+
+    result.push(messageDiv);
+  });
+  return result;
 }

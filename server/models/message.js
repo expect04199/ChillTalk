@@ -1,6 +1,6 @@
 const db = require("../../util/database");
 const Util = require("../../util/util");
-const PAGESIZE = 20;
+const PAGESIZE = 5;
 
 module.exports = class Message {
   constructor(userId, channelId, time, isDeleted, reply, pinned, description) {
@@ -28,6 +28,23 @@ module.exports = class Message {
         channel_id: message.channelId,
         initial_time: message.time,
       };
+      let sessionSql = `
+      SELECT a.id, a.user_id, a.initial_time, a.session FROM messages a
+      INNER JOIN (
+        SELECT MAX(session) session FROM messages
+      ) b ON a.session = b.session WHERE a.channel_id = ?
+      `;
+      let [sessions] = await db.query(sessionSql, [message.channelId]);
+      if (sessions.length === 0) {
+        msg.session = 1;
+      } else if (
+        msg.initial_time < sessions[0].initial_time + 3000 &&
+        msg.user_id === sessions[0].user_id
+      ) {
+        msg.session = sessions[0].session;
+      } else {
+        msg.session = sessions[0].session + 1;
+      }
       if (message.reply) {
         msg.reply = +message.reply;
       }
@@ -60,7 +77,7 @@ module.exports = class Message {
     LEFT JOIN chilltalk.users c ON a.user_id = c.id
     LEFT JOIN chilltalk.pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
     LEFT JOIN chilltalk.likes e ON a.id = e.message_id
-    left JOIN (
+    LEFT JOIN (
       SELECT f.id reply_id, f.user_id reply_user_id, g.description reply_description, h.name reply_name,
       i.source reply_pic_src, i.type reply_pic_type, i.image reply_pic_img, i.preset reply_preset
       FROM chilltalk.messages f
@@ -70,56 +87,74 @@ module.exports = class Message {
       LEFT JOIN chilltalk.pictures i ON h.id = i.source_id AND i.source = "user" AND i.type = "picture"
     ) as r 
     ON a.reply = r.reply_id 
+    INNER JOIN (
+      SELECT session FROM chilltalk.messages WHERE channel_id = 1 GROUP BY session ORDER BY session DESC LIMIT ? OFFSET ?
+    ) z ON a.session = z.session
     WHERE 1=1 `;
-    const contraints = [];
-    if (channelId) {
-      sql += "AND a.channel_id = ? ";
-      contraints.push(channelId);
-    }
-    sql += "GROUP BY a.id ";
+    const constraints = [];
     let takeCount;
     let startCount;
+    let readSql = `
+    SELECT b.session 
+    FROM user_read_status a
+    INNER JOIN messages b ON a.message_id = b.id
+    WHERE a.channel_id = ? AND a.user_id = ?
+    `;
+    let readId;
     if (userId) {
-      let readSql = "SELECT message_id FROM user_read_status WHERE channel_id = ? AND user_id = ?";
       const [read] = await db.query(readSql, [channelId, userId]);
-      const readId = read[0].message_id;
-      if (readId) {
-        let orderSql = `
-        SELECT b.ranks FROM 
-        (
-        SELECT a.id, RANK() OVER (ORDER BY a.id DESC) ranks
-        FROM chilltalk.messages a WHERE a.channel_id = ?
-        ) b WHERE b.id = ?
+      readId = read.length ? read[0].session : undefined;
+    }
+
+    if (userId && readId) {
+      let orderSql = `
+          SELECT b.ranks FROM 
+          (
+            SELECT a.session, RANK() OVER (ORDER BY a.session DESC) ranks
+            FROM chilltalk.messages a WHERE a.channel_id = ? GROUP BY a.session
+          ) b WHERE b.session = ?
         `;
-        const [result] = await db.query(orderSql, [channelId, readId]);
-        let order = result[0].ranks;
-        paging = Math.ceil(order / PAGESIZE);
-        takeCount = PAGESIZE * 3 + 1;
-        startCount = paging < 2 ? 0 : (paging - 2) * PAGESIZE;
-      }
+      console.log(userId, readId);
+      const [result] = await db.query(orderSql, [channelId, readId]);
+      let order = result[0].ranks;
+      paging = Math.ceil(order / PAGESIZE);
+      takeCount = PAGESIZE * 3 + 1;
+
+      startCount = paging < 2 ? 0 : (paging - 2) * PAGESIZE;
     } else {
       takeCount = PAGESIZE + 1;
       startCount = (paging - 1) * PAGESIZE;
     }
-    sql += "ORDER BY a.id DESC LIMIT ? OFFSET ?";
-    contraints.push(takeCount, startCount);
-    let [result] = await db.query(sql, contraints);
-    result = result.reverse();
 
+    constraints.push(takeCount, startCount);
+
+    if (channelId) {
+      sql += "AND a.channel_id = ? ";
+      constraints.push(channelId);
+    }
+    sql += "GROUP BY a.id ORDER BY a.id DESC ";
+    let [result] = await db.query(sql, constraints);
+    result = result.reverse();
+    let resultSessions = [];
+    result.forEach((r) => {
+      if (!resultSessions.includes(r.session)) {
+        resultSessions.push(r.session);
+      }
+    });
     let next_paging;
     let prev_paging;
-    if (userId) {
-      if (result.length > PAGESIZE * 3) {
+    if (userId && readId) {
+      if (resultSessions.length > PAGESIZE * 3) {
         next_paging = paging === 1 ? paging + 3 : paging + 2;
-        result.shift();
+        result = result.filter((r) => r.session > result[0].session);
       }
       if (paging > 2) {
         prev_paging = paging - 2;
       }
     } else {
-      if (result.length > PAGESIZE) {
+      if (resultSessions.length > PAGESIZE) {
         next_paging = paging + 1;
-        result.shift();
+        result = result.filter((r) => r.session > result[0].session);
       }
       if (paging !== 1) {
         prev_paging = paging - 1;
@@ -146,6 +181,7 @@ module.exports = class Message {
         picture: userPic,
         is_edited: msg.is_edited,
         pinned: msg.pinned,
+        session: msg.session,
       };
       if (msg.thumbs[0]) {
         message.thumbs = msg.thumbs;
@@ -168,7 +204,7 @@ module.exports = class Message {
       }
       messages.push(message);
     });
-    return { messages, next_paging, prev_paging };
+    return { read_session: readId, messages, next_paging, prev_paging };
   }
 
   static async update(id, type, description) {

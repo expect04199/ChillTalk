@@ -235,7 +235,7 @@ i.sign-out.icon {
   height: 390px;
   background-color: rgb(66, 66, 66);
   position: absolute;
-  z-index: 100;
+  z-index: 105;
   top: 30px;
   right: 20px;
 }
@@ -430,6 +430,77 @@ i.sign-out.icon {
   right: 10px;
   outline: none;
   caret-color: #dcdddc;
+}
+
+.mail-messages-box {
+  width: 300px;
+  height: 390px;
+  background-color: rgb(66, 66, 66);
+  position: absolute;
+  z-index: 100;
+  top: 30px;
+  right: 20px;
+}
+
+.mail-box-headline {
+  background-color: #282727;
+  height: 40px;
+  padding-top: 10px;
+  padding-left: 25px;
+  color: #dcdddc;
+}
+
+.mail-messages {
+  overflow-y: scroll;
+  height: 350px;
+}
+
+.mail-message-box {
+  width: 100%;
+  min-height: 50px;
+  background-color: #5a5959;
+  border-bottom: 1px solid gray;
+  display: flex;
+  flex-direction: column;
+  color: #dcdddc;
+  position: relative;
+}
+
+.mail-thumbnail {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-position: center;
+  background-size: cover;
+  position: absolute;
+  top: 10px;
+  left: 20px;
+}
+
+.mail-name {
+  font-size: 1rem;
+  color: darkorange;
+  margin-right: 5px;
+}
+
+.mail-time {
+  font-size: 0.4rem;
+  color: #aea0a0;
+}
+
+.mail-info {
+  display: flex;
+  align-items: center;
+  margin-left: 60px;
+  margin-top: 7px;
+}
+
+.mail-description {
+  width: 60%;
+  margin-left: 60px;
+  font-size: 1rem;
+  word-wrap: break-word;
+  word-break: break-all;
 }
 
 .channel-name {
