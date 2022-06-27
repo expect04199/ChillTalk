@@ -1,12 +1,12 @@
 const Message = require("../models/message");
 
 module.exports.getMessages = async (req, res) => {
-  const { channelId } = req.query;
+  const { channelId, userId: userId } = req.query;
   const paging = +req.query.paging || 1;
   if (!channelId) {
     return res.status(400).send("Bad Request");
   }
-  let result = await Message.get(channelId, paging);
+  let result = await Message.get(+channelId, paging, +userId);
   return res.status(200).json(result);
 };
 
@@ -65,7 +65,7 @@ module.exports.postReadStatus = async (req, res) => {
     channel_id: channelId,
     message_id: messageId,
   } = req.body;
-  let result = await Message.read(userId, roomId, channelId, messageId);
+  let result = await Message.read(userId, roomId, channelId, +messageId);
   if (result.error) return res.status(400).send("Bad Request");
   return res.status(200).send("success");
 };

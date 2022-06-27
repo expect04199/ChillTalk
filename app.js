@@ -73,7 +73,7 @@ channelIO.on("connect", (socket) => {
   });
 
   socket.on("message", async (message) => {
-    console.log(message);
+    // console.log(message);
     let id = await Message.save(message);
     message.id = id;
     channelIO.to(message.channelId).emit("message", message);

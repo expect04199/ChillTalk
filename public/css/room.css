@@ -455,6 +455,7 @@ i.sign-out.icon {
   margin-top: auto;
   overflow-y: scroll;
   overflow-x: hidden;
+  position: relative;
 }
 
 .message {

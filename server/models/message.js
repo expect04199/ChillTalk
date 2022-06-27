@@ -1,6 +1,6 @@
 const db = require("../../util/database");
 const Util = require("../../util/util");
-const PAGESIZE = 30;
+const PAGESIZE = 20;
 
 module.exports = class Message {
   constructor(userId, channelId, time, isDeleted, reply, pinned, description) {
@@ -50,7 +50,7 @@ module.exports = class Message {
     }
   }
 
-  static async get(channelId, paging = 1) {
+  static async get(channelId, paging = 1, userId) {
     let sql = `
     SELECT a.*, b.type, b.description, c.name user_name,
     d.source pic_src, d.type pic_type, d.image pic_img, d.preset, JSON_ARRAYAGG(e.user_id) thumbs, r.*
@@ -77,18 +77,55 @@ module.exports = class Message {
       contraints.push(channelId);
     }
     sql += "GROUP BY a.id ";
-    if (paging) {
-      const takeCount = PAGESIZE + 1;
-      const startCount = (paging - 1) * PAGESIZE;
-      sql += "ORDER BY a.id DESC LIMIT ? OFFSET ?";
-      contraints.push(takeCount, startCount);
+    let takeCount;
+    let startCount;
+    if (userId) {
+      let readSql = "SELECT message_id FROM user_read_status WHERE channel_id = ? AND user_id = ?";
+      const [read] = await db.query(readSql, [channelId, userId]);
+      const readId = read[0].message_id;
+      if (readId) {
+        let orderSql = `
+        SELECT b.ranks FROM 
+        (
+        SELECT a.id, RANK() OVER (ORDER BY a.id DESC) ranks
+        FROM chilltalk.messages a WHERE a.channel_id = ?
+        ) b WHERE b.id = ?
+        `;
+        const [result] = await db.query(orderSql, [channelId, readId]);
+        let order = result[0].ranks;
+        paging = Math.ceil(order / PAGESIZE);
+        takeCount = PAGESIZE * 3 + 1;
+        startCount = paging < 2 ? 0 : (paging - 2) * PAGESIZE;
+      }
+    } else {
+      takeCount = PAGESIZE + 1;
+      startCount = (paging - 1) * PAGESIZE;
     }
-    const [result] = await db.query(sql, contraints);
+    sql += "ORDER BY a.id DESC LIMIT ? OFFSET ?";
+    contraints.push(takeCount, startCount);
+    let [result] = await db.query(sql, contraints);
+    result = result.reverse();
+
     let next_paging;
-    if (result.length > PAGESIZE) {
-      next_paging = ++paging;
-      result.pop();
+    let prev_paging;
+    if (userId) {
+      if (result.length > PAGESIZE * 3) {
+        next_paging = paging === 1 ? paging + 3 : paging + 2;
+        result.shift();
+      }
+      if (paging > 2) {
+        prev_paging = paging - 2;
+      }
+    } else {
+      if (result.length > PAGESIZE) {
+        next_paging = paging + 1;
+        result.shift();
+      }
+      if (paging !== 1) {
+        prev_paging = paging - 1;
+      }
     }
+
     const messages = [];
     result.forEach((msg) => {
       const userPic = Util.getImage(
@@ -131,7 +168,7 @@ module.exports = class Message {
       }
       messages.push(message);
     });
-    return { messages, next_paging };
+    return { messages, next_paging, prev_paging };
   }
 
   static async update(id, type, description) {
@@ -221,17 +258,38 @@ module.exports = class Message {
 
   static async read(userId, roomId, channelId, messageId) {
     try {
-      let sql = `INSERT INTO user_read_status SET ?`;
+      await db.query("START TRANSACTION");
+
       let data = {
         user_id: userId,
         room_id: roomId,
         channel_id: channelId,
         message_id: messageId,
       };
-      await db.query(sql, data);
+      if (messageId === -1) {
+        let [result] = await db.query("SELECT MAX(id) id FROM messages WHERE channel_id = ?", [
+          channelId,
+        ]);
+        if (result.length === 0) {
+          await db.query("COMMIT");
+          return;
+        }
+        data.message_id = result[0].id;
+      }
+      let recordSql = `SELECT * FROM user_read_status WHERE user_id = ? AND room_id = ? AND channel_id = ?`;
+      let [record] = await db.query(recordSql, [userId, roomId, channelId]);
+      if (record.length === 0) {
+        let sql = `INSERT INTO user_read_status SET ?`;
+        await db.query(sql, data);
+      } else {
+        let sql = `UPDATE user_read_status SET message_id = ? WHERE user_id = ? AND room_id = ? AND channel_id = ?`;
+        await db.query(sql, [data.message_id, userId, roomId, channelId]);
+      }
+      await db.query("COMMIT");
       return true;
     } catch (error) {
       console.log(error);
+      await db.query("ROLLBACK");
       return { error };
     }
   }

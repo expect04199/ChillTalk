@@ -34,13 +34,16 @@ window.onload = async () => {
   roomNameDiv.innerHTML = room.name;
 
   // render channels
+
   let channels = room.channels;
   let channelsDiv = document.querySelector(".channels");
+
   channels.forEach((channel) => {
     let channelDiv = document.createElement("div");
     channelDiv.classList.add("channel");
     channelDiv.innerHTML = channel.name;
     channelDiv.dataset.channelId = channel.id;
+
     channelDiv.addEventListener("click", () => {
       window.location.href = `/room.html?roomId=${roomId}&channelId=${channel.id}`;
     });
@@ -57,8 +60,8 @@ window.onload = async () => {
     let thumbnailDiv = document.createElement("div");
     thumbnailDiv.classList.add("member-user-thumbnail");
     thumbnailDiv.style.backgroundImage = member.picture
-      ? `url('${member.picture}')`
-      : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
+      ? `url("${member.picture}")`
+      : `url("https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png")`;
     // user name
     let nameDiv = document.createElement("div");
     nameDiv.classList.add("member-user-name");
@@ -78,11 +81,12 @@ window.onload = async () => {
 
   // render channel-name
   let channelName = document.querySelector(".channel-name");
-  let messagePage = 1;
+  let nextPage;
+  let prevPage;
   channelName.innerHTML = channels.find((channel) => (channel.id = channelId)).name;
   // render messages
   let result = await (
-    await fetch(`/api/messages?channelId=${channelId}&paging=1`, {
+    await fetch(`/api/messages?channelId=${channelId}&userId=${user.id}`, {
       method: "GET",
       headers: {
         "content-type": "application/json",
@@ -90,8 +94,9 @@ window.onload = async () => {
       },
     })
   ).json();
-  messagePage = result.next_paging;
-  let messages = result.messages.reverse();
+  nextPage = result.next_paging;
+  prevPage = result.prev_paging;
+  let messages = result.messages;
   let messagesDiv = document.querySelector(".messages");
   messages.forEach((message) => {
     let messageDiv = createMessage(message, document);
@@ -100,17 +105,17 @@ window.onload = async () => {
     }
   });
 
-  // when user scroll messages to top, show previous content
-  let options = {
+  // when user scroll messages to top, show oldest content
+  let nextOptions = {
     rootMargin: "0px",
     threshold: 1,
   };
 
-  const callback = async (entries, observer) => {
+  const nextCallback = async (entries, observer) => {
     for (let entry of entries) {
-      if (!entry.isIntersecting || !messagePage) return;
+      if (!entry.isIntersecting || !nextPage) return;
       let result = await (
-        await fetch(`/api/messages?channelId=${channelId}&paging=${messagePage}`, {
+        await fetch(`/api/messages?channelId=${channelId}&paging=${nextPage}`, {
           method: "GET",
           headers: {
             "content-type": "application/json",
@@ -118,11 +123,9 @@ window.onload = async () => {
           },
         })
       ).json();
-      messagePage = result.next_paging;
-
-      const messages = result.messages.reverse();
+      nextPage = result.next_paging;
+      const messages = result.messages;
       let tempDiv = document.createElement("div");
-
       messages.forEach((message) => {
         let messageDiv = createMessage(message, tempDiv);
         if (messageDiv) {
@@ -141,12 +144,75 @@ window.onload = async () => {
     observer.observe(messagesDiv.querySelectorAll(".message-description")[0]);
   };
 
-  const observer = new IntersectionObserver(callback, options);
+  const nextObserver = new IntersectionObserver(nextCallback, nextOptions);
   const firstDesc = document.querySelectorAll(".message-description");
-  if (firstDesc[0]) {
-    observer.observe(firstDesc[0]);
+  if (firstDesc[0] && nextPage) {
+    nextObserver.observe(firstDesc[0]);
   }
-  messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
+
+  // when user scroll messages to bottom, show latest content
+  let prevOptions = {
+    rootMargin: "0px",
+    threshold: 1,
+  };
+
+  const prevCallback = async (entries, observer) => {
+    for (let entry of entries) {
+      if (!entry.isIntersecting || !prevPage) return;
+      let result = await (
+        await fetch(`/api/messages?channelId=${channelId}&paging=${prevPage}`, {
+          method: "GET",
+          headers: {
+            "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+      ).json();
+      prevPage = result.prev_paging;
+      const messages = result.messages;
+      let tempDiv = document.createElement("div");
+      // messages.forEach((message) => {
+      //   let messageDiv = createMessage(message, tempDiv);
+      //   if (messageDiv) {
+      //     tempDiv.appendChild(messageDiv);
+      //   }
+      // });
+
+      for (let message of messages) {
+        let messageDiv = createMessage(message, tempDiv);
+        if (messageDiv) {
+          tempDiv.appendChild(messageDiv);
+          if (message.id === 40) {
+            console.log(messageDiv);
+            console.log(tempDiv);
+          }
+        }
+      }
+
+      let length = tempDiv.children.length;
+      for (let i = 0; i < length; i++) {
+        messagesDiv.append(tempDiv.children[i]);
+      }
+
+      observer.unobserve(entry.target);
+      let descs = messagesDiv.querySelectorAll(".message-description");
+      if (entry.target === descs[descs.length - 1]) return;
+    }
+    let descs = messagesDiv.querySelectorAll(".message-description");
+    observer.observe(descs[descs.length - 1]);
+  };
+  // messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
+
+  const prevObserver = new IntersectionObserver(prevCallback, prevOptions);
+  const lastDesc = document.querySelectorAll(".message-description");
+  if (lastDesc[lastDesc.length - 1] && prevPage) {
+    prevObserver.observe(lastDesc[lastDesc.length - 1]);
+  }
+
+  // let div = document.querySelector(".message-description[data-message-id='130']");
+
+  // let x = div.offsetParent.offsetTop + div.offsetTop;
+  // div.scrollIntoView({ behavior: "smooth", block: "center" });
 };
 
 // room link
@@ -195,12 +261,13 @@ document.addEventListener("keypress", (e) => {
       messagesDiv.append(messageDiv);
     }
     e.target.value = "";
-    messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
+
     // send message to other people
     if (message.reply) {
       message.reply = message.reply.id;
     }
     channelSocket.emit("message", message);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
   }
 });
 
@@ -560,7 +627,7 @@ roomSocket.on("other-signout", (userId) => {
 channelSocket.on("message", (message) => {
   if (message.userId !== user.id) {
     let messagesDiv = document.querySelector(".messages");
-    let messageDiv = createMessage(message, scope);
+    let messageDiv = createMessage(message, document);
     if (messageDiv) {
       messagesDiv.append(messageDiv);
     }
@@ -648,10 +715,30 @@ channelSocket.on("not-thumbs-up", (messageId) => {
 });
 
 // disconnect socket when leave page
-window.onunload = window.onbeforeunload = () => {
+window.addEventListener("beforeunload", async () => {
   channelSocket.close();
   roomSocket.close();
-};
+  let descriptions = document.querySelectorAll(".message-description");
+  if (!descriptions) return;
+  let latestId = descriptions[descriptions.length - 1].dataset.messageId;
+  currentId = latestId;
+  let body = {
+    user_id: user.id,
+    room_id: roomId,
+    channel_id: channelId,
+    message_id: latestId,
+  };
+
+  // await fetch("/api/messages/read", {
+  //   method: "POST",
+  //   body: JSON.stringify(body),
+  //   headers: {
+  //     "content-type": "application/json",
+  //     Authorization: `Bearer ${token}`,
+  //   },
+  //   keepalive: true,
+  // });
+});
 
 // log out button
 let singOutDiv = document.querySelector(".sign-out");
@@ -668,24 +755,24 @@ function createMessage(message, scope) {
   if (
     latestMessage &&
     message.name === latestMessage.dataset.name &&
-    message.time < +latestMessage.dataset.time + 5000 &&
+    message.time < +latestMessage.dataset.time + 3000 &&
     !message.reply
   ) {
-    let messageDiv = document.createElement("div");
-    messageDiv.classList.add("message-description");
-    messageDiv.dataset.messageId = message.id;
-    messageDiv.dataset.name = message.name;
-    messageDiv.dataset.pinned = +message.pinned || 0;
+    let descDiv = document.createElement("div");
+    descDiv.classList.add("message-description");
+    descDiv.dataset.messageId = message.id;
+    descDiv.dataset.name = message.name;
+    descDiv.dataset.pinned = +message.pinned || 0;
     let content = document.createElement("p");
     content.innerHTML = message.description;
-    messageDiv.append(content);
-    latestMessage.querySelector(".message-text").append(messageDiv);
+    descDiv.append(content);
+    latestMessage.querySelector(".message-text").append(descDiv);
     if (message.is_edited) {
       content.dataset.isEdit = true;
-      if (messageDiv.innerHTML.indexOf("(已編輯)") === -1) {
+      if (descDiv.innerHTML.indexOf("(已編輯)") === -1) {
         let small = document.createElement("small");
         small.innerHTML = "(已編輯)";
-        messageDiv.appendChild(small);
+        descDiv.appendChild(small);
       }
     }
 
@@ -696,16 +783,15 @@ function createMessage(message, scope) {
       thumbsUpEmoji.classList.add("thumbs-up-emoji");
       thumbsUpEmoji.innerHTML = `&#128077; ${message.thumbs.length}`;
       thumbsUpDiv.append(thumbsUpEmoji);
-      messageDiv.append(thumbsUpDiv);
+      descDiv.append(thumbsUpDiv);
       if (message.thumbs.includes(user.id)) {
-        messageDiv.dataset.isLiked = 1;
+        descDiv.dataset.isLiked = 1;
       }
     }
 
-    enableMessageOptions(messageDiv);
+    enableMessageOptions(descDiv);
     return;
   }
-
   let messageDiv = document.createElement("div");
   messageDiv.classList.add("message");
   messageDiv.dataset.name = message.name;
@@ -754,7 +840,7 @@ function createMessage(message, scope) {
   // render description
   let description = document.createElement("div");
   description.classList.add("message-description");
-  description.dataset.messageId = message.id;
+  description.dataset.messageId = message.id || -1;
   description.dataset.name = message.name;
   description.dataset.pinned = +message.pinned || 0;
   let content = document.createElement("p");
