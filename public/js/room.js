@@ -19,7 +19,7 @@ window.onload = async () => {
   });
   enableRooms();
   if (!roomId) return;
-  let room = await (
+  let roomInfo = await (
     await fetch(`/api/rooms/details?roomId=${roomId}&userId=${user.id}`, {
       method: "GET",
       headers: {
@@ -31,11 +31,10 @@ window.onload = async () => {
   roomSocket.emit("connect-room", roomsData);
   // render room name
   let roomNameDiv = document.querySelector(".room-name p");
-  roomNameDiv.innerHTML = room.name;
+  roomNameDiv.innerHTML = roomInfo.name;
 
   // render channels
-
-  let channels = room.channels;
+  let channels = roomInfo.channels;
   let channelsDiv = document.querySelector(".channels");
 
   channels.forEach((channel) => {
@@ -43,15 +42,14 @@ window.onload = async () => {
     channelDiv.classList.add("channel");
     channelDiv.innerHTML = channel.name;
     channelDiv.dataset.channelId = channel.id;
-
-    channelDiv.addEventListener("click", () => {
-      window.location.href = `/room.html?roomId=${roomId}&channelId=${channel.id}`;
+    channelDiv.addEventListener("click", (e) => {
+      window.location.href = `/room.html?roomId=${roomId}&channelId=${e.target.dataset.channelId}`;
     });
     channelsDiv.append(channelDiv);
   });
 
   // render members
-  let members = room.members;
+  let members = roomInfo.members;
   let membersDiv = document.querySelector(".members");
   members.forEach((member) => {
     let memberDiv = document.createElement("div");
@@ -81,10 +79,11 @@ window.onload = async () => {
 
   // render channel-name
   let channelName = document.querySelector(".channel-name");
+
   let nextPage;
   let prevPage;
   let readSession;
-  channelName.innerHTML = channels.find((channel) => (channel.id = channelId)).name;
+  channelName.innerHTML = channels.find((channel) => +channel.id === +channelId).name;
   // render messages
   let result = await (
     await fetch(`/api/messages?channelId=${channelId}&userId=${user.id}`, {
@@ -186,15 +185,12 @@ window.onload = async () => {
     let div = document.querySelector(`.message[data-session='${readSession}']`);
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
     div.scrollIntoView({ behavior: "smooth", block: "center" });
-    div.style.borderTop = "1px solid red";
+    if (div.nextSibling) {
+      div.style.borderTop = "1px solid red";
+    }
   } else {
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
   }
-
-  // let div = document.querySelector(".message-description[data-message-id='130']");
-
-  // let x = div.offsetParent.offsetTop + div.offsetTop;
-  // div.scrollIntoView({ behavior: "smooth", block: "center" });
 };
 
 // room link
@@ -490,6 +486,7 @@ search.addEventListener("focusin", expandSearch);
 
 function expandSearch(e) {
   e.stopPropagation();
+  if (document.querySelector(".search-options")) return;
   let searchInput = document.querySelector(".room-search input");
   searchInput.style.outline = "none";
   searchInput.style.transition = "width 0.3s";
@@ -584,6 +581,135 @@ document.addEventListener("keypress", async (e) => {
     });
   }
 });
+
+// when click mail icon, show message box
+let mail = document.querySelector(".mailbox");
+mail.addEventListener("click", showMailBox);
+
+async function showMailBox(e) {
+  if (e.target.classList.contains("envelope")) {
+    e.stopPropagation();
+    e.target.classList.toggle("tool-enable");
+    let mailMessagesBox = mail.querySelector(".mail-messages-box");
+    if (!mailMessagesBox) {
+      mailMessagesBox = document.createElement("div");
+      mailMessagesBox.classList.add("mail-messages-box");
+
+      let mailBoxHeadline = document.createElement("div");
+      mailBoxHeadline.classList.add("mail-box-headline");
+      mailBoxHeadline.innerHTML = "收件匣";
+
+      let mailMessages = document.createElement("div");
+      mailMessages.classList.add("mail-messages");
+      mailMessagesBox.append(mailBoxHeadline, mailMessages);
+      mail.append(mailMessagesBox);
+      let nextPage = false;
+      let result = await (
+        await fetch(`/api/messages/mail`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+      ).json();
+
+      nextPage = result.next_paging;
+      let messages = result.messages;
+      if (messages.length !== 0) {
+        let roomName = messages[0].room_name;
+        let channelName = messages[0].channel_name;
+        let roomPic = messages[0].room_picture;
+
+        let mailChannel = document.createElement("div");
+        mailChannel.classList.add("mail-channel");
+
+        let mailChannelInfo = document.createElement("div");
+        mailChannelInfo.classList.add("mail-channel-info");
+        let roomThumbnail = document.createElement("div");
+        roomThumbnail.classList.add("mail-room-thumbnail");
+        roomThumbnail.style.backgroundImage = `url("${roomPic}"`;
+        let mailChannelName = document.createElement("div");
+        mailChannelName.classList.add("mail-channel-name");
+        mailChannelName.innerHTML = channelName;
+        let mailRoomName = document.createElement("div");
+        mailRoomName.classList.add("mail-room-name");
+        mailRoomName.innerHTML = roomName;
+
+        mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
+        mailChannel.append(mailChannelInfo);
+
+        messages.forEach((message) => {
+          let messageBox = createMail(message);
+          mailChannel.append(messageBox);
+        });
+        mailMessages.append(mailChannel);
+      }
+
+      // when user scroll messages to bottom, show latest content
+      let mailOptions = {
+        rootMargin: "0px",
+        threshold: 1,
+      };
+
+      const mailCallback = async (entries, observer) => {
+        for (let entry of entries) {
+          if (!entry.isIntersecting || !nextPage) return;
+          let result = await (
+            await fetch(`/api/messages/mail?`, {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            })
+          ).json();
+          nextPage = result.next_paging;
+          let messages = result.messages;
+          let roomName = messages[0].room_name;
+          let channelName = messages[0].channel_name;
+          let roomPic = messages[0].room_picture;
+
+          let mailChannel = document.createElement("div");
+          mailChannel.classList.add("mail-channel");
+
+          let mailChannelInfo = document.createElement("div");
+          mailChannelInfo.classList.add("mail-channel-info");
+          let roomThumbnail = document.createElement("div");
+          roomThumbnail.classList.add("mail-room-thumbnail");
+          roomThumbnail.style.backgroundImage = `url("${roomPic}"`;
+          let mailChannelName = document.createElement("div");
+          mailChannelName.classList.add("mail-channel-name");
+          mailChannelName.innerHTML = channelName;
+          let mailRoomName = document.createElement("div");
+          mailRoomName.classList.add("mail-room-name");
+          mailRoomName.innerHTML = roomName;
+
+          mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
+          mailChannel.append(mailChannelInfo);
+
+          messages.forEach((message) => {
+            let messageBox = createMail(message);
+            mailChannel.append(messageBox);
+          });
+          mailMessages.append(mailChannel);
+
+          observer.unobserve(entry.target);
+          let messageBoxes = mailChannel.querySelectorAll(".mail-message-box");
+          if (entry.target === messageBoxes[messageBoxes.length - 1] && !nextPage) return;
+        }
+        let messageBoxes = document.querySelectorAll(".mail-message-box");
+        observer.observe(messageBoxes[messageBoxes.length - 1]);
+      };
+
+      const mailObserver = new IntersectionObserver(mailCallback, mailOptions);
+      const lastMessage = mail.querySelectorAll(".mail-message-box");
+      if (lastMessage[lastMessage.length - 1] && nextPage) {
+        mailObserver.observe(lastMessage[lastMessage.length - 1]);
+      }
+    } else {
+      mailMessagesBox.remove();
+    }
+  }
+}
 
 // when other people signin, update status
 roomSocket.on("other-signin", (userId) => {
@@ -701,7 +827,7 @@ window.addEventListener("beforeunload", async () => {
   channelSocket.close();
   roomSocket.close();
   let descriptions = document.querySelectorAll(".message-description");
-  if (!descriptions) return;
+  if (!descriptions.length) return;
   let latestId = descriptions[descriptions.length - 1].dataset.messageId;
   currentId = latestId;
   let body = {
@@ -711,15 +837,15 @@ window.addEventListener("beforeunload", async () => {
     message_id: latestId,
   };
 
-  // await fetch("/api/messages/read", {
-  //   method: "POST",
-  //   body: JSON.stringify(body),
-  //   headers: {
-  //     "content-type": "application/json",
-  //     Authorization: `Bearer ${token}`,
-  //   },
-  //   keepalive: true,
-  // });
+  await fetch("/api/messages/read", {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    keepalive: true,
+  });
 });
 
 // log out button
@@ -940,10 +1066,6 @@ function enableMessageOptions(description) {
   reply.innerHTML = `<i class="reply icon">`;
   reply.addEventListener("click", replyMessage);
 
-  let unread = document.createElement("li");
-  unread.classList.add("message-unread");
-  unread.innerHTML = `<i class="eraser icon">`;
-
   let del = document.createElement("li");
   del.classList.add("message-delete");
   del.innerHTML = `<i class="trash alternate icon">`;
@@ -951,9 +1073,9 @@ function enableMessageOptions(description) {
 
   let postUserName = description.dataset.name;
   if (postUserName === user.name) {
-    optionList.append(thumbsUp, edit, pin, reply, unread, del);
+    optionList.append(thumbsUp, edit, pin, reply, del);
   } else {
-    optionList.append(thumbsUp, pin, reply, unread);
+    optionList.append(thumbsUp, pin, reply);
   }
 
   description.append(optionList);
@@ -1345,4 +1467,32 @@ function createSession(messages) {
     result.push(messageDiv);
   });
   return result;
+}
+
+function createMail(message) {
+  let messageBox = document.createElement("div");
+  messageBox.classList.add("mail-message-box");
+
+  let thumbnail = document.createElement("div");
+  thumbnail.classList.add("mail-thumbnail");
+  thumbnail.style.backgroundImage = `url("${message.user_picture}")`;
+
+  let messageInfo = document.createElement("div");
+  messageInfo.classList.add("mail-message-info");
+
+  let name = document.createElement("div");
+  name.classList.add("mail-name");
+  name.innerHTML = message.name;
+
+  let time = document.createElement("div");
+  time.classList.add("mail-time");
+  time.innerHTML = timeTransform(message.time);
+  messageInfo.append(name, time);
+
+  let desc = document.createElement("div");
+  desc.classList.add("mail-description");
+  desc.innerHTML = message.description;
+
+  messageBox.append(thumbnail, messageInfo, desc);
+  return messageBox;
 }

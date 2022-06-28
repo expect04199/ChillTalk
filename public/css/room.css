@@ -433,13 +433,13 @@ i.sign-out.icon {
 }
 
 .mail-messages-box {
-  width: 300px;
-  height: 390px;
+  width: 350px;
+  height: calc(100vh - 50px);
   background-color: rgb(66, 66, 66);
   position: absolute;
-  z-index: 100;
-  top: 30px;
-  right: 20px;
+  z-index: 200;
+  top: 35px;
+  right: -112px;
 }
 
 .mail-box-headline {
@@ -451,8 +451,44 @@ i.sign-out.icon {
 }
 
 .mail-messages {
+  height: calc(100% - 40px);
   overflow-y: scroll;
-  height: 350px;
+}
+
+.mail-channel-info {
+  width: 100%;
+  background-color: #171717;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.mail-room-thumbnail {
+  width: 50px;
+  height: 50px;
+  background-size: cover;
+  background-position: center;
+  z-index: 105;
+  display: inline;
+  margin: 0px 20px;
+  border-radius: 10px;
+}
+
+.mail-channel-name {
+  color: rgb(255, 255, 255);
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+  display: inline;
+}
+
+.mail-room-name {
+  color: rgb(152, 152, 150);
+  font-size: 0.8rem;
+  margin: 0px 30px;
+  position: absolute;
+  bottom: 15px;
+  left: 60px;
 }
 
 .mail-message-box {
@@ -467,38 +503,40 @@ i.sign-out.icon {
 }
 
 .mail-thumbnail {
-  width: 30px;
-  height: 30px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   background-position: center;
   background-size: cover;
   position: absolute;
-  top: 10px;
-  left: 20px;
+  top: 12px;
+  left: 15px;
+}
+
+.mail-message-info {
+  display: flex;
+  align-items: center;
+  margin-left: 60px;
+  margin-top: 10px;
 }
 
 .mail-name {
-  font-size: 1rem;
-  color: darkorange;
-  margin-right: 5px;
+  font-size: 1.25rem;
+  color: rgb(253, 234, 23);
+  margin-right: 10px;
 }
 
 .mail-time {
   font-size: 0.4rem;
   color: #aea0a0;
-}
-
-.mail-info {
-  display: flex;
-  align-items: center;
-  margin-left: 60px;
-  margin-top: 7px;
+  padding-top: 4px;
 }
 
 .mail-description {
   width: 60%;
   margin-left: 60px;
-  font-size: 1rem;
+  margin-bottom: 10px;
+  font-size: 1.25rem;
   word-wrap: break-word;
   word-break: break-all;
 }
@@ -507,6 +545,7 @@ i.sign-out.icon {
   margin-left: 40px;
   font-size: 1.5rem;
 }
+
 .channel-name::before {
   content: "# ";
 }
