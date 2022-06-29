@@ -3,6 +3,7 @@
   padding: 0;
   box-sizing: border-box;
   font-family: "Roboto", sans-serif;
+  user-select: none;
 }
 
 html,
@@ -1217,6 +1218,147 @@ i.sign-out.icon {
 
 .join-exist-room p:hover {
   text-decoration: underline;
+}
+
+.user-info {
+  background-color: #272a2e;
+  width: 600px;
+  height: 500px;
+  border-radius: 10px;
+  position: relative;
+}
+
+.user-background {
+  width: 100%;
+  height: 130px;
+  background-image: url("https://d28ad0xxqchuot.cloudfront.net/preset/1/background/sunset.jpg");
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.user-thumbnail {
+  width: 130px;
+  height: 130px;
+  background-image: url("https://d28ad0xxqchuot.cloudfront.net/preset/1/picture/dogee.png");
+  background-position: center;
+  background-size: cover;
+  border-radius: 100%;
+  position: absolute;
+  top: 70px;
+  left: 30px;
+  border: 7px solid #272a2e;
+}
+
+.user-name {
+  color: #f8f8f8;
+  position: absolute;
+  top: 150px;
+  left: 180px;
+  font-size: 2.2rem;
+}
+
+.user-info-options {
+  position: absolute;
+  top: 220px;
+  display: flex;
+  color: #818181;
+}
+
+.user-info-options > * {
+  margin: 10px 20px;
+  margin-top: 0px;
+  padding: 10px 0px 20px 0px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.user-info-options > *:hover {
+  color: white;
+  border-bottom: 1px solid white;
+}
+
+.info-option-enable {
+  color: white;
+  border-bottom: 1px solid white;
+}
+
+.user-option-result {
+  position: absolute;
+  top: 270px;
+  width: 100%;
+  height: calc(100% - 270px);
+  border-top: 1px solid #4a4b4d;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: scroll;
+}
+
+.user-introduction {
+  width: 95%;
+  height: 90%;
+  font-size: 1.5rem;
+  word-wrap: break-word;
+  word-break: break-all;
+  color: white;
+  padding-top: 10px;
+}
+
+.mutual-room {
+  width: 95%;
+  height: 40px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  margin-left: 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.mutual-room-thumbnail {
+  width: 40px;
+  height: 40px;
+  background-image: url("https://d28ad0xxqchuot.cloudfront.net/room/2/picture/cat.jpg");
+  background-position: center;
+  background-size: cover;
+  border-radius: 5px;
+  margin-right: 20px;
+}
+
+.mutual-room-name {
+  font-size: 1.25rem;
+}
+
+.mutual-friend {
+  width: 95%;
+  height: 40px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  margin-left: 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.mutual-friend-thumbnail {
+  width: 40px;
+  height: 40px;
+  background-image: url("https://d28ad0xxqchuot.cloudfront.net/preset/1/picture/dogee.png");
+  background-position: center;
+  background-size: cover;
+  border-radius: 100%;
+  margin-right: 20px;
+}
+
+.mutual-friend-name {
+  font-size: 1.25rem;
 }
 
 @keyframes create-room-fadein {

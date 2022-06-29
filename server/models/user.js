@@ -1,9 +1,10 @@
 const db = require("../../util/database");
 const bcrypt = require("bcryptjs");
+const Util = require("../../util/util");
 
 const { CDN_IP } = process.env;
 const PRESET_PICTURE = "dogee.png";
-const PRESET_BACKGROUND = "portal-to-another-world-1024×768.jpg";
+const PRESET_BACKGROUND = "sunset.jpg";
 const PRESET_INTRODUCTION = "No content";
 
 module.exports = class User {
@@ -148,5 +149,105 @@ module.exports = class User {
   static async offline(userId) {
     let sql = `UPDATE users SET online = 0 WHERE id = ?`;
     await db.query(sql, [userId]);
+  }
+
+  static async getInfo(hostId, userId) {
+    console.log(hostId, userId);
+    let infoSql = `
+    SELECT a.* ,
+    b.source AS pic_src, b.type AS pic_type, b.image AS pic_img, b.preset pic_preset,
+    c.source AS bgd_src, c.type AS bgd_type, c.image AS bgd_img, c.preset bgd_preset
+    FROM chilltalk.users a
+    INNER JOIN chilltalk.pictures b ON a.id = b.source_id AND b.source = "user" AND b.type = "picture"
+    INNER JOIN chilltalk.pictures c ON a.id = c.source_id AND c.source = "user" AND c.type = "background"
+    WHERE a.id = ?
+    `;
+    let [infos] = await db.query(infoSql, userId);
+    const infoData = infos[0];
+    const userPic = Util.getImage(
+      infoData.pic_preset,
+      infoData.pic_src,
+      infoData.id,
+      infoData.pic_type,
+      infoData.pic_img
+    );
+    const userBgd = Util.getImage(
+      infoData.bgd_preset,
+      infoData.bgd_src,
+      infoData.id,
+      infoData.bgd_type,
+      infoData.bgd_img
+    );
+    const info = {
+      id: infoData.id,
+      name: infoData.name,
+      picture: userPic,
+      background: userBgd,
+      introduction: infoData.introduction,
+      online: infoData.online,
+      last_login: infoData.last_login,
+    };
+
+    let roomSql = `
+    SELECT c.id, c.name ,
+    d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset pic_preset
+    FROM
+    (SELECT room_id FROM chilltalk.room_members WHERE user_id = ?) a
+    INNER JOIN 
+    (SELECT user_id, room_id FROM chilltalk.room_members WHERE user_id = ?) b
+    ON a.room_id = b.room_id
+    INNER JOIN chilltalk.rooms c ON b.room_id = c.id
+    INNER JOIN chilltalk.pictures d ON c.id = d.source_id AND d.source = "room" AND d.type = "picture"
+    `;
+    const [roomsData] = await db.query(roomSql, [hostId, userId]);
+    let rooms = [];
+    roomsData.forEach((room) => {
+      let roomPic = Util.getImage(
+        room.pic_preset,
+        room.pic_src,
+        room.id,
+        room.pic_type,
+        room.pic_img
+      );
+
+      let roomData = {
+        id: room.id,
+        name: room.name,
+        picture: roomPic,
+      };
+      rooms.push(roomData);
+    });
+
+    let friendSql = `
+    SELECT c.id, c.name ,
+    d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset pic_preset
+    FROM
+    (SELECT friend_id FROM chilltalk.friends WHERE user_id = 1) a
+    INNER JOIN 
+    (SELECT user_id, friend_id FROM chilltalk.friends WHERE user_id = 2) b
+    ON a.friend_id = b.friend_id
+    INNER JOIN chilltalk.users c ON b.user_id = c.id
+    INNER JOIN chilltalk.pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
+    `;
+    const [friendsData] = await db.query(friendSql, [hostId, userId]);
+    let friends = [];
+    friendsData.forEach((friend) => {
+      let friendPic = Util.getImage(
+        friend.pic_preset,
+        friend.pic_src,
+        friend.id,
+        friend.pic_type,
+        friend.pic_img
+      );
+
+      let friendData = {
+        id: friend.id,
+        name: friend.name,
+        picture: friendPic,
+      };
+      friends.push(friendData);
+    });
+
+    return { info, rooms, friends };
   }
 };

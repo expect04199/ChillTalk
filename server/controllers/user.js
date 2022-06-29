@@ -42,3 +42,10 @@ module.exports.postSignup = async (req, res) => {
   };
   return res.status(200).json(data);
 };
+
+module.exports.getInfo = async (req, res) => {
+  const hostId = req.user.id;
+  const userId = +req.query.userId;
+  let data = await User.getInfo(hostId, userId);
+  return res.status(200).json(data);
+};

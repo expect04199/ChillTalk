@@ -31,7 +31,7 @@ window.onload = async () => {
   roomSocket.emit("connect-room", roomsData);
   // render room name
   let roomNameDiv = document.querySelector(".room-name p");
-  roomNameDiv.innerHTML = roomInfo.name;
+  roomNameDiv.innerHTML = `${roomInfo.name} #${roomId}`;
 
   // render channels
   let channels = roomInfo.channels;
@@ -57,9 +57,7 @@ window.onload = async () => {
     // user thumbnail
     let thumbnailDiv = document.createElement("div");
     thumbnailDiv.classList.add("member-user-thumbnail");
-    thumbnailDiv.style.backgroundImage = member.picture
-      ? `url("${member.picture}")`
-      : `url("https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png")`;
+    thumbnailDiv.style.backgroundImage = `url("${member.picture}")`;
     // user name
     let nameDiv = document.createElement("div");
     nameDiv.classList.add("member-user-name");
@@ -74,6 +72,7 @@ window.onload = async () => {
     // append userId on memberDiv
     memberDiv.dataset.id = member.id;
     memberDiv.append(onlineDiv, blackCircle, thumbnailDiv, nameDiv);
+    membersDiv.addEventListener("click", showUserInfo);
     membersDiv.append(memberDiv);
   });
 
@@ -1495,4 +1494,133 @@ function createMail(message) {
 
   messageBox.append(thumbnail, messageInfo, desc);
   return messageBox;
+}
+
+async function showUserInfo(e) {
+  const userId = e.target.classList.contains("member")
+    ? +e.target.dataset.id
+    : e.target.parentElement.dataset.id;
+  let userInfo = document.createElement("div");
+  userInfo.classList.add("user-info");
+  let mask = document.querySelector(".mask");
+  mask.classList.add("enable");
+  mask.append(userInfo);
+
+  let data = await (
+    await fetch(`/api/users/info?userId=${userId}`, {
+      headers: {
+        "content-type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  ).json();
+
+  const info = data.info;
+  const rooms = data.rooms;
+  const friends = data.friends;
+
+  let userBgd = document.createElement("div");
+  userBgd.classList.add("user-background");
+  userBgd.style.backgroundImage = `url("${info.background}")`;
+
+  let userThumbnail = document.createElement("div");
+  userThumbnail.classList.add("user-thumbnail");
+  userThumbnail.style.backgroundImage = `url("${info.picture}")`;
+
+  let userName = document.createElement("div");
+  userName.classList.add("user-name");
+  userName.innerHTML = info.name;
+
+  let userInfoOptions = document.createElement("div");
+  userInfoOptions.classList.add("user-info-options");
+
+  let userOptionResult = document.createElement("div");
+  userOptionResult.classList.add("user-option-result");
+  userInfo.append(userBgd, userThumbnail, userName, userInfoOptions, userOptionResult);
+
+  let userIntroTab = document.createElement("div");
+  userIntroTab.classList.add("user-introduction-tab");
+  userIntroTab.classList.add("info-option-enable");
+  userIntroTab.innerHTML = `使用者資訊`;
+
+  let userRoomTab = document.createElement("div");
+  userRoomTab.classList.add("user-mutual-room-tab");
+  userRoomTab.innerHTML = `共同的房間`;
+
+  let userFriendTab = document.createElement("div");
+  userFriendTab.classList.add("user-mutual-friends-tab");
+  userFriendTab.innerHTML = `共同的朋友`;
+  if (+userId === +user.id) {
+    userInfoOptions.append(userIntroTab);
+  } else {
+    userInfoOptions.append(userIntroTab, userRoomTab, userFriendTab);
+  }
+
+  let content = document.createElement("p");
+  content.classList.add("user-introduction");
+  content.innerHTML = info.introduction;
+  userOptionResult.appendChild(content);
+
+  userIntroTab.addEventListener("click", (e) => {
+    let enabledOpt = userInfoOptions.querySelector(".info-option-enable");
+    if (enabledOpt) {
+      enabledOpt.classList.remove("info-option-enable");
+    }
+    e.target.classList.add("info-option-enable");
+    userOptionResult.innerHTML = "";
+    let content = document.createElement("p");
+    content.classList.add("user-introduction");
+    content.innerHTML = info.introduction;
+    userOptionResult.appendChild(content);
+  });
+
+  userRoomTab.addEventListener("click", (e) => {
+    let enabledOpt = userInfoOptions.querySelector(".info-option-enable");
+    if (enabledOpt) {
+      enabledOpt.classList.remove("info-option-enable");
+    }
+    e.target.classList.add("info-option-enable");
+    userOptionResult.innerHTML = "";
+
+    rooms.forEach((room) => {
+      let mutualRoom = document.createElement("div");
+      mutualRoom.classList.add("mutual-room");
+
+      let roomThumbnail = document.createElement("div");
+      roomThumbnail.classList.add("mutual-room-thumbnail");
+      roomThumbnail.style.backgroundImage = `url("${room.picture}")`;
+
+      let roomName = document.createElement("div");
+      roomName.classList.add("mutual-room-name");
+      roomName.innerHTML = room.name;
+
+      mutualRoom.append(roomThumbnail, roomName);
+      userOptionResult.appendChild(mutualRoom);
+    });
+  });
+
+  userFriendTab.addEventListener("click", (e) => {
+    let enabledOpt = userInfoOptions.querySelector(".info-option-enable");
+    if (enabledOpt) {
+      enabledOpt.classList.remove("info-option-enable");
+    }
+    e.target.classList.add("info-option-enable");
+    userOptionResult.innerHTML = "";
+
+    friends.forEach((friend) => {
+      let mutualFriend = document.createElement("div");
+      mutualFriend.classList.add("mutual-friend");
+
+      let friendThumbnail = document.createElement("div");
+      friendThumbnail.classList.add("mutual-friend-thumbnail");
+      friendThumbnail.style.backgroundImage = `url("${friend.picture}")`;
+
+      let friendName = document.createElement("div");
+      friendName.classList.add("mutual-friend-name");
+      friendName.innerHTML = friend.name;
+
+      mutualFriend.append(friendThumbnail, friendName);
+      userOptionResult.appendChild(mutualFriend);
+    });
+  });
 }
