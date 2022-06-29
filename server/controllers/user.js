@@ -49,3 +49,19 @@ module.exports.getInfo = async (req, res) => {
   let data = await User.getInfo(hostId, userId);
   return res.status(200).json(data);
 };
+
+module.exports.updateInfo = async (req, res) => {
+  const { name, introduction } = req.body;
+  const userId = req.user.id;
+  let info = await User.update(req.files, userId, name, introduction);
+  if (info.error) {
+    return res.status(400).send("Bad Request");
+  }
+  let access_token = jwt.sign(info, TOKEN_SECRET, { expiresIn: "24h" });
+  let data = {
+    access_token,
+    access_expired: 86400,
+    info,
+  };
+  return res.status(200).json(data);
+};

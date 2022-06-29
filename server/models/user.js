@@ -250,4 +250,93 @@ module.exports = class User {
 
     return { info, rooms, friends };
   }
+
+  static async update(files, userId, name, introduction) {
+    try {
+      await db.query("START TRANSACTION");
+      if (name || introduction) {
+        let userSql = `
+        UPDATE users SET name = ?, introduction = ? WHERE id = ?
+        `;
+        await db.query(userSql, [name, introduction, userId]);
+      }
+
+      if (files.picture) {
+        let picSql = `
+        UPDATE pictures SET image = ?, preset = 0 WHERE source = "user" AND type = "picture" AND source_id = ?
+        `;
+        await db.query(picSql, [Util.imageFormat(files.picture[0].originalname), userId]);
+      }
+
+      if (files.background) {
+        let bgdSql = `
+        UPDATE pictures SET image = ?, preset = 0 WHERE source = "user" AND type = "background" AND source_id = ?
+        `;
+        await db.query(bgdSql, [Util.imageFormat(files.background[0].originalname), userId]);
+      }
+
+      let [user] = await db.query("SELECT * FROM users WHERE id = ?", [userId]);
+
+      let pic;
+      if (files.picture) {
+        pic = Util.getImage(
+          0,
+          "user",
+          userId,
+          "picture",
+          Util.imageFormat(files.picture[0].originalname)
+        );
+      } else {
+        let picSql = `SELECT * FROM pictures WHERE source = "user" AND type = "picture" AND source_id = ?`;
+        let [pics] = await db.query(picSql, [userId]);
+        pic = Util.getImage(
+          pics[0].preset,
+          pics[0].source,
+          pics[0].source_id,
+          pics[0].type,
+          pics[0].image
+        );
+      }
+      let bgd;
+      if (files.background) {
+        bgd = Util.getImage(
+          0,
+          "user",
+          userId,
+          "background",
+          Util.imageFormat(files.background[0].originalname)
+        );
+      } else {
+        let bgdSql = `SELECT * FROM pictures WHERE source = "user" AND type = "background" AND source_id = ?`;
+        let [bgds] = await db.query(bgdSql, [userId]);
+        bgd = Util.getImage(
+          bgds[0].preset,
+          bgds[0].source,
+          bgds[0].source_id,
+          bgds[0].type,
+          bgds[0].image
+        );
+      }
+
+      let info = {
+        id: user[0].id,
+        name: user[0].name,
+        email: user[0].email,
+        picture: pic,
+        background: bgd,
+        introduction: user[0].introduction,
+        online: true,
+        last_login: user[0].last_login,
+      };
+      await db.query("COMMIT");
+
+      Util.imageUpload(files.picture, "user", userId, "picture");
+      Util.imageUpload(files.background, "user", userId, "background");
+      return info;
+    } catch (error) {
+      console.log(error);
+      await db.query("ROLLBACK");
+      return { error };
+    }
+  }
 };

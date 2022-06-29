@@ -47,6 +47,101 @@ window.onload = async () => {
     });
     channelsDiv.append(channelDiv);
   });
+  console.log(user.picture);
+  // render host info
+  document.querySelector(".host-thumbnail").style.backgroundImage = `url("${user.picture}")`;
+  document.querySelector(".host-online").style.backgroundColor = user.online
+    ? "#00EE00"
+    : "#CD0000";
+  document.querySelector(".host-name").innerHTML = user.name;
+  let hostSetting = document.querySelector(".host-setting");
+  hostSetting.addEventListener("click", (e) => {
+    if (e.target.classList.contains("cog")) {
+      let mask = document.querySelector(".mask");
+      mask.classList.add("enable");
+      mask.innerHTML += `
+      <div class="edit-host-info">
+        <div class="edit-host-headline">編輯個人資訊</div>
+        <div class="background-upload">
+          <div class="host-background-edit">
+            <input type="file" id="host-background-upload" accept=".png, .jpg, jpeg" />
+            <label for="host-background-upload">
+              <i class="plus icon"></i>
+            </label>
+          </div>
+          <div class="host-background-preview">
+            <div id="background-preview"></div>
+          </div>
+        </div>
+        <div class="picture-upload">
+          <div class="host-picture-edit">
+            <input type="file" id="host-picture-upload" accept=".png, .jpg, jpeg" />
+            <label for="host-picture-upload">
+              <i class="plus icon"></i>
+            </label>
+          </div>
+          <div class="host-picture-preview">
+            <div id="picture-preview"></div>
+          </div>
+        </div>
+        <div class="edit-host-name"  contenteditable="true"></div>
+        <textarea
+          class="edit-host-introduction"
+          cols="30"
+          rows="10"
+          placeholder="關於我"
+        ></textarea>
+        <button class="edit-host-btn">儲存</button>
+      </div>
+      `;
+
+      let backgroundInput = mask.querySelector("#host-background-upload");
+      let backgroundPreview = mask.querySelector("#background-preview");
+      backgroundPreview.style.backgroundImage = `url("${user.background}")`;
+      backgroundInput.addEventListener("change", function () {
+        readURL(this, "#background-preview");
+      });
+
+      let pictureInput = mask.querySelector("#host-picture-upload");
+      let picturePreview = mask.querySelector("#picture-preview");
+      picturePreview.style.backgroundImage = `url("${user.picture}")`;
+      pictureInput.addEventListener("change", function () {
+        readURL(this, "#picture-preview");
+      });
+
+      let editName = mask.querySelector(".edit-host-name");
+      editName.innerHTML = user.name;
+      let userIntroduction = mask.querySelector(".edit-host-introduction");
+      userIntroduction.innerHTML = user.introduction;
+
+      let saveBtn = mask.querySelector(".edit-host-btn");
+      saveBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        let name = editName.innerHTML;
+        let introduction = userIntroduction.value;
+        let body = new FormData();
+        if (pictureInput.files[0]) {
+          body.append("picture", pictureInput.files[0]);
+        }
+        if (backgroundInput.files[0]) {
+          body.append("background", backgroundInput.files[0]);
+        }
+        body.append("name", name);
+        body.append("introduction", introduction);
+        let userData = await (
+          await fetch("/api/users", {
+            method: "PUT",
+            body,
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        ).json();
+        localStorage.setItem("info", JSON.stringify(userData.info));
+        localStorage.setItem("token", userData.access_token);
+        history.go(0);
+        return;
+      });
+    }
+  });
 
   // render members
   let members = roomInfo.members;
@@ -72,7 +167,7 @@ window.onload = async () => {
     // append userId on memberDiv
     memberDiv.dataset.id = member.id;
     memberDiv.append(onlineDiv, blackCircle, thumbnailDiv, nameDiv);
-    membersDiv.addEventListener("click", showUserInfo);
+    memberDiv.addEventListener("click", showUserInfo);
     membersDiv.append(memberDiv);
   });
 

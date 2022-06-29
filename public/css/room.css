@@ -125,14 +125,18 @@ i.sign-out.icon {
 
 .channel-side-bar {
   position: absolute;
+  top: 50px;
   left: 75px;
   width: 240px;
-  height: 100vh;
+  height: calc(100vh - 100px);
   background-color: rgb(17, 17, 17);
 }
 
 .room-name {
-  width: 100%;
+  position: absolute;
+  top: 0px;
+  left: 75px;
+  width: 240px;
   height: 50px;
   background-color: rgb(17, 17, 17);
   color: white;
@@ -191,6 +195,57 @@ i.sign-out.icon {
   background-color: white;
   color: black;
   transition: 0.5s;
+}
+
+.host-info {
+  position: absolute;
+  left: 75px;
+  bottom: 0px;
+  width: 240px;
+  height: 70px;
+  background-color: rgb(36, 36, 36);
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.host-thumbnail {
+  width: 45px;
+  height: 45px;
+  background-position: center;
+  background-size: cover;
+  border-radius: 100%;
+  margin: 0px 15px;
+}
+
+.host-online {
+  position: absolute;
+  bottom: 8px;
+  left: 40px;
+  width: 20px;
+  height: 20px;
+  border-radius: 100%;
+  border: 3px solid rgb(36, 36, 36);
+}
+
+.host-name {
+  font-size: 1.5rem;
+}
+
+.host-setting {
+  position: absolute;
+  right: 30px;
+  top: 25px;
+}
+
+.host-setting i::before {
+  font-size: 1.5rem;
+  color: #5a5959;
+  cursor: pointer;
+}
+
+.host-setting i:hover::before {
+  color: white !important;
 }
 
 .chat-room {
@@ -592,7 +647,6 @@ i.sign-out.icon {
   position: absolute;
   top: 10px;
   left: 30px;
-  background-color: #cd0000;
   background-size: cover;
   border-radius: 50%;
   cursor: pointer;
@@ -1231,7 +1285,6 @@ i.sign-out.icon {
 .user-background {
   width: 100%;
   height: 130px;
-  background-image: url("https://d28ad0xxqchuot.cloudfront.net/preset/1/background/sunset.jpg");
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   background-position: center;
@@ -1242,7 +1295,6 @@ i.sign-out.icon {
 .user-thumbnail {
   width: 130px;
   height: 130px;
-  background-image: url("https://d28ad0xxqchuot.cloudfront.net/preset/1/picture/dogee.png");
   background-position: center;
   background-size: cover;
   border-radius: 100%;
@@ -1324,7 +1376,6 @@ i.sign-out.icon {
 .mutual-room-thumbnail {
   width: 40px;
   height: 40px;
-  background-image: url("https://d28ad0xxqchuot.cloudfront.net/room/2/picture/cat.jpg");
   background-position: center;
   background-size: cover;
   border-radius: 5px;
@@ -1359,6 +1410,183 @@ i.sign-out.icon {
 
 .mutual-friend-name {
   font-size: 1.25rem;
+}
+
+.edit-host-info {
+  width: 600px;
+  height: 500px;
+  background-color: #4a4b4d;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  color: white;
+}
+
+.edit-host-headline {
+  align-self: flex-start;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-left: 30px;
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+.background-upload {
+  position: relative;
+  width: 100%;
+  margin: 10px auto;
+}
+
+.host-background-edit {
+  position: absolute;
+  right: 12px;
+  z-index: 1;
+  top: 10px;
+}
+
+.host-background-edit input {
+  display: none;
+}
+
+.host-background-edit label {
+  display: inline-block;
+  position: absolute;
+  top: -2px;
+  right: 27px;
+  width: 25px;
+  height: 25px;
+  border-radius: 100%;
+  background: white;
+  border: 1px solid transparent;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  font-weight: normal;
+  transition: all 0.2s ease-in-out;
+}
+
+.host-background-edit label i {
+  color: rgb(75, 75, 75);
+  margin-left: 3px;
+  margin-top: 2px;
+}
+
+.host-background-preview {
+  width: 90%;
+  height: 150px;
+  position: relative;
+  margin-left: 30px;
+  border-radius: 5px;
+  background-color: #dcdddc;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.host-background-preview > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.picture-upload {
+  position: absolute;
+  top: 150px;
+  left: 200px;
+  width: 100%;
+  z-index: 3;
+}
+
+.host-picture-edit {
+  position: relative;
+  left: 100px;
+  z-index: 1;
+  top: 10px;
+}
+
+.host-picture-edit input {
+  display: none;
+}
+
+.host-picture-edit label {
+  display: inline-block;
+  position: absolute;
+  left: 20px;
+  width: 25px;
+  height: 25px;
+  border-radius: 100%;
+  background: white;
+  border: 1px solid transparent;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  font-weight: normal;
+  transition: all 0.2s ease-in-out;
+}
+
+.host-picture-edit label i {
+  color: rgb(75, 75, 75);
+  margin-left: 3px;
+  margin-top: 2px;
+}
+
+.host-picture-preview {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  margin-left: 30px;
+  border-radius: 100%;
+  border: 5px solid #4a4b4d;
+  background-color: #dcdddc;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.host-picture-preview > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.edit-host-name {
+  margin-top: 40px;
+  margin-right: 20px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 2.5rem;
+  color: white;
+  outline: none;
+}
+
+.edit-host-introduction {
+  width: 90%;
+  margin-top: 10px;
+  background-color: #454545;
+  resize: none;
+  border: none;
+  outline: none;
+  font-size: 1.25rem;
+  padding: 5px 10px;
+  border-radius: 5px;
+  caret-color: #dcdddc;
+  color: white;
+}
+
+.edit-host-btn {
+  width: 60px;
+  height: 40px;
+  background-color: rgb(2, 160, 2);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  align-self: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  margin: 20px 0px;
+  padding: 10px 10px;
 }
 
 @keyframes create-room-fadein {

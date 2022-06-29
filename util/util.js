@@ -10,7 +10,7 @@ module.exports = class Util {
       accessKeyId: S3_ACCESS_KEY,
       secretAccessKey: S3_SECRET_KEY,
     });
-
+    if (!files || !src || !srcId || !type) return;
     for (let file of files) {
       const data = {
         Bucket: "chilltalk",
@@ -50,5 +50,9 @@ module.exports = class Util {
       ? `${CDN_IP}/preset/1/${type}/${img}`
       : `${CDN_IP}/${src}/${id}/${type}/${img}`;
     return image;
+  }
+
+  static imageFormat(name) {
+    return name.replace(" ", "%20");
   }
 };
