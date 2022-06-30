@@ -25,4 +25,12 @@ router.post(
 );
 
 router.get("/rooms/search", Util.errorCatcher(roomController.getSearchResult));
+
+router.put(
+  "/rooms",
+  Util.isAuth,
+  upload.array("picture"),
+  Util.errorCatcher(roomController.updateInfo)
+);
+
 module.exports = router;

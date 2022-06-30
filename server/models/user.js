@@ -26,8 +26,8 @@ module.exports = class User {
         return { error: "Password is wrong", status: 403 };
       }
       let lastLogin = Date.now();
-      let updateSql = `UPDATE users SET online = ?, last_login = ?`;
-      await db.query(updateSql, [1, lastLogin]);
+      let updateSql = `UPDATE users SET online = ?, last_login = ? WHERE id = ?`;
+      await db.query(updateSql, [1, lastLogin, user.id]);
       await db.query("COMMIT");
       let userPicture = user.pic_preset
         ? `${CDN_IP}/preset/1/${user.pic_type}/${user.pic_img}`
@@ -262,17 +262,21 @@ module.exports = class User {
       }
 
       if (files.picture) {
+        await db.query("SET SQL_SAFE_UPDATES=0;");
         let picSql = `
         UPDATE pictures SET image = ?, preset = 0 WHERE source = "user" AND type = "picture" AND source_id = ?
         `;
         await db.query(picSql, [Util.imageFormat(files.picture[0].originalname), userId]);
+        await db.query("SET SQL_SAFE_UPDATES=1;");
       }
 
       if (files.background) {
+        await db.query("SET SQL_SAFE_UPDATES=0;");
         let bgdSql = `
         UPDATE pictures SET image = ?, preset = 0 WHERE source = "user" AND type = "background" AND source_id = ?
         `;
         await db.query(bgdSql, [Util.imageFormat(files.background[0].originalname), userId]);
+        await db.query("SET SQL_SAFE_UPDATES=1;");
       }
 
       let [user] = await db.query("SELECT * FROM users WHERE id = ?", [userId]);

@@ -316,8 +316,10 @@ module.exports = class Message {
         let sql = `INSERT INTO user_read_status SET ?`;
         await db.query(sql, data);
       } else {
+        await db.query("SET SQL_SAFE_UPDATES = 0");
         let sql = `UPDATE user_read_status SET message_id = ? WHERE user_id = ? AND room_id = ? AND channel_id = ?`;
         await db.query(sql, [data.message_id, userId, roomId, channelId]);
+        await db.query("SET SQL_SAFE_UPDATES = 1");
       }
       await db.query("COMMIT");
       return true;
@@ -345,6 +347,7 @@ module.exports = class Message {
       channels = channels.map((channel) => channel.id);
       let tempCount = 0;
       const messagesArr = [];
+      console;
       for (let channelId of channels) {
         if (messagesArr.length >= 10) break;
         tempCount++;
@@ -410,6 +413,7 @@ module.exports = class Message {
           UPDATE user_read_status SET message_id = ? 
           WHERE user_id = ? AND channel_id = ?
           `;
+          console.log(lastMessage.id, userId, channelId);
           await db.query(readSql, [lastMessage.id, userId, channelId]);
         }
       }

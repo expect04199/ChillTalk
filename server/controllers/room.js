@@ -58,3 +58,19 @@ module.exports.getSearchResult = async (req, res) => {
   let messages = await Room.search(content, roomId, fromUser, channelName, pinned);
   return res.status(200).json({ messages });
 };
+
+module.exports.updateInfo = async (req, res) => {
+  const { id, name, original_name: originalName, original_picture: originalPicture } = req.body;
+  const userId = req.user.id;
+  let result = await Room.update(+id, name, req.files, userId);
+  if (result.error) {
+    return res.status(400).send("Bad request");
+  }
+  if (!result.name) {
+    result.name = originalName;
+  }
+  if (!result.picture) {
+    result.picture = originalPicture;
+  }
+  return res.status(200).json(result);
+};

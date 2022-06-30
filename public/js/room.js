@@ -9,6 +9,7 @@ const roomSocket = io.connect("http://localhost:3000/room");
 const user = JSON.parse(localStorage.getItem("info"));
 const roomsData = JSON.parse(localStorage.getItem("rooms"));
 const token = localStorage.getItem("token");
+console.log(token);
 
 window.onload = async () => {
   // render room side bar
@@ -47,7 +48,6 @@ window.onload = async () => {
     });
     channelsDiv.append(channelDiv);
   });
-  console.log(user.picture);
   // render host info
   document.querySelector(".host-thumbnail").style.backgroundImage = `url("${user.picture}")`;
   document.querySelector(".host-online").style.backgroundColor = user.online
@@ -119,6 +119,7 @@ window.onload = async () => {
         e.preventDefault();
         let name = editName.innerHTML;
         let introduction = userIntroduction.value;
+
         let body = new FormData();
         if (pictureInput.files[0]) {
           body.append("picture", pictureInput.files[0]);
@@ -196,6 +197,76 @@ window.onload = async () => {
   let sessions = createSession(messages);
   sessions.forEach((session) => {
     messagesDiv.append(session);
+  });
+
+  // when user is room host, show setting icon
+  let roomSetting = document.createElement("li");
+  roomSetting.classList.add("room-settings");
+  roomSetting.innerHTML = `<i class="cog icon"></i>`;
+  let toolList = document.querySelector(".tools");
+  toolList.prepend(roomSetting);
+
+  // when click room setting, show setting page
+  roomSetting.addEventListener("click", (e) => {
+    let mask = document.querySelector(".mask");
+    let room = roomsData.find((room) => (room.id = roomId));
+    mask.classList.add("enable");
+    mask.innerHTML = `
+    <div class="edit-room-box">
+      <h2>編輯房間</h2>
+      <div class="room-upload">
+        <div class="room-edit">
+          <input type="file" id="edit-room-upload" accept=".png, .jpg, .jpeg" />
+          <label for="edit-room-upload">
+            <i class="plus icon"></i>
+          </label>
+        </div>
+        <div class="room-preview">
+          <div id="edit-room-preview"></div>
+        </div>
+      </div>
+      <input type="text" class="edit-room-name" />
+      <button class="save-room-btn">儲存</button>
+    </div>
+    `;
+
+    let preview = mask.querySelector("#edit-room-preview");
+    preview.style.backgroundImage = `url("${room.picture}")`;
+    let picInput = mask.querySelector("#edit-room-upload");
+    picInput.addEventListener("change", function (e) {
+      readURL(this, "#edit-room-preview");
+    });
+    let nameInput = mask.querySelector(".edit-room-name");
+    nameInput.value = room.name;
+    let saveBtn = mask.querySelector(".save-room-btn");
+    saveBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      let body = new FormData();
+      body.append("id", room.id);
+      let newName = nameInput.value;
+      if (picInput.files[0]) {
+        body.append("picture", picInput.files[0]);
+      }
+      if (newName !== room.name) {
+        body.append("name", newName);
+      }
+      body.append("original_name", room.name);
+      body.append("original_picture", room.picture);
+
+      let roomInfo = await (
+        await fetch("/api/rooms", {
+          method: "PUT",
+          body,
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      ).json();
+      let index = roomsData.indexOf(room);
+      roomInfo.host_id = room.host_id;
+      roomInfo.channel_id = room.channel_id;
+      roomsData[index] = roomInfo;
+      localStorage.setItem("rooms", JSON.stringify(roomsData));
+      history.go(0);
+    });
   });
 
   // when user scroll messages to top, show oldest content
@@ -286,6 +357,9 @@ window.onload = async () => {
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
   }
 };
+
+// when right click , disable
+document.addEventListener("contextmenu", (e) => e.preventDefault());
 
 // room link
 function enableRooms() {

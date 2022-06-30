@@ -10,9 +10,9 @@ module.exports.postSignin = async (req, res) => {
   if (info.error) {
     throw info.error;
   }
+  let payload = { info: info };
   let rooms = await User.findRooms(info.id);
-  const access_token = jwt.sign(info, TOKEN_SECRET, { expiresIn: "24h" });
-  console.log(access_token);
+  const access_token = jwt.sign(payload, TOKEN_SECRET, { expiresIn: "24h" });
   let data = {
     access_token,
     access_expired: 86400,
@@ -57,7 +57,8 @@ module.exports.updateInfo = async (req, res) => {
   if (info.error) {
     return res.status(400).send("Bad Request");
   }
-  let access_token = jwt.sign(info, TOKEN_SECRET, { expiresIn: "24h" });
+  let payload = { info: info };
+  let access_token = jwt.sign(payload, TOKEN_SECRET, { expiresIn: "24h" });
   let data = {
     access_token,
     access_expired: 86400,

@@ -41,7 +41,7 @@ module.exports = class Util {
       return;
     }
     const user = jwt.verify(accessToken, TOKEN_SECRET);
-    req.user = user;
+    req.user = user.info;
     return next();
   }
 

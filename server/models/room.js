@@ -34,6 +34,7 @@ module.exports = class Room {
     let [channels] = await db.query(sql, [roomId]);
     return channels;
   }
+
   static async getMembers(roomId) {
     let sql = `
     SELECT b.id, b.name, b.email, b.introduction, b.online,
@@ -192,5 +193,50 @@ module.exports = class Room {
       messages.push(message);
     });
     return messages;
+  }
+
+  static async update(id, name, files, userId) {
+    try {
+      await db.query("START TRANSACTION");
+      if (name) {
+        let nameSql = `
+          UPDATE rooms SET name = ? WHERE id = ? AND host_id = ?
+        `;
+        let [result] = await db.query(nameSql, [name, id, userId]);
+        console.log(name, id, userId);
+        if (result.affectedRows === 0) {
+          throw new Error();
+        }
+      }
+
+      let pic;
+      if (files.length) {
+        await db.query("SET SQL_SAFE_UPDATES=0;");
+        let fileSql = `
+        UPDATE chilltalk.pictures a 
+        INNER JOIN chilltalk.rooms b ON a.source_id = b.id AND a.source = "room" AND a.type = "picture"
+        SET a.image = ?, a.preset = 0 WHERE b.id = ? AND b.host_id = ?;
+        `;
+        let fileName = Util.imageFormat(files[0].originalname);
+        let result = await db.query(fileSql, [fileName, id, userId]);
+        await db.query("SET SQL_SAFE_UPDATES=1;");
+        if (result.affectedRows === 0) {
+          throw new Error();
+        }
+        Util.imageUpload(files, "room", id, "picture");
+        pic = Util.getImage(0, "room", id, "picture", fileName);
+      }
+      let data = {
+        id,
+        name,
+        picture: pic,
+      };
+      await db.query("COMMIT");
+      return data;
+    } catch (error) {
+      console.log(error);
+      await db.query("ROLLBACK");
+      return { error };
+    }
   }
 };
