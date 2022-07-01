@@ -133,4 +133,8 @@ roomIO.on("connect", (socket) => {
       socket.to(room.id).emit("other-signout", data.userId);
     });
   });
+
+  socket.on("join-room", (data) => {
+    socket.to(data.roomId).emit("join-room", data.user);
+  });
 });

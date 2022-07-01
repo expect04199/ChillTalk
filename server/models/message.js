@@ -281,11 +281,15 @@ module.exports = class Message {
   static async deleteThumbsUp(userId, messageId) {
     let sql = `DELETE FROM likes WHERE user_id = ? AND message_id = ?`;
     try {
+      await db.query("START TRANSACTION");
+      await db.query("SET SQL_SAFE_UPDATES = 0");
       let [result] = await db.query(sql, [userId, messageId]);
+      await db.query("SET SQL_SAFE_UPDATES = 1");
       await db.query("COMMIT");
       return true;
     } catch (error) {
       console.log(error);
+      await db.query("ROLLBACK");
       return { error };
     }
   }
@@ -409,12 +413,14 @@ module.exports = class Message {
 
         if (messages.length) {
           let lastMessage = messages[messages.length - 1];
+          await db.query("SET SQL_SAFE_UPDATES = 0");
           let readSql = `
           UPDATE user_read_status SET message_id = ? 
           WHERE user_id = ? AND channel_id = ?
           `;
           console.log(lastMessage.id, userId, channelId);
           await db.query(readSql, [lastMessage.id, userId, channelId]);
+          await db.query("SET SQL_SAFE_UPDATES = 1");
         }
       }
       let next_paging;

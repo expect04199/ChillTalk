@@ -11,7 +11,6 @@ const roomsData = JSON.parse(localStorage.getItem("rooms"));
 const token = localStorage.getItem("token");
 
 window.onload = async () => {
-  document.querySelector("title").innerHTML = roomsData.find((room) => +room.id === +roomId).name;
   // render room side bar
   let roomPosition = document.querySelector(".room-position");
   roomsData.forEach((room) => {
@@ -19,42 +18,33 @@ window.onload = async () => {
     roomPosition.append(roomDiv);
   });
   enableRooms();
-  if (!roomId) return;
-  let roomInfo = await (
-    await fetch(`/api/rooms/details?roomId=${roomId}&userId=${user.id}`, {
-      method: "GET",
-      headers: {
-        "content-type": "application/json",
-      },
-    })
-  ).json();
+  // if (!roomId) return;
+
   channelSocket.emit("connect-room", channelId);
   roomSocket.emit("connect-room", roomsData);
-  // render room name
-  let roomNameDiv = document.querySelector(".room-name p");
-  roomNameDiv.innerHTML = `${roomInfo.name} #${roomId}`;
 
-  // render channels
-  let channels = roomInfo.channels;
-  let channelsDiv = document.querySelector(".channels");
+  // // render channels
+  // let channels = roomInfo.channels;
+  // let channelsDiv = document.querySelector(".channels");
 
-  channels.forEach((channel) => {
-    let channelDiv = document.createElement("div");
-    channelDiv.classList.add("channel");
-    channelDiv.innerHTML = channel.name;
-    channelDiv.dataset.channelId = channel.id;
-    channelDiv.addEventListener("click", (e) => {
-      if (e.target.dataset.channelId === channelId) return;
-      window.location.href = `/room.html?roomId=${roomId}&channelId=${e.target.dataset.channelId}`;
-    });
-    channelsDiv.append(channelDiv);
-  });
+  // channels.forEach((channel) => {
+  //   let channelDiv = document.createElement("div");
+  //   channelDiv.classList.add("channel");
+  //   channelDiv.innerHTML = channel.name;
+  //   channelDiv.dataset.channelId = channel.id;
+  //   channelDiv.addEventListener("click", (e) => {
+  //     if (e.target.dataset.channelId === channelId) return;
+  //     window.location.href = `/room.html?roomId=${roomId}&channelId=${e.target.dataset.channelId}`;
+  //   });
+  //   channelsDiv.append(channelDiv);
+  // });
   // render host info
   document.querySelector(".host-thumbnail").style.backgroundImage = `url("${user.picture}")`;
   document.querySelector(".host-online").style.backgroundColor = user.online
     ? "#00EE00"
     : "#CD0000";
   document.querySelector(".host-name").innerHTML = user.name;
+  document.querySelector(".host-id").innerHTML += user.id;
   let hostSetting = document.querySelector(".host-setting");
   hostSetting.addEventListener("click", (e) => {
     if (e.target.classList.contains("cog")) {
@@ -143,107 +133,6 @@ window.onload = async () => {
         return;
       });
     }
-  });
-
-  // render members
-  let members = roomInfo.members;
-  let membersDiv = document.querySelector(".members");
-  members.forEach((member) => {
-    let memberDiv = document.createElement("div");
-    memberDiv.classList.add("member");
-    // user thumbnail
-    let thumbnailDiv = document.createElement("div");
-    thumbnailDiv.classList.add("member-user-thumbnail");
-    thumbnailDiv.style.backgroundImage = `url("${member.picture}")`;
-    // user name
-    let nameDiv = document.createElement("div");
-    nameDiv.classList.add("member-user-name");
-    nameDiv.innerHTML = member.name;
-    // user online
-    let onlineDiv = document.createElement("div");
-    onlineDiv.classList.add("member-user-online");
-    onlineDiv.style.backgroundColor = member.online ? "#00EE00" : "#CD0000";
-    let blackCircle = document.createElement("div");
-    blackCircle.classList.add("black-circle");
-
-    // append userId on memberDiv
-    memberDiv.dataset.id = member.id;
-    memberDiv.append(onlineDiv, blackCircle, thumbnailDiv, nameDiv);
-    memberDiv.addEventListener("click", showUserInfo);
-    membersDiv.append(memberDiv);
-  });
-
-  // when user is room host, show setting icon
-  let roomSetting = document.createElement("li");
-  roomSetting.classList.add("room-settings");
-  roomSetting.innerHTML = `<i class="cog icon"></i>`;
-  let currentRoom = roomsData.find((room) => +room.id === +roomId);
-  let toolList = document.querySelector(".tools");
-  if (currentRoom.host_id === user.id) {
-    toolList.prepend(roomSetting);
-  }
-
-  // when click room setting, show setting page
-  roomSetting.addEventListener("click", (e) => {
-    let mask = document.querySelector(".mask");
-    let room = roomsData.find((room) => (room.id = roomId));
-    mask.classList.add("enable");
-    mask.innerHTML = `
-    <div class="edit-room-box">
-      <h2>編輯房間</h2>
-      <div class="room-upload">
-        <div class="room-edit">
-          <input type="file" id="edit-room-upload" accept=".png, .jpg, .jpeg" />
-          <label for="edit-room-upload">
-            <i class="plus icon"></i>
-          </label>
-        </div>
-        <div class="room-preview">
-          <div id="edit-room-preview"></div>
-        </div>
-      </div>
-      <input type="text" class="edit-room-name" />
-      <button class="save-room-btn">儲存</button>
-    </div>
-    `;
-
-    let preview = mask.querySelector("#edit-room-preview");
-    preview.style.backgroundImage = `url("${room.picture}")`;
-    let picInput = mask.querySelector("#edit-room-upload");
-    picInput.addEventListener("change", function (e) {
-      readURL(this, "#edit-room-preview");
-    });
-    let nameInput = mask.querySelector(".edit-room-name");
-    nameInput.value = room.name;
-    let saveBtn = mask.querySelector(".save-room-btn");
-    saveBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      let body = new FormData();
-      body.append("id", room.id);
-      let newName = nameInput.value;
-      if (picInput.files[0]) {
-        body.append("picture", picInput.files[0]);
-      }
-      if (newName !== room.name) {
-        body.append("name", newName);
-      }
-      body.append("original_name", room.name);
-      body.append("original_picture", room.picture);
-
-      let roomInfo = await (
-        await fetch("/api/rooms", {
-          method: "PUT",
-          body,
-          headers: { Authorization: `Bearer ${token}` },
-        })
-      ).json();
-      let index = roomsData.indexOf(room);
-      roomInfo.host_id = room.host_id;
-      roomInfo.channel_id = room.channel_id;
-      roomsData[index] = roomInfo;
-      localStorage.setItem("rooms", JSON.stringify(roomsData));
-      history.go(0);
-    });
   });
 
   if (!channelId) return;
@@ -394,8 +283,9 @@ function enableRooms() {
 if (!channelId || !roomId) {
   let input = document.querySelector(".enter-message");
   input.disabled = true;
-  input.setAttribute("placeholder", "請先新增頻道");
+  input.setAttribute("placeholder", "請先加入對話");
 }
+
 document.addEventListener("keypress", (e) => {
   if (e.key === "Enter" && e.target.value !== "" && e.target.classList.contains("enter-message")) {
     let description = e.target.value;
@@ -551,69 +441,20 @@ createRoom.addEventListener("click", (e) => {
   });
 });
 
-// create new channel
-let createChannel = document.querySelector(".channel-create-btn");
-createChannel.addEventListener("click", (e) => {
-  e.preventDefault();
-  maskDiv.classList.add("enable");
-  maskDiv.innerHTML = `
-  <div class="create-channel-box">
-    <div class="create-channel-headline">
-      <h3>建立頻道</h3>
-    </div>
-    <div class="create-text-channel">
-      <i class="hashtag icon"></i>
-      <h3>Text</h3>
-      <h4>輸入訊息及文字</h4>
-    </div>
-    <div class="create-voice-channel">
-      <i class="volume up icon"></i>
-      <h3>Voice</h3>
-      <h4>語音通話、視訊通話及畫面交流</h4>
-    </div>
-    <input type="text" class="create-channel-name" placeholder="請輸入頻道名稱" />
-    <button type="button" class="create-channel-btn" data-type="text">建立頻道</button>
-  </div>`;
+// when click add friend, show add friend form
+let addFriendBtn = document.querySelector(".add-friend-btn");
+addFriendBtn.addEventListener("mousedown", showAddFriend);
 
-  let createText = document.querySelector(".create-text-channel");
-  let createVoice = document.querySelector(".create-voice-channel");
-  let createChannelInput = document.querySelector(".create-channel-name");
-  let createChannelBtn = document.querySelector(".create-channel-btn");
-  createText.addEventListener("click", (e) => {
-    createText.style.backgroundColor = "rgb(26, 26, 26)";
-    createVoice.style.backgroundColor = "rgb(45, 46, 46)";
-    createChannelBtn.dataset.type = "text";
-  });
-  createVoice.addEventListener("click", (e) => {
-    createVoice.style.backgroundColor = "rgb(26, 26, 26)";
-    createText.style.backgroundColor = "rgb(45, 46, 46)";
-    createChannelBtn.dataset.type = "voice";
-  });
-  createChannelBtn.addEventListener("click", async (e) => {
-    if (createChannelInput.value !== "" && roomId) {
-      let channelType = e.target.dataset.type;
-      let channelName = createChannelInput.value;
-      let data = {
-        channel_type: channelType,
-        channel_name: channelName,
-        room_id: roomId,
-      };
-      let channelDetail = await (
-        await fetch("/api/channels/create", {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: {
-            "content-type": "application/json",
-          },
-        })
-      ).json();
-      createChannelInput.value = "";
-      maskDiv.classList.remove("enable");
-      maskDiv.innerHTML = "";
-      createChannelfn(channelDetail);
-    }
-  });
-});
+async function showAddFriend(e) {
+  maskDiv.classList.add("enable");
+  maskDiv.innerHTML += `
+  <div class="add-friend-box">
+    <h2>新增好友</h2>
+    <input type="text" class="add-friend" placeholder="輸入使用者ID" />
+    <button>傳送好友請求</button>
+  </div>
+  `;
+}
 
 // when click mask, disable it
 maskDiv.addEventListener("mousedown", (e) => {
@@ -1799,7 +1640,7 @@ async function showUserInfo(e) {
 
   let userName = document.createElement("div");
   userName.classList.add("user-name");
-  userName.innerHTML = info.name + `<strong>#${info.id}</strong>`;
+  userName.innerHTML = info.name;
 
   let userInfoOptions = document.createElement("div");
   userInfoOptions.classList.add("user-info-options");

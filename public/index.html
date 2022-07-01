@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./css/index.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;1,300&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.7/semantic.min.js"></script>
+    <script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script>
+    <script
+      src="https://cdn.socket.io/4.5.0/socket.io.min.js"
+      integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k"
+      crossorigin="anonymous"
+    ></script>
+    <title>Home</title>
+  </head>
+  <body>
+    <div class="mask float"></div>
+    <div class="room-side-bar">
+      <div class="home"><i class="home icon"></i></div>
+      <div class="room-position"></div>
+      <div class="create-room"><i class="plus icon"></i></div>
+      <div class="sign-out"><i class="sign-out icon"></i></div>
+    </div>
+    <div class="friend-search">
+      <input type="text" placeholder="搜尋好友" />
+    </div>
+    <div class="channel-side-bar">
+      <div class="channels">
+        <button type="button" class="add-friend-btn">新增好友</button>
+      </div>
+      <p class="request-headline">尚未接受的好友邀請</p>
+      <div class="pending-friends">
+        <div class="friend-request">
+          <div class="request-thumbnail"></div>
+          <div class="request-name">Ron</div>
+          <div class="request-accept">
+            <i class="check icon"></i>
+          </div>
+          <div class="request-reject">
+            <i class="close icon"></i>
+          </div>
+        </div>
+        <div class="friend-request">
+          <div class="request-thumbnail"></div>
+          <div class="request-name">Ron</div>
+          <div class="request-accept">
+            <i class="check icon"></i>
+          </div>
+          <div class="request-reject">
+            <i class="close icon"></i>
+          </div>
+        </div>
+        <div class="friend-request">
+          <div class="request-thumbnail"></div>
+          <div class="request-name">Ron</div>
+          <div class="request-accept">
+            <i class="check icon"></i>
+          </div>
+          <div class="request-reject">
+            <i class="close icon"></i>
+          </div>
+        </div>
+        <div class="friend-request">
+          <div class="request-thumbnail"></div>
+          <div class="request-name">Ron</div>
+          <div class="request-accept">
+            <i class="check icon"></i>
+          </div>
+          <div class="request-reject">
+            <i class="close icon"></i>
+          </div>
+        </div>
+        <div class="friend-request">
+          <div class="request-thumbnail"></div>
+          <div class="request-name">Ron</div>
+          <div class="request-accept">
+            <i class="check icon"></i>
+          </div>
+          <div class="request-reject">
+            <i class="close icon"></i>
+          </div>
+        </div>
+        <div class="friend-request">
+          <div class="request-thumbnail"></div>
+          <div class="request-name">Ron</div>
+          <div class="request-accept">
+            <i class="check icon"></i>
+          </div>
+          <div class="request-reject">
+            <i class="close icon"></i>
+          </div>
+        </div>
+      </div>
+      <p class="friend-headline">私人訊息</p>
+      <div class="friends">
+        <div class="friend">
+          <div class="friend-thumbnail"></div>
+          <div class="friend-online"></div>
+          <div class="friend-name">Harry</div>
+        </div>
+        <div class="friend">
+          <div class="friend-thumbnail"></div>
+          <div class="friend-online"></div>
+          <div class="friend-name">Harry</div>
+        </div>
+        <div class="friend">
+          <div class="friend-thumbnail"></div>
+          <div class="friend-online"></div>
+          <div class="friend-name">Harry</div>
+        </div>
+        <div class="friend">
+          <div class="friend-thumbnail"></div>
+          <div class="friend-online"></div>
+          <div class="friend-name">Harry</div>
+        </div>
+        <div class="friend">
+          <div class="friend-thumbnail"></div>
+          <div class="friend-online"></div>
+          <div class="friend-name">Harry</div>
+        </div>
+        <div class="friend">
+          <div class="friend-thumbnail"></div>
+          <div class="friend-online"></div>
+          <div class="friend-name">Harry</div>
+        </div>
+        <div class="friend">
+          <div class="friend-thumbnail"></div>
+          <div class="friend-online"></div>
+          <div class="friend-name">Harry</div>
+        </div>
+        <div class="friend">
+          <div class="friend-thumbnail"></div>
+          <div class="friend-online"></div>
+          <div class="friend-name">Harry</div>
+        </div>
+        <div class="friend">
+          <div class="friend-thumbnail"></div>
+          <div class="friend-online"></div>
+          <div class="friend-name">Harry</div>
+        </div>
+        <div class="friend">
+          <div class="friend-thumbnail"></div>
+          <div class="friend-online"></div>
+          <div class="friend-name">Harry</div>
+        </div>
+        <div class="friend">
+          <div class="friend-thumbnail"></div>
+          <div class="friend-online"></div>
+          <div class="friend-name">Harry</div>
+        </div>
+      </div>
+    </div>
+    <div class="host-info">
+      <div class="host-thumbnail"></div>
+      <div class="host-online"></div>
+      <div class="host-name"></div>
+      <div class="host-id">#</div>
+      <div class="host-setting">
+        <i class="cog icon"></i>
+      </div>
+    </div>
+    <div class="chat-room">
+      <div class="top-bar">
+        <div class="channel-name">
+          <p></p>
+        </div>
+        <ul class="tools">
+          <!-- <li class="room-pin">
+            <i class="thumbtack icon"></i>
+          </li> -->
+          <li class="room-search">
+            <input type="text" placeholder="搜尋" id="search" />
+          </li>
+          <li class="mailbox">
+            <i class="envelope open icon"></i>
+          </li>
+        </ul>
+      </div>
+      <div class="chat">
+        <div class="messages"></div>
+        <div class="message-box">
+          <i class="plus circle icon"></i>
+          <input class="enter-message" type="text" value="" placeholder="請輸入訊息" />
+        </div>
+      </div>
+      <div class="members"></div>
+    </div>
+    <script src="./js/index.js"></script>
+  </body>
+</html>

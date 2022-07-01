@@ -7,7 +7,7 @@ const PRESET_BACKGROUND = "sunset.jpg";
 module.exports = class Room {
   static async getDetail(roomId, userId) {
     let sql = `
-    SELECT a.id, a.name,
+    SELECT a.id, a.name, a.host_id,
     c.source AS pic_src, c.type AS pic_type, c.image AS pic_img, c.preset
     FROM rooms a 
     INNER JOIN room_members b ON a.id = b.room_id
@@ -23,6 +23,7 @@ module.exports = class Room {
       id: room.id,
       name: room.name,
       picture: roomPic,
+      host_id: room.host_id,
     };
     return data;
   }

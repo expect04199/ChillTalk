@@ -70,11 +70,11 @@ module.exports.postReadStatus = async (req, res) => {
   return res.status(200).send("success");
 };
 
-module.exports.getMail = async (req, res) => {
+module.exports.getMail = async (req, res, next) => {
   const userId = req.user.id;
   let messages = await Message.getMail(userId);
   if (messages.error) {
-    next(messages.error);
+    return next(messages.error);
   }
   return res.status(200).json(messages);
 };

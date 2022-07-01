@@ -31,7 +31,7 @@ userSignIn.addEventListener("click", async (e) => {
   localStorage.setItem("token", user.access_token);
   localStorage.setItem("info", JSON.stringify(user.info));
   localStorage.setItem("rooms", JSON.stringify(user.rooms));
-  window.location.href = "/room.html";
+  window.location.href = "/index.html";
 });
 
 // user sign up
@@ -61,5 +61,5 @@ userSignUp.addEventListener("click", async (e) => {
   localStorage.setItem("token", user.access_token);
   localStorage.setItem("info", JSON.stringify(user.info));
   localStorage.setItem("rooms", JSON.stringify([]));
-  window.location.href = "/room.html";
+  window.location.href = "/index.html";
 });

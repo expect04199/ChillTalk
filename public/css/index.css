@@ -130,20 +130,189 @@ i.sign-out.icon {
   width: 240px;
   height: calc(100vh - 100px);
   background-color: rgb(17, 17, 17);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.room-name {
+.friend-search {
   position: absolute;
   top: 0px;
   left: 75px;
   width: 240px;
   height: 50px;
   background-color: rgb(17, 17, 17);
-  color: white;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.friend-search input {
+  margin-top: 10px;
+  padding: 5px;
+  width: 95%;
+  height: 30px;
+  outline: none;
+  background-color: black;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.friend-search input::placeholder {
+  color: #a2a3a2;
+}
+
+.request-headline {
+  width: 95%;
+  text-align: left;
+  color: #dcdddc;
+  margin-top: 10px;
+  margin-bottom: 7px;
+}
+
+.pending-friends {
+  width: 100%;
+  height: 200px;
+  border-radius: 5px;
+  overflow-y: scroll;
+}
+
+.pending-friends::-webkit-scrollbar {
+  width: 4px;
+}
+
+.pending-friends::-webkit-scrollbar-thumb {
+  background-color: #555555;
+}
+
+.pending-friends:hover::-webkit-scrollbar-thumb {
+  background-color: #555555;
+}
+
+.friend-request {
+  width: 96%;
+  height: 40px;
+  margin: 10px 0px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.friend-request:hover {
+  background-color: rgb(34, 34, 34);
+}
+
+.friend-request:hover .request-name {
+  color: white;
+}
+
+.friend-request:hover .request-accept {
+  color: #bbbfbb;
+}
+
+.friend-request:hover .request-reject {
+  color: #bbbfbb;
+}
+
+.request-thumbnail {
+  background-image: url("https://d28ad0xxqchuot.cloudfront.net/user/1/picture/ron.png");
+  width: 40px;
+  height: 40px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+}
+
+.request-name {
   font-size: 1.5rem;
+  margin: 0px 0px 0px 15px;
+  color: #bbbfbb;
+}
+
+.request-accept {
+  position: absolute;
+  right: 40px;
+  font-size: 1.2rem;
+}
+
+.request-accept:hover {
+  color: white !important;
+}
+
+.request-reject {
+  position: absolute;
+  right: 10px;
+  font-size: 1.2rem;
+}
+
+.request-reject:hover {
+  color: white !important;
+}
+
+.friend-headline {
+  width: 100%;
+  text-align: left;
+  color: #dcdddc;
+  border-top: 2px solid #292929;
+  padding-top: 10px;
+  padding-left: 5px;
+  margin-bottom: 5px;
+}
+
+.friends {
+  width: 100%;
+  height: calc(100vh - 450px);
+  border-radius: 5px;
+  overflow-y: scroll;
+}
+
+.friends::-webkit-scrollbar {
+  width: 4px;
+}
+
+.friends::-webkit-scrollbar-thumb {
+  background-color: #555555;
+}
+
+.friends:hover::-webkit-scrollbar-thumb {
+  background-color: #555555;
+}
+
+.friend {
+  width: 96%;
+  height: 40px;
+  margin: 10px 0px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.friend:hover {
+  background-color: rgb(34, 34, 34);
+}
+
+.friend:hover .friend-name {
+  color: white;
+}
+
+.friend-thumbnail {
+  background-image: url("https://d28ad0xxqchuot.cloudfront.net/user/1/picture/harry%20potter.jpg");
+  width: 40px;
+  height: 40px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+}
+
+.friend-name {
+  font-size: 1.5rem;
+  margin: 0px 0px 0px 15px;
+  color: #bbbfbb;
 }
 
 .channels {
@@ -155,12 +324,13 @@ i.sign-out.icon {
   align-items: center;
 }
 
-.channel-create-btn {
+.add-friend-btn {
   width: 95%;
   height: 30px;
   background-color: rgb(11, 56, 1);
   color: #dcdddc;
   margin: 5px;
+  margin-top: 0;
   padding: 5px;
   border: none;
   border-radius: 2px;
@@ -168,10 +338,61 @@ i.sign-out.icon {
   cursor: pointer;
 }
 
-.channel-create-btn:hover {
+.add-friend-btn:hover {
   background-color: white;
   color: black;
   transition: 0.5s;
+}
+
+.add-friend-box {
+  width: 400px;
+  height: 230px;
+  border-radius: 10px;
+  background-color: rgb(55, 55, 55);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.add-friend-box h2 {
+  padding-top: 20px;
+  padding-left: 20px;
+  font-size: 2rem;
+  color: #d8dad8;
+}
+
+.add-friend-box input {
+  width: 90%;
+  height: 40px;
+  margin: 20px 0px;
+  align-self: center;
+  border-radius: 5px;
+  outline: none;
+  border: none;
+  padding-left: 10px;
+  font-size: 1.5rem;
+  background-color: #555555;
+  caret-color: #dcdddc;
+  color: #dcdddc;
+}
+
+.add-friend-box input::placeholder {
+  color: #8e8e8e;
+}
+
+.add-friend-box button {
+  margin: 20px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  width: 25%;
+  height: 40px;
+  background-color: rgb(2, 160, 2);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  align-self: flex-end;
+  cursor: pointer;
+  font-size: 1.1rem;
 }
 
 .channel {
@@ -224,6 +445,14 @@ i.sign-out.icon {
 
 .host-name {
   font-size: 1.5rem;
+  padding-bottom: 15px;
+}
+
+.host-id {
+  position: absolute;
+  left: 75px;
+  bottom: 10px;
+  color: #a2a3a2;
 }
 
 .host-setting {
@@ -436,7 +665,6 @@ i.sign-out.icon {
   font-size: 1.25rem;
   color: #dcdddc;
   transition: 0.3s;
-  outline: none;
 }
 
 .search-options {
@@ -603,7 +831,7 @@ i.sign-out.icon {
 
 .chat {
   position: absolute;
-  width: calc(100vw - 550px);
+  width: calc(100vw - 315px);
   height: calc(100vh - 50px);
   background-color: black;
   display: flex;
@@ -774,23 +1002,23 @@ i.sign-out.icon {
 }
 
 /* .message-edit {
-  width: 20px;
-  height: 20px;
-  color: #8e8e8e;
-  cursor: pointer;
-  background-color: red;
-  position: absolute;
-  bottom: 4px;
-  right: 10px;
-}
-
-.message-edit:hover {
-  background-color: #232323;
-}
-
-.message-edit i::before {
-  margin-left: 2px;
-} */
+    width: 20px;
+    height: 20px;
+    color: #8e8e8e;
+    cursor: pointer;
+    background-color: red;
+    position: absolute;
+    bottom: 4px;
+    right: 10px;
+  }
+  
+  .message-edit:hover {
+    background-color: #232323;
+  }
+  
+  .message-edit i::before {
+    margin-left: 2px;
+  } */
 
 .message-box {
   width: 100%;
@@ -861,65 +1089,6 @@ i.sign-out.icon {
 
 .enter-message:focus {
   outline: none;
-}
-
-.members {
-  background-color: rgb(14, 14, 14);
-  position: absolute;
-  width: 235px;
-  height: 100%;
-  right: 0;
-  overflow-y: auto;
-}
-
-.member {
-  width: 100%;
-  height: 50px;
-  background-color: rgb(14, 14, 14);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  position: relative;
-  cursor: pointer;
-}
-
-.member:hover {
-  background-color: rgb(36, 36, 36);
-}
-
-.member-user-thumbnail {
-  width: 35px;
-  height: 35px;
-  border-radius: 100%;
-  background-size: cover;
-  margin: 0 20px;
-}
-
-.member-user-name {
-  font-size: 1.5rem;
-  color: darkturquoise;
-}
-
-.black-circle {
-  position: absolute;
-  background-color: black;
-  width: 20px;
-  height: 20px;
-  left: 41px;
-  bottom: -1px;
-  border-radius: 50%;
-  z-index: 1;
-}
-
-.member-user-online {
-  width: 12px;
-  height: 12px;
-  margin-left: 30px;
-  border-radius: 50%;
-  position: absolute;
-  left: 15px;
-  bottom: 2px;
-  z-index: 2;
 }
 
 .float {
@@ -1304,11 +1473,6 @@ i.sign-out.icon {
   top: 150px;
   left: 180px;
   font-size: 2.2rem;
-}
-
-.user-name strong {
-  font-size: 1.7rem;
-  color: #8e8e8e;
 }
 
 .user-info-options {
