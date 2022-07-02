@@ -454,6 +454,25 @@ async function showAddFriend(e) {
     <button>傳送好友請求</button>
   </div>
   `;
+
+  let requestBtn = maskDiv.querySelector(".add-friend-box button");
+  requestBtn.addEventListener("click", async (e) => {
+    let friendId = maskDiv.querySelector(".add-friend").value;
+    if (friendId === "") return;
+    let body = {
+      user_id: friendId,
+    };
+    await fetch("/api/friends/befriend", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "content-type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    maskDiv.innerHTML = "";
+    maskDiv.classList.remove("enable");
+  });
 }
 
 // when click mask, disable it
