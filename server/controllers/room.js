@@ -28,7 +28,6 @@ module.exports.postJoinRoom = async (req, res) => {
   let channels = await Room.getChannels(roomId);
   let data = {
     ...detail,
-    alert: true,
   };
   if (channels.length !== 0) {
     data.channel_id = channels[0].id;
@@ -38,11 +37,10 @@ module.exports.postJoinRoom = async (req, res) => {
 
 module.exports.postCreateRoom = async (req, res) => {
   const { room_name: roomName, user_id: userId } = req.body;
-  let roomId = await Room.create(req.files, roomName, userId);
+  let roomId = await Room.create(req.files, roomName, userId, "public");
   let detail = await Room.getDetail(roomId, userId);
   let data = {
     ...detail,
-    alert: true,
   };
   return res.status(200).json(data);
 };

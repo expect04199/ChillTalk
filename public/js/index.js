@@ -1,6 +1,7 @@
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
+const friendName = urlParams.get("friend");
 
 const channelSocket = io.connect("http://localhost:3000/channel");
 const roomSocket = io.connect("http://localhost:3000/room");
@@ -23,21 +24,38 @@ window.onload = async () => {
   channelSocket.emit("connect-room", channelId);
   roomSocket.emit("connect-room", roomsData);
 
-  // // render channels
-  // let channels = roomInfo.channels;
-  // let channelsDiv = document.querySelector(".channels");
+  // render friend requests
+  let data = await (
+    await fetch("/api/friends/requests", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  ).json();
+  let users = data.users;
+  let pendingFriends = document.querySelector(".pending-friends");
+  users.forEach((user) => {
+    let requestDiv = createRequestFriend(user);
+    pendingFriends.append(requestDiv);
+  });
 
-  // channels.forEach((channel) => {
-  //   let channelDiv = document.createElement("div");
-  //   channelDiv.classList.add("channel");
-  //   channelDiv.innerHTML = channel.name;
-  //   channelDiv.dataset.channelId = channel.id;
-  //   channelDiv.addEventListener("click", (e) => {
-  //     if (e.target.dataset.channelId === channelId) return;
-  //     window.location.href = `/room.html?roomId=${roomId}&channelId=${e.target.dataset.channelId}`;
-  //   });
-  //   channelsDiv.append(channelDiv);
-  // });
+  // render friends
+  let friendsData = await (
+    await fetch("/api/friends", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  ).json();
+  let friends = friendsData.friends;
+  let friendsDiv = document.querySelector(".friends");
+  friends.forEach((friend) => {
+    let friendDiv = createFriend(friend);
+    friendsDiv.append(friendDiv);
+  });
+
   // render host info
   document.querySelector(".host-thumbnail").style.backgroundImage = `url("${user.picture}")`;
   document.querySelector(".host-online").style.backgroundColor = user.online
@@ -136,14 +154,12 @@ window.onload = async () => {
   });
 
   if (!channelId) return;
-
-  // render channel-name
-  let channelName = document.querySelector(".channel-name");
+  // render channel name
+  document.querySelector(".channel-name").innerHTML = friendName;
 
   let nextPage;
   let prevPage;
   let readSession;
-  channelName.innerHTML = channels.find((channel) => +channel.id === +channelId).name;
   // render messages
   let result = await (
     await fetch(`/api/messages?channelId=${channelId}&userId=${user.id}`, {
@@ -322,6 +338,9 @@ document.addEventListener("keypress", (e) => {
     }
     channelSocket.emit("message", message);
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
+    let friends = document.querySelector(".friends");
+    let currFriend = document.querySelector(".friend-enable");
+    insertToFirst(friends, currFriend);
   }
 });
 
@@ -1753,4 +1772,106 @@ async function showUserInfo(e) {
       userOptionResult.appendChild(mutualFriend);
     });
   });
+}
+
+function createRequestFriend(user) {
+  let friendRequest = document.createElement("div");
+  friendRequest.classList.add("friend-request");
+  friendRequest.dataset.userId = user.id;
+
+  let thumbnail = document.createElement("div");
+  thumbnail.classList.add("request-thumbnail");
+  thumbnail.style.backgroundImage = `url("${user.picture}")`;
+
+  let name = document.createElement("div");
+  name.classList.add("request-name");
+  name.innerHTML = user.name;
+
+  let online = document.createElement("div");
+  online.classList.add("request-online");
+  online.style.backgroundColor = user.online ? "#00EE00" : "#CD0000";
+
+  let accept = document.createElement("div");
+  accept.classList.add("request-accept");
+  accept.innerHTML = `<i class="check icon"></i>`;
+  accept.addEventListener("mousedown", async (e) => {
+    let body = {
+      user_id: user.id,
+    };
+    let data = await (
+      await fetch("/api/friends/requests", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+    ).json();
+    console.log(data);
+    user.room_id = data.room_id;
+    user.channel_id = data.channel_id;
+
+    let friendsDiv = document.querySelector(".friends");
+    let friendDiv = createFriend(user);
+    friendsDiv.prepend(friendDiv);
+    friendRequest.remove();
+  });
+
+  let reject = document.createElement("div");
+  reject.classList.add("request-reject");
+  reject.innerHTML = `<i class="close icon"></i>`;
+  reject.addEventListener("click", async (e) => {
+    let body = {
+      user_id: user.id,
+    };
+    await fetch("/api/friends/requests", {
+      method: "DELETE",
+      body: JSON.stringify(body),
+      headers: {
+        "content-type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    friendRequest.remove();
+  });
+
+  friendRequest.append(thumbnail, name, online, accept, reject);
+  return friendRequest;
+}
+
+function createFriend(friend) {
+  let friendDiv = document.createElement("div");
+  friendDiv.classList.add("friend");
+  friendDiv.dataset.roomId = friend.room_id;
+  friendDiv.dataset.channelId = friend.channel_id;
+  friendDiv.dataset.lastMessageTime = friend.last_message_time;
+  if (+friend.room_id === +roomId && +friend.channel_id === +channelId) {
+    friendDiv.classList.add("friend-enable");
+  }
+
+  let thumbnail = document.createElement("div");
+  thumbnail.classList.add("friend-thumbnail");
+  thumbnail.style.backgroundImage = `url("${friend.picture}")`;
+
+  let online = document.createElement("div");
+  online.classList.add("friend-online");
+  online.style.backgroundColor = friend.online ? "#00EE00" : "#CD0000";
+
+  let name = document.createElement("div");
+  name.classList.add("friend-name");
+  name.innerHTML = friend.name;
+  friendDiv.append(thumbnail, online, name);
+  friendDiv.addEventListener("mousedown", (e) => {
+    window.location.href = `/index.html?roomId=${friend.room_id}&channelId=${friend.channel_id}&friend=${friend.name}`;
+  });
+  return friendDiv;
+}
+
+function insertToFirst(parent, child) {
+  // if (child === parent.children[0]) return;
+  let temp = child;
+  console.log(parent);
+  child.remove();
+  parent.prepend(temp);
 }

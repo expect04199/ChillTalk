@@ -232,6 +232,16 @@ i.sign-out.icon {
   color: #bbbfbb;
 }
 
+.request-online {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  left: 25px;
+  bottom: 0px;
+  border: 2px solid #000000de;
+}
+
 .request-accept {
   position: absolute;
   right: 40px;
@@ -296,6 +306,10 @@ i.sign-out.icon {
   background-color: rgb(34, 34, 34);
 }
 
+.friend-enable {
+  background-color: rgb(34, 34, 34);
+}
+
 .friend:hover .friend-name {
   color: white;
 }
@@ -313,6 +327,16 @@ i.sign-out.icon {
   font-size: 1.5rem;
   margin: 0px 0px 0px 15px;
   color: #bbbfbb;
+}
+
+.friend-online {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  left: 27px;
+  bottom: 0px;
+  border-radius: 50%;
+  border: 2px solid #000000de;
 }
 
 .channels {

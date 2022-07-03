@@ -11,7 +11,7 @@ module.exports.postSignin = async (req, res) => {
     throw info.error;
   }
   let payload = { info: info };
-  let rooms = await User.findRooms(info.id);
+  let rooms = await User.findRooms(info.id, "public");
   const access_token = jwt.sign(payload, TOKEN_SECRET, { expiresIn: "24h" });
   let data = {
     access_token,

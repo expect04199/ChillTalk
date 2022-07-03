@@ -87,7 +87,7 @@ module.exports = class Room {
     return result.insertId;
   }
 
-  static async create(files, roomName, userId) {
+  static async create(files, roomName, userId, type) {
     try {
       // create room
       await db.query("START TRANSACTION");
@@ -97,6 +97,7 @@ module.exports = class Room {
       let room = {
         name: roomName,
         host_id: userId,
+        type,
       };
       let [result] = await db.query(roomSql, room);
       // create membership

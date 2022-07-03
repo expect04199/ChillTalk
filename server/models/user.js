@@ -89,8 +89,9 @@ module.exports = class User {
         storage_type: "original",
         preset: 1,
       };
-      await db.query(picSql, [[Object.values(picData), Object.values(bgdData)]]);
-
+      console.log(Object.values(picData), Object.values(bgdData));
+      let result = await db.query(picSql, [[Object.values(picData), Object.values(bgdData)]]);
+      console.log(result);
       delete userData.password;
       userData.picture = `${CDN_IP}/preset/1/${picData.type}/${picData.image}`;
       userData.background = `${CDN_IP}/preset/1/${bgdData.type}/${bgdData.image}`;
@@ -107,7 +108,7 @@ module.exports = class User {
     }
   }
 
-  static async findRooms(userId) {
+  static async findRooms(userId, type) {
     let sql = `
     SELECT b.id, b.name, b.host_id, c.id AS channel_id,
     d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset
@@ -115,10 +116,10 @@ module.exports = class User {
     INNER JOIN rooms b ON a.room_id = b.id
     LEFT JOIN channels c ON b.id = c.room_id
     LEFT JOIN pictures d ON b.id = d.source_id AND d.source = "room" AND d.type = "picture"
-    WHERE a.user_id = ?
+    WHERE a.user_id = ? AND b.type = ?
     ORDER BY b.id, channel_id
     `;
-    let [rooms] = await db.query(sql, [userId]);
+    let [rooms] = await db.query(sql, [userId, type]);
     let roomMap = {};
     rooms.forEach((room) => {
       if (!roomMap[room.id]) {
