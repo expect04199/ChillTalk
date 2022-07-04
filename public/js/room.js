@@ -43,9 +43,14 @@ window.onload = async () => {
     channelDiv.classList.add("channel");
     channelDiv.innerHTML = channel.name;
     channelDiv.dataset.channelId = channel.id;
+    channelDiv.dataset.channelType = channel.type;
     channelDiv.addEventListener("click", (e) => {
       if (e.target.dataset.channelId === channelId) return;
-      window.location.href = `/room.html?roomId=${roomId}&channelId=${e.target.dataset.channelId}`;
+      if (e.target.dataset.channelType === "text") {
+        window.location.href = `/room.html?roomId=${roomId}&channelId=${e.target.dataset.channelId}`;
+      } else if (e.target.dataset.channelType === "voice") {
+        window.location.href = `/stream.html?roomId=${roomId}&channelId=${e.target.dataset.channelId}`;
+      }
     });
     channelsDiv.append(channelDiv);
   });
@@ -380,12 +385,7 @@ function enableRooms() {
     room.addEventListener("click", (e) => {
       let rId = e.target.id;
       if (rId === roomId) return;
-      let channelId = e.target.dataset.channel;
-      if (channelId) {
-        window.location.href = `/room.html?roomId=${rId}&channelId=${channelId}`;
-      } else {
-        window.location.href = `/room.html?roomId=${rId}`;
-      }
+      window.location.href = `/room.html?roomId=${rId}`;
     });
   });
 }
@@ -394,7 +394,7 @@ function enableRooms() {
 if (!channelId || !roomId) {
   let input = document.querySelector(".enter-message");
   input.disabled = true;
-  input.setAttribute("placeholder", "請先新增頻道");
+  input.setAttribute("placeholder", "請先加入頻道");
 }
 document.addEventListener("keypress", (e) => {
   if (e.key === "Enter" && e.target.value !== "" && e.target.classList.contains("enter-message")) {

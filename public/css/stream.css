@@ -1,0 +1,1281 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Roboto", sans-serif;
+  user-select: none;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+.room-side-bar {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  height: 100%;
+  width: 75px;
+  background-color: black;
+}
+
+.home {
+  width: 50px;
+  height: 50px;
+  margin-top: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  text-align: center;
+}
+
+.home i::before {
+  color: rgb(161, 232, 185);
+  position: relative;
+  font-size: 2.25rem;
+  top: 15px;
+  right: 15px;
+}
+
+.home:hover {
+  background-color: white;
+  border-radius: 20%;
+  transition: 0.3s;
+}
+
+i.home.icon {
+  width: 0;
+  height: 0;
+}
+
+.room-position {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.room {
+  width: 50px;
+  height: 50px;
+  margin-top: 10px;
+  background-size: cover;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.room:hover {
+  transition: 0.3s;
+  border-radius: 20%;
+}
+
+.create-room {
+  width: 50px;
+  height: 50px;
+  margin-top: 10px;
+  border-radius: 50%;
+  text-align: center;
+  cursor: pointer;
+}
+
+.create-room i::before {
+  color: rgb(161, 232, 185);
+  position: relative;
+  font-size: 1.75rem;
+  top: 15px;
+  right: 1px;
+}
+
+.create-room:hover {
+  background-color: white;
+  border-radius: 20%;
+  transition: 0.3s;
+}
+
+.sign-out {
+  position: absolute;
+  bottom: 50px;
+  cursor: pointer;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  text-align: center;
+}
+
+.sign-out i::before {
+  color: rgb(161, 232, 185);
+  position: relative;
+  font-size: 2rem;
+  top: 15px;
+  right: 10px;
+}
+
+i.sign-out.icon {
+  width: 0;
+  height: 0;
+}
+
+.sign-out:hover {
+  background-color: white;
+  border-radius: 20%;
+  transition: 0.3s;
+}
+
+.channel-side-bar {
+  position: absolute;
+  top: 50px;
+  left: 75px;
+  width: 240px;
+  height: calc(100vh - 100px);
+  background-color: rgb(17, 17, 17);
+}
+
+.room-name {
+  position: absolute;
+  top: 0px;
+  left: 75px;
+  width: 240px;
+  height: 50px;
+  background-color: rgb(17, 17, 17);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+}
+
+.channels {
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.channel-create-btn {
+  width: 95%;
+  height: 30px;
+  background-color: rgb(11, 56, 1);
+  color: #dcdddc;
+  margin: 5px;
+  padding: 5px;
+  border: none;
+  border-radius: 2px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.channel-create-btn:hover {
+  background-color: white;
+  color: black;
+  transition: 0.5s;
+}
+
+.channel {
+  width: 95%;
+  height: 30px;
+  background-color: rgb(47, 46, 46);
+  color: #dcdddc;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.channel:hover {
+  background-color: white;
+  color: black;
+  transition: 0.5s;
+}
+
+.host-info {
+  position: absolute;
+  left: 75px;
+  bottom: 0px;
+  width: 240px;
+  height: 70px;
+  background-color: rgb(36, 36, 36);
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.host-thumbnail {
+  width: 45px;
+  height: 45px;
+  background-position: center;
+  background-size: cover;
+  border-radius: 100%;
+  margin: 0px 15px;
+}
+
+.host-online {
+  position: absolute;
+  bottom: 8px;
+  left: 40px;
+  width: 20px;
+  height: 20px;
+  border-radius: 100%;
+  border: 3px solid rgb(36, 36, 36);
+}
+
+.host-name {
+  font-size: 1.5rem;
+}
+
+.host-setting {
+  position: absolute;
+  right: 30px;
+  top: 25px;
+}
+
+.host-setting i::before {
+  font-size: 1.5rem;
+  color: #5a5959;
+  cursor: pointer;
+}
+
+.host-setting i:hover::before {
+  color: white !important;
+}
+
+.chat-room {
+  position: absolute;
+  width: calc(100vw - 315px);
+  height: calc(100vh - 50px);
+  left: 315px;
+}
+
+.top-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 50px;
+  background-color: black;
+  color: white;
+  position: relative;
+}
+
+.tools {
+  color: #8e8e8e;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  right: 100px;
+  list-style-type: none;
+  font-size: 1.5rem;
+}
+
+.tools li {
+  margin: 0px 12px;
+  position: relative;
+}
+
+.tools li i:nth-child(1):hover {
+  color: #dcdddc;
+  cursor: pointer;
+}
+
+.mail-messages-box {
+  width: 350px;
+  height: calc(100vh - 50px);
+  background-color: rgb(66, 66, 66);
+  position: absolute;
+  z-index: 200;
+  top: 35px;
+  right: -112px;
+}
+
+.mail-box-headline {
+  background-color: #282727;
+  height: 40px;
+  padding-top: 10px;
+  padding-left: 25px;
+  color: #dcdddc;
+}
+
+.mail-messages {
+  height: calc(100% - 40px);
+  overflow-y: scroll;
+}
+
+.mail-channel-info {
+  width: 100%;
+  background-color: #171717;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.mail-room-thumbnail {
+  width: 50px;
+  height: 50px;
+  background-size: cover;
+  background-position: center;
+  z-index: 105;
+  display: inline;
+  margin: 0px 20px;
+  border-radius: 10px;
+}
+
+.mail-channel-name {
+  color: rgb(255, 255, 255);
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+  display: inline;
+}
+
+.mail-room-name {
+  color: rgb(152, 152, 150);
+  font-size: 0.8rem;
+  margin: 0px 30px;
+  position: absolute;
+  bottom: 15px;
+  left: 60px;
+}
+
+.mail-message-box {
+  width: 100%;
+  min-height: 50px;
+  background-color: #5a5959;
+  border-bottom: 1px solid gray;
+  display: flex;
+  flex-direction: column;
+  color: #dcdddc;
+  position: relative;
+}
+
+.mail-thumbnail {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-position: center;
+  background-size: cover;
+  position: absolute;
+  top: 12px;
+  left: 15px;
+}
+
+.mail-message-info {
+  display: flex;
+  align-items: center;
+  margin-left: 60px;
+  margin-top: 10px;
+}
+
+.mail-name {
+  font-size: 1.25rem;
+  color: rgb(253, 234, 23);
+  margin-right: 10px;
+}
+
+.mail-time {
+  font-size: 0.4rem;
+  color: #aea0a0;
+  padding-top: 4px;
+}
+
+.mail-description {
+  width: 60%;
+  margin-left: 60px;
+  margin-bottom: 10px;
+  font-size: 1.25rem;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+.stream-box {
+  width: 100%;
+  height: calc(100vh - 50px);
+  background-color: black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.stream-video {
+  width: 90%;
+  height: calc(100vh - 270px);
+  border-radius: 10px;
+  position: relative;
+}
+
+.streamer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #acb6c9;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: -2;
+}
+
+.streamer-thumbnail {
+  width: 80px;
+  height: 80px;
+  background-image: url("https://d28ad0xxqchuot.cloudfront.net/room/1/picture/hogwarts.jpg");
+  background-position: center;
+  background-size: cover;
+  border-radius: 100%;
+}
+
+.stream-video video {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  z-index: 10;
+}
+
+.participant-box {
+  width: 90%;
+  height: 130px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-x: scroll;
+  border-radius: 5px;
+}
+
+.participant-box::-webkit-scrollbar {
+  height: 5px;
+}
+
+.participant-box::-webkit-scrollbar-thumb {
+  background-color: rgba(191, 191, 191, 0.5) !important;
+}
+
+.participant {
+  min-width: 200px;
+  width: 130px;
+  height: 80%;
+  margin: 0px 5px;
+  border-radius: 5px;
+  background-color: #7f7e7e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.participant-video {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: 10;
+  display: "block";
+  border-radius: 5px;
+}
+
+.participant-thumbnail {
+  width: 70px;
+  height: 70px;
+  background-image: url("https://d28ad0xxqchuot.cloudfront.net/preset/1/picture/dogee.png");
+  border-radius: 100%;
+  background-position: center;
+  background-size: cover;
+}
+
+.participant-name {
+  position: absolute;
+  left: 5px;
+  bottom: 0;
+  color: #dcdddc;
+}
+
+.stream-tools {
+  height: 60px;
+  width: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  position: absolute;
+  bottom: 20px;
+}
+
+.stream-camera {
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  background-color: #454545;
+  position: relative;
+  cursor: pointer;
+}
+
+.stream-camera i {
+  color: white;
+  position: absolute;
+  top: 15px;
+  left: 15px;
+}
+
+.stream-camera i::before {
+  font-size: 1.25rem;
+}
+
+.stream-share-screen {
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  background-color: #454545;
+  position: relative;
+  cursor: pointer;
+}
+
+.stream-share-screen i {
+  color: white;
+  position: absolute;
+  top: 15px;
+  left: 15px;
+}
+
+.stream-share-screen i::before {
+  font-size: 1.25rem;
+}
+
+.stream-voice {
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  background-color: #454545;
+  position: relative;
+  cursor: pointer;
+}
+
+.stream-voice i {
+  color: white;
+  position: absolute;
+  top: 15px;
+  left: 17px;
+}
+
+.stream-voice i::before {
+  font-size: 1.25rem;
+}
+
+.stream-quit {
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  background-color: #ff0000;
+  position: relative;
+  cursor: pointer;
+}
+
+.stream-quit i {
+  color: white;
+  position: absolute;
+  top: 15px;
+  left: 17px;
+}
+
+.stream-quit i::before {
+  font-size: 1.25rem;
+}
+
+.channel-name {
+  margin-left: 40px;
+  font-size: 1.5rem;
+}
+
+.channel-name::before {
+  content: "# ";
+}
+
+.float {
+  position: absolute;
+  z-index: 2;
+}
+
+.mask.enable {
+  background-color: rgb(0, 0, 0, 0.9);
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3;
+}
+
+.create-channel-box {
+  background-color: rgb(55, 55, 55);
+  color: #dcdddc;
+  width: 450px;
+  height: 390px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.create-channel-box > * {
+  margin: 10px 0px;
+}
+
+.create-channel-headline {
+  width: 90%;
+  margin-top: 40px;
+}
+
+.create-channel-headline h3 {
+  font-size: 2rem;
+}
+
+.create-text-channel {
+  background-color: rgb(45, 46, 46);
+  width: 90%;
+  height: 60px;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.create-text-channel:hover {
+  background-color: rgb(26, 26, 26);
+}
+
+.create-text-channel i::before {
+  font-size: 1.75rem;
+  position: absolute;
+  left: 20px;
+}
+
+.create-text-channel h3 {
+  font-size: 1.5rem;
+  margin: 0px 30px;
+  position: absolute;
+  left: 30px;
+  top: 5px;
+}
+
+.create-text-channel h4 {
+  font-size: 1rem;
+  position: absolute;
+  left: 60px;
+  top: 10px;
+  color: #8e8e8e;
+}
+
+.create-voice-channel {
+  background-color: rgb(45, 46, 46);
+  width: 90%;
+  height: 60px;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.create-voice-channel:hover {
+  background-color: rgb(26, 26, 26);
+}
+
+.create-voice-channel i::before {
+  font-size: 1.75rem;
+  position: absolute;
+  left: 20px;
+}
+
+.create-voice-channel h3 {
+  font-size: 1.5rem;
+  margin: 0px 30px;
+  position: absolute;
+  left: 30px;
+  top: 5px;
+}
+
+.create-voice-channel h4 {
+  font-size: 1rem;
+  position: absolute;
+  left: 60px;
+  top: 10px;
+  color: #8e8e8e;
+}
+
+.create-channel-name {
+  width: 90%;
+  height: 40px;
+  border-radius: 5px;
+  border: none;
+  padding: 10px;
+  font-size: 20px;
+  background-color: rgb(34, 35, 35);
+  caret-color: white;
+  color: white;
+}
+
+.create-channel-name::placeholder {
+  color: #8e8e8e;
+}
+
+.create-channel-name:focus {
+  outline: none;
+}
+
+.create-channel-btn {
+  margin: 20px;
+  margin-bottom: 0;
+  width: 25%;
+  height: 40px;
+  background-color: rgb(2, 160, 2);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  align-self: flex-end;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.join-room-box {
+  background-color: rgb(255, 255, 255);
+  width: 450px;
+  height: 430px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 10px;
+  position: relative;
+}
+
+.create-room-box {
+  margin: 20px;
+  margin-bottom: 0px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+.create-room-box h2 {
+  margin: 0;
+  font-size: 2.5rem;
+}
+.create-room-box h3 {
+  margin: 0;
+}
+.create-room-image {
+  margin: 20px;
+  align-self: center;
+}
+
+.avatar-upload {
+  position: relative;
+  max-width: 205px;
+  margin: 30px auto;
+}
+
+.avatar-upload .avatar-edit {
+  position: absolute;
+  right: 12px;
+  z-index: 1;
+  top: 10px;
+}
+
+.avatar-upload .avatar-edit input {
+  display: none;
+}
+.avatar-upload .avatar-edit label {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-bottom: 0;
+  border-radius: 100%;
+  background: #ffffff;
+  border: 1px solid transparent;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  font-weight: normal;
+  transition: all 0.2s ease-in-out;
+}
+
+.avatar-upload .avatar-edit label i {
+  color: rgb(75, 75, 75);
+  margin-left: 1px;
+}
+.avatar-upload .avatar-preview {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  border-radius: 100%;
+  border: 3px solid #f8f8f8;
+  background-color: #dcdddc;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+}
+.avatar-upload .avatar-preview > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.create-room-name {
+  margin: 10px;
+  width: 80%;
+  height: 30px;
+  align-self: center;
+  background-color: #dcdddc;
+  border-radius: 5px;
+  font-size: 1rem;
+  outline: none;
+  border: none;
+  padding: 0.5rem;
+}
+
+.create-room-btn {
+  margin: 20px;
+  margin-bottom: 0;
+  width: 25%;
+  height: 40px;
+  background-color: rgb(2, 160, 2);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  align-self: flex-end;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.create-room-btn:hover {
+  background-color: green;
+}
+
+.create-room-box p {
+  color: #3273ec;
+  font-weight: 700;
+  text-align: right;
+  margin-top: 1rem;
+  cursor: pointer;
+  padding: 10px;
+  padding-top: 0;
+}
+
+.create-room-box p:hover {
+  text-decoration: underline;
+}
+
+.join-exist-room {
+  margin: 20px;
+  margin-bottom: 0px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateX(50%);
+  position: absolute;
+  bottom: 25px;
+  z-index: 0;
+}
+
+.join-exist-room h2 {
+  margin: 0;
+  font-size: 2.5rem;
+}
+.join-exist-room h3 {
+  margin: 0;
+}
+
+.join-room-id {
+  margin: 10px;
+  margin-top: 25px;
+  width: 70%;
+  height: 30px;
+  align-self: center;
+  background-color: #dcdddc;
+  border-radius: 5px;
+  font-size: 1.25rem;
+  outline: none;
+  border: none;
+  padding: 0.5rem;
+}
+
+.join-room-btn {
+  margin: 20px;
+  margin-bottom: 0;
+  width: 25%;
+  height: 40px;
+  background-color: rgb(2, 160, 2);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  align-self: flex-end;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.join-room-btn:hover {
+  background-color: green;
+}
+
+.join-exist-room p {
+  color: #3273ec;
+  font-weight: 700;
+  text-align: right;
+  cursor: pointer;
+  position: absolute;
+  bottom: 2px;
+  padding: 10px;
+  padding-bottom: 0;
+}
+
+.join-exist-room p:hover {
+  text-decoration: underline;
+}
+
+.edit-host-info {
+  width: 600px;
+  height: 500px;
+  background-color: #4a4b4d;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  color: white;
+}
+
+.edit-host-headline {
+  align-self: flex-start;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-left: 30px;
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+.background-upload {
+  position: relative;
+  width: 100%;
+  margin: 10px auto;
+}
+
+.host-background-edit {
+  position: absolute;
+  right: 12px;
+  z-index: 1;
+  top: 10px;
+}
+
+.host-background-edit input {
+  display: none;
+}
+
+.host-background-edit label {
+  display: inline-block;
+  position: absolute;
+  top: -2px;
+  right: 27px;
+  width: 25px;
+  height: 25px;
+  border-radius: 100%;
+  background: white;
+  border: 1px solid transparent;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  font-weight: normal;
+  transition: all 0.2s ease-in-out;
+}
+
+.host-background-edit label i {
+  color: rgb(75, 75, 75);
+  margin-left: 3px;
+  margin-top: 2px;
+}
+
+.host-background-preview {
+  width: 90%;
+  height: 150px;
+  position: relative;
+  margin-left: 30px;
+  border-radius: 5px;
+  background-color: #dcdddc;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.host-background-preview > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.picture-upload {
+  position: absolute;
+  top: 150px;
+  left: 200px;
+  width: 100%;
+  z-index: 3;
+}
+
+.host-picture-edit {
+  position: relative;
+  left: 100px;
+  z-index: 1;
+  top: 10px;
+}
+
+.host-picture-edit input {
+  display: none;
+}
+
+.host-picture-edit label {
+  display: inline-block;
+  position: absolute;
+  left: 20px;
+  width: 25px;
+  height: 25px;
+  border-radius: 100%;
+  background: white;
+  border: 1px solid transparent;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  font-weight: normal;
+  transition: all 0.2s ease-in-out;
+}
+
+.host-picture-edit label i {
+  color: rgb(75, 75, 75);
+  margin-left: 3px;
+  margin-top: 2px;
+}
+
+.host-picture-preview {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  margin-left: 30px;
+  border-radius: 100%;
+  border: 5px solid #4a4b4d;
+  background-color: #dcdddc;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.host-picture-preview > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.edit-host-name {
+  margin-top: 40px;
+  margin-right: 20px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 2.5rem;
+  color: white;
+  outline: none;
+}
+
+.edit-host-introduction {
+  width: 90%;
+  margin-top: 10px;
+  background-color: #454545;
+  resize: none;
+  border: none;
+  outline: none;
+  font-size: 1.25rem;
+  padding: 5px 10px;
+  border-radius: 5px;
+  caret-color: #dcdddc;
+  color: white;
+}
+
+.edit-host-btn {
+  width: 60px;
+  height: 40px;
+  background-color: rgb(2, 160, 2);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  align-self: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  margin: 20px 0px;
+  padding: 10px 10px;
+}
+
+.edit-room-box {
+  width: 450px;
+  height: 400px;
+  background-color: white;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+.edit-room-box h2 {
+  padding-top: 20px;
+  padding-left: 20px;
+  font-size: 2.5rem;
+}
+
+.room-upload {
+  position: relative;
+  max-width: 205px;
+  margin: 30px auto;
+}
+
+.room-upload .room-edit {
+  position: absolute;
+  right: 12px;
+  z-index: 1;
+  top: 10px;
+}
+
+.room-upload .room-edit input {
+  display: none;
+}
+.room-upload .room-edit label {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-bottom: 0;
+  border-radius: 100%;
+  background: #ffffff;
+  border: 1px solid transparent;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  font-weight: normal;
+  transition: all 0.2s ease-in-out;
+}
+
+.room-upload .room-edit label i {
+  color: rgb(75, 75, 75);
+  margin-left: 1px;
+}
+
+.room-upload .room-preview {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  border-radius: 100%;
+  border: 3px solid #f8f8f8;
+  background-color: #dcdddc;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.room-upload .room-preview > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.edit-room-name {
+  margin: 10px;
+  width: 80%;
+  height: 30px;
+  align-self: center;
+  background-color: #dcdddc;
+  border-radius: 5px;
+  font-size: 1rem;
+  outline: none;
+  border: none;
+  padding: 0.5rem;
+}
+
+.save-room-btn {
+  margin: 20px;
+  margin-bottom: 0;
+  width: 25%;
+  height: 40px;
+  background-color: rgb(2, 160, 2);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  align-self: flex-end;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+@keyframes create-room-fadein {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%);
+    z-index: 0;
+  }
+
+  100% {
+    opacity: 1;
+    z-index: 100;
+  }
+}
+
+@keyframes create-room-fadeout {
+  0% {
+    opacity: 1;
+    z-index: 100;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%);
+    z-index: 0;
+  }
+}
+
+@keyframes exist-room-fadein {
+  50% {
+    opacity: 0;
+    transform: translateX(50%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0%);
+  }
+}
+
+@keyframes exist-room-fadeout {
+  0% {
+    opacity: 1;
+    transform: translateX(0%);
+  }
+  70% {
+    opacity: 0;
+    transform: translateX(50%);
+  }
+}
+
+@keyframes join-room-box-small {
+  30% {
+    height: 430px;
+  }
+  100% {
+    height: 240px;
+  }
+}
+
+@keyframes join-room-box-big {
+  0% {
+    height: 240px;
+  }
+  70% {
+    height: 430px;
+  }
+  100% {
+    height: 430px;
+  }
+}

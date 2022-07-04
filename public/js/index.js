@@ -285,12 +285,7 @@ function enableRooms() {
     room.addEventListener("click", (e) => {
       let rId = e.target.id;
       if (rId === roomId) return;
-      let channelId = e.target.dataset.channel;
-      if (channelId) {
-        window.location.href = `/room.html?roomId=${rId}&channelId=${channelId}`;
-      } else {
-        window.location.href = `/room.html?roomId=${rId}`;
-      }
+      window.location.href = `/room.html?roomId=${rId}`;
     });
   });
 }

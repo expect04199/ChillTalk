@@ -55,8 +55,10 @@ module.exports = class User {
   }
 
   static async signup(name, email, password) {
+    let conn = await db.getConnection();
     try {
-      await db.query("START TRANSACTION");
+      await conn.query("START TRANSACTION");
+
       // save user
       let userSql = `
         INSERT INTO users SET ?
@@ -69,7 +71,7 @@ module.exports = class User {
         online: 1,
         last_login: Date.now(),
       };
-      let [user] = await db.query(userSql, userData);
+      let [user] = await conn.query(userSql, userData);
 
       // save picture
       let picSql = `INSERT INTO pictures(source, source_id, type, image, storage_type, preset) VALUES ?`;
@@ -89,18 +91,16 @@ module.exports = class User {
         storage_type: "original",
         preset: 1,
       };
-      console.log(Object.values(picData), Object.values(bgdData));
-      let result = await db.query(picSql, [[Object.values(picData), Object.values(bgdData)]]);
-      console.log(result);
+      let result = await conn.query(picSql, [[Object.values(picData), Object.values(bgdData)]]);
       delete userData.password;
       userData.picture = `${CDN_IP}/preset/1/${picData.type}/${picData.image}`;
       userData.background = `${CDN_IP}/preset/1/${bgdData.type}/${bgdData.image}`;
       userData.id = user.insertId;
-      await db.query("COMMIT");
+      await conn.query("COMMIT");
       return userData;
     } catch (error) {
       console.log(error);
-      await db.query("ROLLBACK");
+      await conn.query("ROLLBACK");
       return {
         error: "Email Already Exists",
         status: 403,
@@ -153,7 +153,6 @@ module.exports = class User {
   }
 
   static async getInfo(hostId, userId) {
-    console.log(hostId, userId);
     let infoSql = `
     SELECT a.* ,
     b.source AS pic_src, b.type AS pic_type, b.image AS pic_img, b.preset pic_preset,

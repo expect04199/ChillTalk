@@ -9,6 +9,7 @@ const multer = require("multer");
 // models
 const Message = require("./server/models/message");
 const User = require("./server/models/user");
+const Stream = require("./server/models/stream");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -137,5 +138,48 @@ roomIO.on("connect", (socket) => {
 
   socket.on("join-room", (data) => {
     socket.to(data.roomId).emit("join-room", data.user);
+  });
+});
+
+let videoIO = io.of("/video");
+videoIO.on("error", (e) => console.log(e));
+
+videoIO.on("connect", (socket) => {
+  console.log("video connected");
+  socket.on("connect-room", (channelId) => {
+    socket.join(channelId);
+  });
+
+  socket.on("watch", async (channelId, user) => {
+    Stream.save(channelId, user.id, socket.id);
+    socket.to(channelId).emit("watch", socket.id, user);
+  });
+
+  socket.on("latter-candidate", (id, message) => {
+    socket.to(id).emit("latter-candidate", socket.id, message);
+  });
+
+  socket.on("former-candidate", (id, message) => {
+    socket.to(id).emit("former-candidate", socket.id, message);
+  });
+
+  socket.on("offer", (id, message, user) => {
+    socket.to(id).emit("offer", socket.id, message, user);
+  });
+
+  socket.on("answer", (id, message) => {
+    socket.to(id).emit("answer", socket.id, message);
+  });
+
+  socket.on("disconnect", async () => {
+    let data = await Stream.delete(socket.id);
+    let sockets = data.sockets;
+    sockets.forEach((s) => {
+      videoIO.to(s).emit("disconnectPeer", socket.id, +data.userId);
+    });
+  });
+
+  socket.on("camera-off", (channelId, userId) => {
+    socket.to(channelId).emit("camera-off", socket.id, userId);
   });
 });
