@@ -14,16 +14,26 @@ module.exports = class Friend {
       let [exist] = await conn.query(existSql, userId);
       if (!exist.length) {
         await conn.query("COMMIT");
-        return { error: "User does not exist", status: 400 };
+        return { error: "User does not exist", status: 403 };
       }
 
-      let isFriendSql = `
-      SELECT id FROM friends WHERE user_id = ? AND friend_id = ?
+      let statusSql = `
+      SELECT status FROM friends WHERE user_id = ? AND friend_id = ?
       `;
-      let [isFriend] = await conn.query(isFriendSql, [hostId, userId]);
-      if (isFriend.length) {
+      let [friendStatus] = await conn.query(statusSql, [hostId, userId]);
+      if (friendStatus.length) {
         await conn.query("COMMIT");
-        return { error: "Already be friend", status: 400 };
+        const status = friendStatus[0].status;
+        switch (status) {
+          case "receiving":
+            return { error: "User has already sent request to you.", status: 403 };
+          case "sending":
+            return { error: "You have already sent request to the user.", status: 403 };
+          case "OK":
+            return { error: "You have already be friend.", status: 403 };
+          default:
+            throw new Error();
+        }
       }
 
       let sql = `
@@ -41,6 +51,7 @@ module.exports = class Friend {
     } catch (error) {
       console.log(error);
       await conn.query("ROLLBACK");
+      return { error: "Unable to send friend request.", status: 500 };
     } finally {
       await conn.release();
     }
@@ -117,7 +128,7 @@ module.exports = class Friend {
     } catch (error) {
       console.log(error);
       await conn.query("ROLLBACK");
-      return { error };
+      return { error: "Can not accept request.", status: 500 };
     } finally {
       await conn.release();
     }

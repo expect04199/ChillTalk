@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/chilltalk.ico" />
     <link rel="stylesheet" href="./css/signin.css" />
     <title>Sign In / Sign up</title>
   </head>
@@ -13,17 +14,41 @@
         <div class="sign-up-container">
           <form>
             <h1>建立新帳號</h1>
-            <input type="text" placeholder="Name" id="signup-name" />
-            <input type="email" placeholder="Email" id="signup-email" />
-            <input type="password" placeholder="Password" id="signup-password" />
+            <input type="text" placeholder="Name" id="signup-name" value="Harry" required />
+            <input
+              type="email"
+              placeholder="Email"
+              id="signup-email"
+              value="test123@test.com"
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              id="signup-password"
+              value="test1234"
+              required
+            />
             <button class="form_btn" id="user-sign-up">繼續</button>
           </form>
         </div>
         <div class="sign-in-container">
           <form>
             <h1>登入</h1>
-            <input type="email" placeholder="Email" id="signin-email" />
-            <input type="password" placeholder="Password" id="signin-password" />
+            <input
+              type="email"
+              placeholder="Email"
+              id="signin-email"
+              value="test123@test.com"
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              id="signin-password"
+              value="test1234"
+              required
+            />
             <button class="form_btn" id="user-sign-in">繼續</button>
           </form>
         </div>

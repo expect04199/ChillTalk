@@ -8,7 +8,7 @@ module.exports.postSignin = async (req, res) => {
   const { email, password } = req.body;
   const info = await User.signin(email, password);
   if (info.error) {
-    return res.status(info.status).send(info.error);
+    return res.status(info.status).json({ error: info.error });
   }
   const payload = { info: info };
   let rooms = await User.findRooms(info.id, "public");
@@ -27,7 +27,7 @@ module.exports.postSignup = async (req, res) => {
   const hashPwd = bcrypt.hashSync(password, salt);
   const info = await User.signup(userName, email, hashPwd);
   if (info.error) {
-    return res.status(info.status).send(info.error);
+    return res.status(info.status).json({ error: info.error });
   }
   const payload = {
     info,

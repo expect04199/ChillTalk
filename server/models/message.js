@@ -52,7 +52,7 @@ module.exports = class Message {
         msg.reply = +message.reply;
       }
       let result = await conn.query(messageSql, msg);
-      let insertId = result[0].insertId;
+      let insertId = +result[0].insertId;
 
       let contentSql = "INSERT INTO message_contents SET ?";
       let content = {

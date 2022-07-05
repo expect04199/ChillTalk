@@ -23,9 +23,14 @@ module.exports = class User {
       `;
       let [users] = await conn.query(sql, [email]);
       let user = users[0];
-      if (!bcrypt.compareSync(password, user.password)) {
+      if (!user || !bcrypt.compareSync(password, user.password)) {
         await conn.query("COMMIT");
-        return { error: "Password is wrong", status: 403 };
+        return { error: "Wrong email or password", status: 403 };
+      }
+
+      if (user.online === 1) {
+        await conn.query("COMMIT");
+        return { error: "User has already login", status: 403 };
       }
 
       // update user status
@@ -64,7 +69,7 @@ module.exports = class User {
     } catch (error) {
       console.log(error);
       await conn.query("ROLLBACK");
-      return { error };
+      return { error: "Can not sign in", status: 500 };
     } finally {
       await conn.release();
     }

@@ -10,24 +10,31 @@ signInBtn.addEventListener("click", () => {
 });
 
 // user sign in
-let userSignIn = document.querySelector("#user-sign-in");
+const userSignIn = document.querySelector("#user-sign-in");
 userSignIn.addEventListener("click", async (e) => {
   e.preventDefault();
-  let email = document.querySelector("#signin-email").value;
-  let password = document.querySelector("#signin-password").value;
+  const email = document.querySelector("#signin-email").value;
+  const password = document.querySelector("#signin-password").value;
+  if (!email || !password || email.indexOf("@") === -1) {
+    alert("請輸入正確資料");
+    return;
+  }
   let body = {
     email,
     password,
   };
-  let user = await (
-    await fetch("/api/users/signin", {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: {
-        "content-type": "application/json",
-      },
-    })
-  ).json();
+  const response = await fetch("/api/users/signin", {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: {
+      "content-type": "application/json",
+    },
+  });
+  const user = await response.json();
+  if (user.error) {
+    alert(user.error);
+    return;
+  }
   localStorage.setItem("token", user.access_token);
   localStorage.setItem("info", JSON.stringify(user.info));
   localStorage.setItem("rooms", JSON.stringify(user.rooms));
@@ -35,12 +42,12 @@ userSignIn.addEventListener("click", async (e) => {
 });
 
 // user sign up
-let userSignUp = document.querySelector("#user-sign-up");
+const userSignUp = document.querySelector("#user-sign-up");
 userSignUp.addEventListener("click", async (e) => {
   e.preventDefault();
-  let name = document.querySelector("#signup-name").value;
-  let email = document.querySelector("#signup-email").value;
-  let password = document.querySelector("#signup-password").value;
+  const name = document.querySelector("#signup-name").value;
+  const email = document.querySelector("#signup-email").value;
+  const password = document.querySelector("#signup-password").value;
   if (name === "" || email.indexOf("@") === -1 || password === "") {
     alert("請輸入正確資料");
   }
@@ -49,15 +56,18 @@ userSignUp.addEventListener("click", async (e) => {
     email,
     password,
   };
-  let user = await (
-    await fetch("/api/users/signup", {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: {
-        "content-type": "application/json",
-      },
-    })
-  ).json();
+  const response = await fetch("/api/users/signup", {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: {
+      "content-type": "application/json",
+    },
+  });
+  const user = await response.json();
+  if (user.error) {
+    alert(user.error);
+    return;
+  }
   localStorage.setItem("token", user.access_token);
   localStorage.setItem("info", JSON.stringify(user.info));
   localStorage.setItem("rooms", JSON.stringify([]));

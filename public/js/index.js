@@ -5,6 +5,7 @@ const friendName = urlParams.get("friend");
 
 const channelSocket = io.connect("http://localhost:3000/channel");
 const roomSocket = io.connect("http://localhost:3000/room");
+const indexSocket = io.connect("http://localhost:3000/index");
 
 // user info
 const user = JSON.parse(localStorage.getItem("info"));
@@ -18,11 +19,13 @@ window.onload = async () => {
     let roomDiv = createRoomfn(room);
     roomPosition.append(roomDiv);
   });
+
   enableRooms();
   // if (!roomId) return;
 
   channelSocket.emit("connect-room", channelId);
   roomSocket.emit("connect-room", roomsData);
+  indexSocket.emit("connect-room");
 
   // render friend requests
   let data = await (
@@ -328,9 +331,6 @@ document.addEventListener("keypress", (e) => {
     e.target.value = "";
 
     // send message to other people
-    if (message.reply) {
-      message.reply = message.reply.id;
-    }
     channelSocket.emit("message", message);
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
     let friends = document.querySelector(".friends");
@@ -475,19 +475,29 @@ async function showAddFriend(e) {
 
   let requestBtn = maskDiv.querySelector(".add-friend-box button");
   requestBtn.addEventListener("click", async (e) => {
-    let friendId = maskDiv.querySelector(".add-friend").value;
-    if (friendId === "") return;
+    let friendId = +maskDiv.querySelector(".add-friend").value;
+    if (!isNumber(friendId) || friendId === 0) {
+      alert("Please enter number");
+      return;
+    }
     let body = {
       user_id: friendId,
     };
-    await fetch("/api/friends/befriend", {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: {
-        "content-type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    let result = await (
+      await fetch("/api/friends/befriend", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+    ).json();
+    if (result.error) {
+      alert(result.error);
+      return;
+    }
+    indexSocket.emit("add-friend", user);
     maskDiv.innerHTML = "";
     maskDiv.classList.remove("enable");
   });
@@ -572,27 +582,6 @@ function expandSearch(e) {
   searchInput.style.outline = "none";
   searchInput.style.transition = "width 0.3s";
   searchInput.style.width = "250px";
-
-  // create search options div
-  let searchOptionsDiv = document.createElement("div");
-  searchOptionsDiv.classList.add("search-options");
-  searchOptionsDiv.innerHTML = `
-    <ul>
-      <li class="from-user-name"><p>從：使用者</p><input type="text" placeholder="輸入名稱"/></li>
-      <li class="in-channel"><p>在：頻道</p><input type="text" placeholder="輸入名稱"/></li>
-      <li class="message-pinned"><p>已釘選</p></li>
-    </ul>
-  `;
-  e.target.parentElement.appendChild(searchOptionsDiv);
-  search = document.querySelector(".room-search input");
-  search.focus();
-
-  // add event listeners
-  let pin = document.querySelector(".message-pinned");
-  pin.style.cursor = "pointer";
-  pin.addEventListener("click", (e) => {
-    pin.querySelector("p").classList.toggle("red");
-  });
 }
 
 document.addEventListener("click", shrinkSearch);
@@ -609,9 +598,6 @@ function shrinkSearch(e) {
   searchInput.style.transition = "width 0.3s";
   searchInput.style.width = "100px";
   searchInput.value = "";
-  if (document.querySelector(".search-options")) {
-    document.querySelector(".search-options").remove();
-  }
   document.removeEventListener("click", this);
 }
 
@@ -619,29 +605,22 @@ function shrinkSearch(e) {
 document.addEventListener("keypress", async (e) => {
   let roomSearchInput = document.querySelector(".room-search input");
   if (e.key === "Enter" && roomSearchInput.parentElement.contains(e.target)) {
-    let searchOptions = document.querySelector(".search-options");
-    let fromUserInput = searchOptions.querySelector(".from-user-name input");
-    let inChannelInput = searchOptions.querySelector(".in-channel input");
-    let messagePinned = searchOptions.querySelector(".message-pinned p");
-    if (document.querySelector(".search-options")) {
-      document.querySelector(".search-options").remove();
-    }
-    let fromUser = fromUserInput.value;
-    let inChannel = inChannelInput.value;
-    let isPinned = messagePinned.classList.contains("red");
     let content = roomSearchInput.value;
     let data = await (
-      await fetch(
-        `/api/rooms/search?room_id=${roomId}&from_user=${fromUser}&channel_name=${inChannel}&pinned=${isPinned}&content=${content}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
+      await fetch(`/api/rooms/search?room_id=${roomId}&content=${content}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
     ).json();
     let messages = data.messages;
+
+    let searchBox = document.querySelector(".search-messages-box");
+    if (searchBox) {
+      console.log(searchBox);
+      searchBox.remove();
+    }
 
     // create pin messages box
     let searchMessagesBox = document.createElement("div");
@@ -828,12 +807,10 @@ channelSocket.on("message", (message) => {
     }
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
   } else {
-    let descriptions = document.querySelectorAll(".message-description");
-    descriptions.forEach((description) => {
-      if (description.dataset.messageId === "undefined") {
-        description.dataset.messageId = message.id;
-      }
-    });
+    let description = document.querySelector(`.message-description[data-message-id="-1"]`);
+    if (description) {
+      description.dataset.messageId = message.id;
+    }
   }
 });
 
@@ -907,6 +884,22 @@ channelSocket.on("not-thumbs-up", (messageId) => {
   } else {
     thumbsUpDiv.remove();
   }
+});
+
+// listen to other add friend
+indexSocket.on("add-friend", (reqUser) => {
+  if (+reqUser.id === +user.id) return;
+  let pendingFriends = document.querySelector(".pending-friends");
+  let requestDiv = createRequestFriend(reqUser);
+  pendingFriends.append(requestDiv);
+});
+
+// listen to friend request accepted
+indexSocket.on("befriend", (reqUser) => {
+  if (reqUser.id === user.id) return;
+  let friendsDiv = document.querySelector(".friends");
+  let friendDiv = createFriend(reqUser);
+  friendsDiv.prepend(friendDiv);
 });
 
 // listen to other member join room
@@ -1017,6 +1010,7 @@ function createMessage(message, scope) {
   messageDiv.classList.add("message");
   messageDiv.dataset.name = message.name;
   messageDiv.dataset.time = message.time;
+  messageDiv.dataset.messageId = message.id;
 
   // render user thumbnail
   let thumbnailBox = document.createElement("div");
@@ -1204,6 +1198,7 @@ function enableMessageOptions(description) {
           user_id: user.id,
           message_id: messageId,
         };
+
         await (
           await fetch("/api/messages/thumbs-up", {
             method: "POST",
@@ -1214,6 +1209,7 @@ function enableMessageOptions(description) {
             },
           })
         ).json();
+
         if (!thumbsUpDiv) {
           thumbsUpDiv = document.createElement("div");
           thumbsUpDiv.classList.add("thumbs-up");
@@ -1270,11 +1266,12 @@ function enableMessageOptions(description) {
         description.remove();
       }
 
-      await fetch("/api/messages/delete", {
-        method: "POST",
+      await fetch("/api/messages", {
+        method: "DELETE",
         body: JSON.stringify({ message_id: description.dataset.messageId }),
         headers: {
           "content-type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
       let data = {
@@ -1308,11 +1305,12 @@ function enableMessageOptions(description) {
             type: "text",
             description: e.target.innerHTML,
           };
-          await fetch("/api/messages/update", {
-            method: "POST",
+          await fetch("/api/messages", {
+            method: "PUT",
             body: JSON.stringify(body),
             headers: {
               "content-type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
           });
           e.target.dataset.isEdit = true;
@@ -1350,11 +1348,12 @@ function enableMessageOptions(description) {
         type: "text",
         description: e.target.innerHTML,
       };
-      await fetch("/api/messages/update", {
-        method: "POST",
+      await fetch("/api/messages", {
+        method: "PUT",
         body: JSON.stringify(body),
         headers: {
           "content-type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
       e.target.dataset.isEdit = true;
@@ -1783,29 +1782,29 @@ async function showUserInfo(e) {
   });
 }
 
-function createRequestFriend(user) {
+function createRequestFriend(reqUser) {
   let friendRequest = document.createElement("div");
   friendRequest.classList.add("friend-request");
-  friendRequest.dataset.userId = user.id;
+  friendRequest.dataset.userId = reqUser.id;
 
   let thumbnail = document.createElement("div");
   thumbnail.classList.add("request-thumbnail");
-  thumbnail.style.backgroundImage = `url("${user.picture}")`;
+  thumbnail.style.backgroundImage = `url("${reqUser.picture}")`;
 
   let name = document.createElement("div");
   name.classList.add("request-name");
-  name.innerHTML = user.name;
+  name.innerHTML = reqUser.name;
 
   let online = document.createElement("div");
   online.classList.add("request-online");
-  online.style.backgroundColor = user.online ? "#00EE00" : "#CD0000";
+  online.style.backgroundColor = reqUser.online ? "#00EE00" : "#CD0000";
 
   let accept = document.createElement("div");
   accept.classList.add("request-accept");
   accept.innerHTML = `<i class="check icon"></i>`;
   accept.addEventListener("mousedown", async (e) => {
     let body = {
-      user_id: user.id,
+      user_id: reqUser.id,
     };
     let data = await (
       await fetch("/api/friends/requests", {
@@ -1817,12 +1816,19 @@ function createRequestFriend(user) {
         },
       })
     ).json();
-    console.log(data);
-    user.room_id = data.room_id;
-    user.channel_id = data.channel_id;
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+    reqUser.room_id = data.room_id;
+    reqUser.channel_id = data.channel_id;
+    let userInfo = user;
+    userInfo.room_id = data.room_id;
+    userInfo.channel_id = data.channel_id;
+    indexSocket.emit("befriend", userInfo);
 
     let friendsDiv = document.querySelector(".friends");
-    let friendDiv = createFriend(user);
+    let friendDiv = createFriend(reqUser);
     friendsDiv.prepend(friendDiv);
     friendRequest.remove();
   });
@@ -1878,9 +1884,12 @@ function createFriend(friend) {
 }
 
 function insertToFirst(parent, child) {
-  // if (child === parent.children[0]) return;
+  if (child === parent.children[0]) return;
   let temp = child;
-  console.log(parent);
   child.remove();
   parent.prepend(temp);
+}
+
+function isNumber(n) {
+  return Number(n) === n;
 }

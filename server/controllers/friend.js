@@ -3,14 +3,14 @@ const Friend = require("../models/friend");
 module.exports.postAddFriend = async (req, res) => {
   const hostId = req.user.id;
   const { user_id: userId } = req.body;
-  let result = await Friend.addFriend(hostId, userId);
   if (hostId === userId) {
-    return res.status(400).send("Bad request");
+    return res.status(400).json({ error: "Can not add yourself." });
   }
+  let result = await Friend.addFriend(hostId, userId);
   if (result.error) {
-    return res.status(result.status).send(result.error);
+    return res.status(result.status).json({ error: result.error });
   }
-  return res.status(200).send("success");
+  return res.status(200).json({ msg: "success" });
 };
 
 module.exports.getRequests = async (req, res) => {
@@ -24,7 +24,7 @@ module.exports.acceptRequest = async (req, res) => {
   const { user_id: userId } = req.body;
   let data = await Friend.acceptRequest(hostId, userId);
   if (data.error) {
-    return res.status(400).send("Bad Request");
+    return res.status(400).json({ error: data.error });
   }
   return res.status(200).json(data);
 };

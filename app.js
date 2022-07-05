@@ -4,7 +4,6 @@ const app = express();
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const multer = require("multer");
 
 // models
 const Message = require("./server/models/message");
@@ -20,15 +19,6 @@ app.use(cors());
 
 const { SERVER_PORT } = process.env;
 
-const swaggerUi = require("swagger-ui-express");
-const swaggerDocument = require("./swagger.json");
-const swaggerOpt = {
-  swaggerOptions: {
-    tryItOutEnabled: false,
-    supportedSubmitMethods: [""],
-  },
-};
-
 // Initialize socket server
 const http = require("http");
 const server = http.createServer(app);
@@ -37,13 +27,6 @@ const io = require("socket.io")(server, {
     origin: "*",
   },
 });
-
-// API docs
-app.use(
-  "/api-docs", // 設定查看api文件的路徑
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerDocument, swaggerOpt)
-);
 
 app.use("/api", [
   require("./server/routes/room"),
@@ -59,7 +42,7 @@ app.use("*", (req, res) => {
 
 app.use((err, req, res, next) => {
   console.log(err);
-  return res.status(500).send("Internal Server Error");
+  return res.status(500).json({ error: "Internal server error" });
 });
 
 server.listen(SERVER_PORT, () => {
@@ -67,7 +50,7 @@ server.listen(SERVER_PORT, () => {
 });
 
 //socket section
-let channelIO = io.of("/channel");
+const channelIO = io.of("/channel");
 channelIO.on("error", (e) => console.log(e));
 
 channelIO.on("connect", (socket) => {
@@ -79,9 +62,12 @@ channelIO.on("connect", (socket) => {
   });
 
   socket.on("message", async (message) => {
-    let id = await Message.save(message);
+    let messageSave = { ...message };
+    if (message.reply) {
+      messageSave.reply = message.reply.id;
+    }
+    let id = await Message.save(messageSave);
     message.id = id;
-    console.log(message);
     channelIO.to(message.channelId).emit("message", message);
   });
 
@@ -110,7 +96,7 @@ channelIO.on("connect", (socket) => {
   });
 });
 
-let roomIO = io.of("/room");
+const roomIO = io.of("/room");
 roomIO.on("error", (e) => console.log(e));
 
 roomIO.on("connect", (socket) => {
@@ -141,7 +127,7 @@ roomIO.on("connect", (socket) => {
   });
 });
 
-let videoIO = io.of("/video");
+const videoIO = io.of("/video");
 videoIO.on("error", (e) => console.log(e));
 
 videoIO.on("connect", (socket) => {
@@ -181,5 +167,22 @@ videoIO.on("connect", (socket) => {
 
   socket.on("camera-off", (channelId, userId) => {
     socket.to(channelId).emit("camera-off", socket.id, userId);
+  });
+});
+
+const indexIO = io.of("/index");
+indexIO.on("connect", (socket) => {
+  const indexRoom = "index";
+  socket.on("connect-room", () => {
+    console.log("index connected");
+    socket.join(indexRoom);
+  });
+
+  socket.on("add-friend", (user) => {
+    socket.to(indexRoom).emit("add-friend", user);
+  });
+
+  socket.on("befriend", (user) => {
+    socket.to(indexRoom).emit("befriend", user);
   });
 });

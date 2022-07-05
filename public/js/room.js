@@ -429,10 +429,6 @@ document.addEventListener("keypress", (e) => {
     }
     e.target.value = "";
 
-    // send message to other people
-    if (message.reply) {
-      message.reply = message.reply.id;
-    }
     channelSocket.emit("message", message);
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
   }
@@ -957,12 +953,10 @@ channelSocket.on("message", (message) => {
     }
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
   } else {
-    let descriptions = document.querySelectorAll(".message-description");
-    descriptions.forEach((description) => {
-      if (description.dataset.messageId === "undefined") {
-        description.dataset.messageId = message.id;
-      }
-    });
+    let description = document.querySelector(`.message-description[data-message-id="-1"]`);
+    if (description) {
+      description.dataset.messageId = message.id;
+    }
   }
 });
 
@@ -1145,6 +1139,7 @@ function createMessage(message, scope) {
   messageDiv.classList.add("message");
   messageDiv.dataset.name = message.name;
   messageDiv.dataset.time = message.time;
+  messageDiv.dataset.messageId = message.id;
 
   // render user thumbnail
   let thumbnailBox = document.createElement("div");

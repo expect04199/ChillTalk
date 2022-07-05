@@ -32,12 +32,12 @@ module.exports = class Util {
   static isAuth(req, res, next) {
     let accessToken = req.get("Authorization");
     if (!accessToken) {
-      res.status(401).send({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
     accessToken = accessToken.replace("Bearer ", "");
     if (accessToken == "null") {
-      res.status(401).send({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
     const user = jwt.verify(accessToken, TOKEN_SECRET);
