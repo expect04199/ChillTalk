@@ -9,8 +9,10 @@ const PRESET_INTRODUCTION = "No content";
 
 module.exports = class User {
   static async signin(email, password) {
+    const conn = await db.getConnection();
     try {
-      await db.query("START TRANSACTION");
+      await conn.query("START TRANSACTION");
+      // check if user exist
       let sql = `
       SELECT a.*, b.source AS pic_src, b.type AS pic_type, b.image AS pic_img, b.preset AS pic_preset,
       c.source AS bgd_src, c.type AS bgd_type, c.image AS bgd_img, c.preset AS bgd_preset
@@ -19,29 +21,41 @@ module.exports = class User {
       LEFT JOIN pictures c ON a.id = c.source_id AND c.source = "user" AND c.type = "background"
       WHERE a.email = ?
       `;
-      let [result] = await db.query(sql, [email]);
-      let user = result[0];
+      let [users] = await conn.query(sql, [email]);
+      let user = users[0];
       if (!bcrypt.compareSync(password, user.password)) {
-        await db.query("COMMIT");
+        await conn.query("COMMIT");
         return { error: "Password is wrong", status: 403 };
       }
-      let lastLogin = Date.now();
-      let updateSql = `UPDATE users SET online = ?, last_login = ? WHERE id = ?`;
-      await db.query(updateSql, [1, lastLogin, user.id]);
-      await db.query("COMMIT");
-      let userPicture = user.pic_preset
-        ? `${CDN_IP}/preset/1/${user.pic_type}/${user.pic_img}`
-        : `${CDN_IP}/${user.pic_src}/${user.id}/${user.pic_type}/${user.pic_img}`;
-      let userBackground = user.bgd_preset
-        ? `${CDN_IP}/preset/1/${user.bgd_type}/${user.bgd_img}`
-        : `${CDN_IP}/${user.bgd_src}/${user.id}/${user.bgd_type}/${user.bgd_img}`;
+
+      // update user status
+      const lastLogin = Date.now();
+      const updateSql = `UPDATE users SET online = ?, last_login = ? WHERE id = ?`;
+      await conn.query(updateSql, [1, lastLogin, user.id]);
+      await conn.query("COMMIT");
+
+      const userPic = Util.getImage(
+        user.pic_preset,
+        user.pic_src,
+        user.id,
+        user.pic_type,
+        user.pic_img
+      );
+
+      const userBgd = Util.getImage(
+        user.bgd_preset,
+        user.bgd_src,
+        user.id,
+        user.bgd_type,
+        user.bgd_img
+      );
 
       let info = {
         id: user.id,
         name: user.name,
         email: user.email,
-        picture: userPicture,
-        background: userBackground,
+        picture: userPic,
+        background: userBgd,
         introduction: user.introduction,
         online: true,
         last_login: lastLogin,
@@ -49,8 +63,10 @@ module.exports = class User {
       return info;
     } catch (error) {
       console.log(error);
-      await db.query("ROLLBACK");
+      await conn.query("ROLLBACK");
       return { error };
+    } finally {
+      await conn.release();
     }
   }
 
@@ -58,7 +74,7 @@ module.exports = class User {
     let conn = await db.getConnection();
     try {
       await conn.query("START TRANSACTION");
-
+      const lastLogin = Date.now();
       // save user
       let userSql = `
         INSERT INTO users SET ?
@@ -69,7 +85,7 @@ module.exports = class User {
         password,
         introduction: PRESET_INTRODUCTION,
         online: 1,
-        last_login: Date.now(),
+        last_login: lastLogin,
       };
       let [user] = await conn.query(userSql, userData);
 
@@ -91,7 +107,7 @@ module.exports = class User {
         storage_type: "original",
         preset: 1,
       };
-      let result = await conn.query(picSql, [[Object.values(picData), Object.values(bgdData)]]);
+      await conn.query(picSql, [[Object.values(picData), Object.values(bgdData)]]);
       delete userData.password;
       userData.picture = `${CDN_IP}/preset/1/${picData.type}/${picData.image}`;
       userData.background = `${CDN_IP}/preset/1/${bgdData.type}/${bgdData.image}`;
@@ -123,9 +139,13 @@ module.exports = class User {
     let roomMap = {};
     rooms.forEach((room) => {
       if (!roomMap[room.id]) {
-        let roomPicture = room.preset
-          ? `${CDN_IP}/preset/1/${room.pic_type}/${room.pic_img}`
-          : `${CDN_IP}/${room.pic_src}/${room.id}/${room.pic_type}/${room.pic_img}`;
+        const roomPic = Util.getImage(
+          room.preset,
+          room.pic_src,
+          room.id,
+          room.pic_type,
+          room.pic_img
+        );
         let data = {
           id: room.id,
           name: room.name,
@@ -187,7 +207,10 @@ module.exports = class User {
       online: infoData.online,
       last_login: infoData.last_login,
     };
+    return info;
+  }
 
+  static async getRooms(hostId, userId) {
     let roomSql = `
     SELECT c.id, c.name ,
     d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset pic_preset
@@ -218,6 +241,10 @@ module.exports = class User {
       rooms.push(roomData);
     });
 
+    return rooms;
+  }
+
+  static async getFriends(hostId, userId) {
     let friendSql = `
     SELECT c.id, c.name ,
     d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset pic_preset
@@ -247,81 +274,47 @@ module.exports = class User {
       };
       friends.push(friendData);
     });
-
-    return { info, rooms, friends };
+    return friends;
   }
 
   static async update(files, userId, name, introduction) {
+    const conn = await db.getConnection();
     try {
-      await db.query("START TRANSACTION");
+      await conn.query("START TRANSACTION");
+      await conn.query("SET SQL_SAFE_UPDATES=0;");
+      // update info
       if (name || introduction) {
-        let userSql = `
+        let infoSql = `
         UPDATE users SET name = ?, introduction = ? WHERE id = ?
         `;
-        await db.query(userSql, [name, introduction, userId]);
+        await conn.query(infoSql, [name, introduction, userId]);
       }
 
+      // update picture
+      let pic;
       if (files.picture) {
-        await db.query("SET SQL_SAFE_UPDATES=0;");
         let picSql = `
         UPDATE pictures SET image = ?, preset = 0 WHERE source = "user" AND type = "picture" AND source_id = ?
         `;
-        await db.query(picSql, [Util.imageFormat(files.picture[0].originalname), userId]);
-        await db.query("SET SQL_SAFE_UPDATES=1;");
+        const fileName = Util.imageFormat(files.picture[0].originalname);
+        await conn.query(picSql, [fileName, userId]);
+        const picName = Util.imageFormat(files.picture[0].originalname);
+        pic = Util.getImage(0, "user", userId, "picture", picName);
       }
 
+      // update background
+      let bgd;
       if (files.background) {
-        await db.query("SET SQL_SAFE_UPDATES=0;");
         let bgdSql = `
         UPDATE pictures SET image = ?, preset = 0 WHERE source = "user" AND type = "background" AND source_id = ?
         `;
-        await db.query(bgdSql, [Util.imageFormat(files.background[0].originalname), userId]);
-        await db.query("SET SQL_SAFE_UPDATES=1;");
+        const fileName = Util.imageFormat(files.background[0].originalname);
+        await conn.query(bgdSql, [fileName, userId]);
+        const bgdName = Util.imageFormat(files.background[0].originalname);
+        bgd = Util.getImage(0, "user", userId, "background", bgdName);
       }
 
-      let [user] = await db.query("SELECT * FROM users WHERE id = ?", [userId]);
-
-      let pic;
-      if (files.picture) {
-        pic = Util.getImage(
-          0,
-          "user",
-          userId,
-          "picture",
-          Util.imageFormat(files.picture[0].originalname)
-        );
-      } else {
-        let picSql = `SELECT * FROM pictures WHERE source = "user" AND type = "picture" AND source_id = ?`;
-        let [pics] = await db.query(picSql, [userId]);
-        pic = Util.getImage(
-          pics[0].preset,
-          pics[0].source,
-          pics[0].source_id,
-          pics[0].type,
-          pics[0].image
-        );
-      }
-      let bgd;
-      if (files.background) {
-        bgd = Util.getImage(
-          0,
-          "user",
-          userId,
-          "background",
-          Util.imageFormat(files.background[0].originalname)
-        );
-      } else {
-        let bgdSql = `SELECT * FROM pictures WHERE source = "user" AND type = "background" AND source_id = ?`;
-        let [bgds] = await db.query(bgdSql, [userId]);
-        bgd = Util.getImage(
-          bgds[0].preset,
-          bgds[0].source,
-          bgds[0].source_id,
-          bgds[0].type,
-          bgds[0].image
-        );
-      }
-
+      let [user] = await conn.query("SELECT * FROM users WHERE id = ?", [userId]);
       let info = {
         id: user[0].id,
         name: user[0].name,
@@ -332,15 +325,18 @@ module.exports = class User {
         online: true,
         last_login: user[0].last_login,
       };
-      await db.query("COMMIT");
+      await conn.query("SET SQL_SAFE_UPDATES=1;");
+      await conn.query("COMMIT");
 
       Util.imageUpload(files.picture, "user", userId, "picture");
       Util.imageUpload(files.background, "user", userId, "background");
       return info;
     } catch (error) {
       console.log(error);
-      await db.query("ROLLBACK");
+      await conn.query("ROLLBACK");
       return { error };
+    } finally {
+      await conn.release();
     }
   }
 };

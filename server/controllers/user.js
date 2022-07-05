@@ -6,16 +6,15 @@ const { TOKEN_SECRET } = process.env;
 
 module.exports.postSignin = async (req, res) => {
   const { email, password } = req.body;
-  let info = await User.signin(email, password);
+  const info = await User.signin(email, password);
   if (info.error) {
-    throw info.error;
+    return res.status(info.status).send(info.error);
   }
-  let payload = { info: info };
+  const payload = { info: info };
   let rooms = await User.findRooms(info.id, "public");
   const access_token = jwt.sign(payload, TOKEN_SECRET, { expiresIn: "24h" });
   let data = {
     access_token,
-    access_expired: 86400,
     info,
     rooms,
   };
@@ -30,14 +29,13 @@ module.exports.postSignup = async (req, res) => {
   if (info.error) {
     return res.status(info.status).send(info.error);
   }
-  let payload = {
+  const payload = {
     info,
     rooms: [],
   };
   const access_token = jwt.sign(payload, TOKEN_SECRET, { expiresIn: "24h" });
-  let data = {
+  const data = {
     access_token,
-    access_expired: 86400,
     info,
   };
   return res.status(200).json(data);
@@ -46,22 +44,30 @@ module.exports.postSignup = async (req, res) => {
 module.exports.getInfo = async (req, res) => {
   const hostId = req.user.id;
   const userId = +req.query.userId;
-  let data = await User.getInfo(hostId, userId);
-  return res.status(200).json(data);
+  const info = await User.getInfo(hostId, userId);
+  const rooms = await User.getRooms(hostId, userId);
+  const friends = await User.getFriends(hostId, userId);
+  return res.status(200).json({ info, rooms, friends });
 };
 
 module.exports.updateInfo = async (req, res) => {
-  const { name, introduction } = req.body;
+  const { name, introduction, original_picture, original_background } = req.body;
   const userId = req.user.id;
   let info = await User.update(req.files, userId, name, introduction);
   if (info.error) {
     return res.status(400).send("Bad Request");
   }
+  if (info.picture) {
+    info.picture = original_picture;
+  }
+  if (info.background) {
+    info.background = original_background;
+  }
+
   let payload = { info: info };
   let access_token = jwt.sign(payload, TOKEN_SECRET, { expiresIn: "24h" });
   let data = {
     access_token,
-    access_expired: 86400,
     info,
   };
   return res.status(200).json(data);

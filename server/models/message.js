@@ -1,6 +1,6 @@
 const db = require("../../util/database");
 const Util = require("../../util/util");
-const PAGESIZE = 5;
+const PAGESIZE = 5; // use read session as basis
 
 module.exports = class Message {
   constructor(userId, channelId, time, isDeleted, reply, pinned, description) {
@@ -20,21 +20,24 @@ module.exports = class Message {
   }
 
   static async save(message) {
+    const conn = await db.getConnection();
     try {
-      await db.query("START TRANSACTION");
+      await conn.query("START TRANSACTION");
       let messageSql = "INSERT INTO messages SET ?";
       let msg = {
         user_id: message.userId,
         channel_id: message.channelId,
         initial_time: message.time,
       };
+
+      // find which session message in
       let sessionSql = `
       SELECT a.id, a.user_id, a.initial_time, a.session FROM messages a
       INNER JOIN (
         SELECT MAX(session) session FROM messages WHERE channel_id = ?
       ) b ON a.session = b.session WHERE a.channel_id = ?
       `;
-      let [sessions] = await db.query(sessionSql, [message.channelId, message.channelId]);
+      let [sessions] = await conn.query(sessionSql, [message.channelId, message.channelId]);
       if (sessions.length === 0) {
         msg.session = 1;
       } else if (
@@ -48,7 +51,7 @@ module.exports = class Message {
       if (message.reply) {
         msg.reply = +message.reply;
       }
-      let result = await db.query(messageSql, msg);
+      let result = await conn.query(messageSql, msg);
       let insertId = result[0].insertId;
 
       let contentSql = "INSERT INTO message_contents SET ?";
@@ -58,12 +61,14 @@ module.exports = class Message {
         description: message.description,
         time: message.time,
       };
-      await db.query(contentSql, content);
-      await db.query("COMMIT");
+      await conn.query(contentSql, content);
+      await conn.query("COMMIT");
       return insertId;
     } catch (error) {
-      await db.query("ROLLBACK");
+      await conn.query("ROLLBACK");
       console.log(error);
+    } finally {
+      await conn.release();
     }
   }
 
@@ -94,26 +99,29 @@ module.exports = class Message {
     const constraints = [];
     let takeCount;
     let startCount;
-    let readSql = `
-    SELECT b.session 
-    FROM user_read_status a
-    INNER JOIN messages b ON a.message_id = b.id
-    WHERE a.channel_id = ? AND a.user_id = ?
-    `;
+
+    // if user id exist, find from user read record
     let readId;
     if (userId) {
+      let readSql = `
+      SELECT b.session 
+      FROM user_read_status a
+      INNER JOIN messages b ON a.message_id = b.id
+      WHERE a.channel_id = ? AND a.user_id = ?
+      `;
       const [read] = await db.query(readSql, [channelId, userId]);
       readId = read.length ? read[0].session : undefined;
     }
 
+    // if user has read record, start from read record , or start from latest message
     if (userId && readId) {
       let orderSql = `
-          SELECT b.ranks FROM 
-          (
-            SELECT a.session, RANK() OVER (ORDER BY a.session DESC) ranks
-            FROM chilltalk.messages a WHERE a.channel_id = ? GROUP BY a.session
-          ) b WHERE b.session = ?
-        `;
+        SELECT b.ranks FROM 
+        (
+          SELECT a.session, RANK() OVER (ORDER BY a.session DESC) ranks
+          FROM chilltalk.messages a WHERE a.channel_id = ? GROUP BY a.session
+        ) b WHERE b.session = ?
+      `;
       const [result] = await db.query(orderSql, [channelId, readId]);
       let order = result[0].ranks;
       paging = Math.ceil(order / PAGESIZE);
@@ -124,16 +132,13 @@ module.exports = class Message {
       startCount = (paging - 1) * PAGESIZE;
     }
     constraints.push(takeCount, startCount);
-
-    if (channelId) {
-      sql += "AND a.channel_id = ? ";
-      constraints.push(channelId);
-    }
-    sql += "GROUP BY a.id ORDER BY a.id DESC ";
+    sql += "AND a.channel_id = ? GROUP BY a.id ORDER BY a.id DESC ";
+    constraints.push(channelId);
 
     let [result] = await db.query(sql, constraints);
     result = result.reverse();
     let resultSessions = [];
+    // collect all sessions
     result.forEach((r) => {
       if (!resultSessions.includes(r.session)) {
         resultSessions.push(r.session);
@@ -206,91 +211,105 @@ module.exports = class Message {
   }
 
   static async update(id, type, description) {
+    const conn = await db.getConnection();
     try {
-      await db.query("START TRANSACTION");
+      await conn.query("START TRANSACTION");
       let insertSql = `INSERT INTO message_contents SET ?`;
-      let time = Date.now();
+      const time = Date.now();
       let message = {
         message_id: id,
         type,
         description,
         time,
       };
-      await db.query(insertSql, message);
+      await conn.query(insertSql, message);
 
       let updateSql = `UPDATE messages SET is_edited = 1 WHERE id = ?`;
-      await db.query(updateSql, [id]);
-      await db.query("COMMIT");
+      await conn.query(updateSql, [id]);
+      await conn.query("COMMIT");
       return true;
     } catch (error) {
-      await db.query("ROLLBACK");
+      await conn.query("ROLLBACK");
       console.log(error);
       return { error };
+    } finally {
+      await conn.release();
     }
   }
 
   static async delete(id) {
+    const conn = await db.getConnection();
     try {
       let sql = "DELETE FROM messages WHERE id = ?";
-      await db.query(sql, +id);
+      await conn.query(sql, id);
       return true;
     } catch (error) {
       console.log(error);
       return { error };
+    } finally {
+      await conn.release();
     }
   }
 
   static async pin(id) {
+    const conn = await db.getConnection();
     try {
       let sql = `UPDATE messages SET pinned = 1 WHERE id = ?`;
-      await db.query(sql, id);
+      await conn.query(sql, id);
       return true;
     } catch (error) {
       console.log(error);
       return { error };
+    } finally {
+      await conn.release();
     }
   }
 
   static async unpin(id) {
+    const conn = await db.getConnection();
     try {
       let sql = `UPDATE messages SET pinned = 0 WHERE id = ?`;
-      await db.query(sql, id);
+      await conn.query(sql, id);
       return true;
     } catch (error) {
       console.log(error);
       return { error };
+    } finally {
+      await conn.release();
     }
   }
 
   static async postThumbsUp(userId, messageId) {
-    let data = {
-      user_id: userId,
-      message_id: messageId,
-    };
-    let sql = `INSERT INTO likes SET ?`;
+    const conn = await db.getConnection();
     try {
-      let [result] = await db.query(sql, data);
-      await db.query("COMMIT");
-      return result.insertId;
+      let sql = `INSERT INTO likes SET ?`;
+      let data = {
+        user_id: userId,
+        message_id: messageId,
+      };
+      await conn.query(sql, data);
+      return true;
     } catch (error) {
       console.log(error);
       return { error };
+    } finally {
+      await conn.release();
     }
   }
 
   static async deleteThumbsUp(userId, messageId) {
-    let sql = `DELETE FROM likes WHERE user_id = ? AND message_id = ?`;
+    const conn = await db.getConnection();
     try {
-      await db.query("START TRANSACTION");
-      await db.query("SET SQL_SAFE_UPDATES = 0");
-      let [result] = await db.query(sql, [userId, messageId]);
-      await db.query("SET SQL_SAFE_UPDATES = 1");
-      await db.query("COMMIT");
+      await conn.query("SET SQL_SAFE_UPDATES = 0");
+      let sql = `DELETE FROM likes WHERE user_id = ? AND message_id = ?`;
+      await conn.query(sql, [userId, messageId]);
+      await conn.query("SET SQL_SAFE_UPDATES = 1");
       return true;
     } catch (error) {
       console.log(error);
-      await db.query("ROLLBACK");
       return { error };
+    } finally {
+      await conn.release();
     }
   }
 
@@ -298,13 +317,15 @@ module.exports = class Message {
     let conn = await db.getConnection();
     try {
       await conn.query("START TRANSACTION");
-
+      await conn.query("SET SQL_SAFE_UPDATES = 0");
       let data = {
         user_id: userId,
         room_id: roomId,
         channel_id: channelId,
         message_id: messageId,
       };
+
+      // -1 means see all messages
       if (messageId === -1) {
         let [result] = await conn.query("SELECT MAX(id) id FROM messages WHERE channel_id = ?", [
           channelId,
@@ -315,29 +336,34 @@ module.exports = class Message {
         }
         data.message_id = result[0].id;
       }
+      // insert seen message id record
       let recordSql = `SELECT * FROM user_read_status WHERE user_id = ? AND room_id = ? AND channel_id = ?`;
       let [record] = await conn.query(recordSql, [userId, roomId, channelId]);
       if (record.length === 0) {
         let sql = `INSERT INTO user_read_status SET ?`;
         await conn.query(sql, data);
       } else {
-        await conn.query("SET SQL_SAFE_UPDATES = 0");
         let sql = `UPDATE user_read_status SET message_id = ? WHERE user_id = ? AND room_id = ? AND channel_id = ?`;
         await conn.query(sql, [data.message_id, userId, roomId, channelId]);
-        await conn.query("SET SQL_SAFE_UPDATES = 1");
       }
+      await conn.query("SET SQL_SAFE_UPDATES = 1");
       await conn.query("COMMIT");
       return true;
     } catch (error) {
       console.log(error);
       await conn.query("ROLLBACK");
       return { error };
+    } finally {
+      await conn.release();
     }
   }
 
   static async getMail(userId) {
+    const conn = await db.getConnection();
     try {
-      await db.query("START TRANSACTION");
+      await conn.query("START TRANSACTION");
+      await conn.query("SET SQL_SAFE_UPDATES = 0");
+      // find channels user in
       let channelSql = `
       SELECT d.id 
       FROM chilltalk.users a
@@ -347,15 +373,15 @@ module.exports = class Message {
       WHERE a.id = ?
     `;
 
-      let [channels] = await db.query(channelSql, [userId]);
-
+      let [channels] = await conn.query(channelSql, [userId]);
       channels = channels.map((channel) => channel.id);
+
       let tempCount = 0;
       const messagesArr = [];
-      console;
       for (let channelId of channels) {
         if (messagesArr.length >= 10) break;
         tempCount++;
+        // take all unread messages in channel
         let sql = `
         SELECT a.id, a.initial_time, b.type, b.description, c.id channel_id, c.name channel_name, 
         d.id room_id, d.name room_name, e.id user_id, e.name user_name,
@@ -379,7 +405,7 @@ module.exports = class Message {
           END AS message_id
         )
         `;
-        let [messages] = await db.query(sql, [channelId, userId, channelId, userId, channelId]);
+        let [messages] = await conn.query(sql, [channelId, userId, channelId, userId, channelId]);
         messages.forEach((msg) => {
           const userPic = Util.getImage(
             msg.user_preset,
@@ -412,28 +438,29 @@ module.exports = class Message {
           messagesArr.push(message);
         });
 
+        // when messages are taken, record as read
         if (messages.length) {
           let lastMessage = messages[messages.length - 1];
-          await db.query("SET SQL_SAFE_UPDATES = 0");
           let readSql = `
           UPDATE user_read_status SET message_id = ? 
           WHERE user_id = ? AND channel_id = ?
           `;
-          console.log(lastMessage.id, userId, channelId);
-          await db.query(readSql, [lastMessage.id, userId, channelId]);
-          await db.query("SET SQL_SAFE_UPDATES = 1");
+          await conn.query(readSql, [lastMessage.id, userId, channelId]);
         }
       }
       let next_paging;
       if (tempCount < channels.length) {
         next_paging = true;
       }
-      await db.query("COMMIT");
+      await conn.query("SET SQL_SAFE_UPDATES = 1");
+      await conn.query("COMMIT");
       return { messages: messagesArr, next_paging };
     } catch (error) {
       console.log(error);
-      await db.query("ROLLBACK");
+      await conn.query("ROLLBACK");
       return { error };
+    } finally {
+      await conn.release();
     }
   }
 };

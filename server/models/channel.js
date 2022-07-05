@@ -1,6 +1,5 @@
 const db = require("../../util/database");
-
-const { CDN_IP } = process.env;
+const Util = require("../../util/util");
 
 module.exports = class Channel {
   static async getDetail(channelId, pinned) {
@@ -28,9 +27,13 @@ module.exports = class Channel {
     }
     let messageMap = {};
     details.forEach((detail) => {
-      let userPic = detail.preset
-        ? `${CDN_IP}/preset/1/${detail.pic_type}/${detail.pic_img}`
-        : `${CDN_IP}/${detail.pic_src}/${detail.user_id}/${detail.pic_type}/${detail.pic_img}`;
+      const userPic = Util.getImage(
+        detail.preset,
+        detail.pic_src,
+        detail.user_id,
+        detail.pic_type,
+        detail.pic_img
+      );
       if (!detail.message_id) return;
       let message = {
         id: detail.message_id,
@@ -82,15 +85,23 @@ module.exports = class Channel {
   }
 
   static async save(type, name, roomId) {
-    let sql = `
-    INSERT INTO channels SET ?
-    `;
-    let data = {
-      type,
-      name,
-      room_id: roomId,
-    };
-    let [result] = await db.query(sql, data);
-    return result.insertId;
+    const conn = await db.getConnection();
+    try {
+      let sql = `
+      INSERT INTO channels SET ?
+      `;
+      let data = {
+        type,
+        name,
+        room_id: roomId,
+      };
+      let [result] = await conn.query(sql, data);
+      return result.insertId;
+    } catch (error) {
+      console.log(error);
+      return { error };
+    } finally {
+      await conn.release();
+    }
   }
 };

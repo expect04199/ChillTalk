@@ -397,6 +397,9 @@ createRoom.addEventListener("click", (e) => {
       await fetch("/api/rooms/create", {
         method: "POST",
         body,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
     ).json();
     updateStorage("room", roomData);
@@ -442,6 +445,7 @@ createRoom.addEventListener("click", (e) => {
         body: JSON.stringify(body),
         headers: {
           "content-type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       })
     ).json();
@@ -628,7 +632,13 @@ document.addEventListener("keypress", async (e) => {
     let content = roomSearchInput.value;
     let data = await (
       await fetch(
-        `/api/rooms/search?room_id=${roomId}&from_user=${fromUser}&channel_name=${inChannel}&pinned=${isPinned}&content=${content}`
+        `/api/rooms/search?room_id=${roomId}&from_user=${fromUser}&channel_name=${inChannel}&pinned=${isPinned}&content=${content}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       )
     ).json();
     let messages = data.messages;
@@ -1200,6 +1210,7 @@ function enableMessageOptions(description) {
             body: JSON.stringify(body),
             headers: {
               "content-type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
           })
         ).json();
@@ -1227,10 +1238,11 @@ function enableMessageOptions(description) {
         };
         await (
           await fetch("/api/messages/thumbs-up", {
-            method: "delete",
+            method: "DELETE",
             body: JSON.stringify(body),
             headers: {
               "content-type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
           })
         ).json();
@@ -1402,6 +1414,7 @@ function enableMessageOptions(description) {
           body: JSON.stringify({ message_id: messageId }),
           headers: {
             "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         });
       } else {
@@ -1412,6 +1425,7 @@ function enableMessageOptions(description) {
           body: JSON.stringify({ message_id: messageId }),
           headers: {
             "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         });
       }

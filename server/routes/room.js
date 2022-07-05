@@ -14,20 +14,21 @@ const upload = multer({
   },
 });
 
-router.get("/rooms/details", Util.errorCatcher(roomController.getDetail));
+router.get("/rooms/details", Util.isAuth, Util.errorCatcher(roomController.getDetail));
 
-router.post("/rooms/join", Util.errorCatcher(roomController.postJoinRoom));
+router.post("/rooms/join", Util.isAuth, Util.errorCatcher(roomController.postJoinRoom));
 
 router.post(
   "/rooms/create",
   upload.array("picture"),
+  Util.isAuth,
   Util.errorCatcher(roomController.postCreateRoom)
 );
 
-router.get("/rooms/search", Util.errorCatcher(roomController.getSearchResult));
+router.get("/rooms/search", Util.isAuth, Util.errorCatcher(roomController.getSearchResult));
 
-router.put(
-  "/rooms",
+router.patch(
+  "/rooms/info",
   Util.isAuth,
   upload.array("picture"),
   Util.errorCatcher(roomController.updateInfo)

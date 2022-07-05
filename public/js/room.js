@@ -21,10 +21,11 @@ window.onload = async () => {
   enableRooms();
   if (!roomId) return;
   let roomInfo = await (
-    await fetch(`/api/rooms/details?roomId=${roomId}&userId=${user.id}`, {
+    await fetch(`/api/rooms/details?roomId=${roomId}`, {
       method: "GET",
       headers: {
         "content-type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     })
   ).json();
@@ -135,9 +136,11 @@ window.onload = async () => {
         }
         body.append("name", name);
         body.append("introduction", introduction);
+        body.append("original_picture", user.picture);
+        body.append("original_background", user.background);
         let userData = await (
-          await fetch("/api/users", {
-            method: "PUT",
+          await fetch("/api/users/info", {
+            method: "PATCH",
             body,
             headers: { Authorization: `Bearer ${token}` },
           })
@@ -224,7 +227,7 @@ window.onload = async () => {
     saveBtn.addEventListener("click", async (e) => {
       e.preventDefault();
       let body = new FormData();
-      body.append("id", room.id);
+      body.append("id", +room.id);
       let newName = nameInput.value;
       if (picInput.files[0]) {
         body.append("picture", picInput.files[0]);
@@ -236,8 +239,8 @@ window.onload = async () => {
       body.append("original_picture", room.picture);
 
       let roomInfo = await (
-        await fetch("/api/rooms", {
-          method: "PUT",
+        await fetch("/api/rooms/info", {
+          method: "PATCH",
           body,
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -493,6 +496,9 @@ createRoom.addEventListener("click", (e) => {
       await fetch("/api/rooms/create", {
         method: "POST",
         body,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
     ).json();
     updateStorage("room", roomData);
@@ -529,7 +535,7 @@ createRoom.addEventListener("click", (e) => {
     let roomId = existRoomId.value;
     let userId = user.id;
     let body = {
-      room_id: roomId,
+      room_id: +roomId,
       user_id: userId,
     };
     let roomData = await (
@@ -538,6 +544,7 @@ createRoom.addEventListener("click", (e) => {
         body: JSON.stringify(body),
         headers: {
           "content-type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       })
     ).json();
@@ -754,7 +761,13 @@ document.addEventListener("keypress", async (e) => {
     let content = roomSearchInput.value;
     let data = await (
       await fetch(
-        `/api/rooms/search?room_id=${roomId}&from_user=${fromUser}&channel_name=${inChannel}&pinned=${isPinned}&content=${content}`
+        `/api/rooms/search?room_id=${roomId}&from_user=${fromUser}&channel_name=${inChannel}&pinned=${isPinned}&content=${content}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       )
     ).json();
     let messages = data.messages;
@@ -1060,10 +1073,9 @@ window.addEventListener("beforeunload", async () => {
   let latestId = descriptions[descriptions.length - 1].dataset.messageId;
   currentId = latestId;
   let body = {
-    user_id: user.id,
     room_id: roomId,
     channel_id: channelId,
-    message_id: latestId,
+    message_id: +latestId,
   };
 
   await fetch("/api/messages/read", {
@@ -1317,7 +1329,6 @@ function enableMessageOptions(description) {
         e.target.classList.add("yellow");
         let thumbsUpDiv = description.querySelector(".thumbs-up");
         let body = {
-          user_id: user.id,
           message_id: messageId,
         };
         await (
@@ -1326,6 +1337,7 @@ function enableMessageOptions(description) {
             body: JSON.stringify(body),
             headers: {
               "content-type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
           })
         ).json();
@@ -1348,15 +1360,15 @@ function enableMessageOptions(description) {
         e.target.classList.remove("yellow");
         let thumbsUpDiv = description.querySelector(".thumbs-up");
         let body = {
-          user_id: user.id,
           message_id: description.dataset.messageId,
         };
         await (
           await fetch("/api/messages/thumbs-up", {
-            method: "delete",
+            method: "DELETE",
             body: JSON.stringify(body),
             headers: {
               "content-type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
           })
         ).json();
@@ -1384,11 +1396,12 @@ function enableMessageOptions(description) {
         description.remove();
       }
 
-      await fetch("/api/messages/delete", {
-        method: "POST",
+      await fetch("/api/messages", {
+        method: "DELETE",
         body: JSON.stringify({ message_id: description.dataset.messageId }),
         headers: {
           "content-type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
       let data = {
@@ -1422,11 +1435,12 @@ function enableMessageOptions(description) {
             type: "text",
             description: e.target.innerHTML,
           };
-          await fetch("/api/messages/update", {
-            method: "POST",
+          await fetch("/api/messages", {
+            method: "PUT",
             body: JSON.stringify(body),
             headers: {
               "content-type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
           });
           e.target.dataset.isEdit = true;
@@ -1464,11 +1478,12 @@ function enableMessageOptions(description) {
         type: "text",
         description: e.target.innerHTML,
       };
-      await fetch("/api/messages/update", {
-        method: "POST",
+      await fetch("/api/messages", {
+        method: "PUT",
         body: JSON.stringify(body),
         headers: {
           "content-type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
       e.target.dataset.isEdit = true;
@@ -1528,6 +1543,7 @@ function enableMessageOptions(description) {
           body: JSON.stringify({ message_id: messageId }),
           headers: {
             "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         });
       } else {
@@ -1538,6 +1554,7 @@ function enableMessageOptions(description) {
           body: JSON.stringify({ message_id: messageId }),
           headers: {
             "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         });
       }

@@ -3,7 +3,7 @@ const Room = require("../models/room");
 
 module.exports.getDetail = async (req, res) => {
   const roomId = +req.query.roomId;
-  const userId = +req.query.userId;
+  const userId = +req.user.id;
   let detail = await Room.getDetail(roomId, userId);
   let channels = await Room.getChannels(roomId);
   let members = await Room.getMembers(roomId);
@@ -16,33 +16,30 @@ module.exports.getDetail = async (req, res) => {
 };
 
 module.exports.postJoinRoom = async (req, res) => {
-  let { room_id: roomId, user_id: userId } = req.body;
-  roomId = +roomId;
-  userId = +userId;
+  const { room_id: roomId } = req.body;
+  const userId = req.user.id;
   let isExisted = await Room.isExisted(roomId);
   if (!isExisted) {
     return res.status(400).send("Room does not exist.");
   }
-  await Room.join(roomId, userId);
+  let isJoin = await Room.join(roomId, userId);
+  if (isJoin.error) {
+    return res.status(500).send("Internal server error.");
+  }
   let detail = await Room.getDetail(roomId, userId);
   let channels = await Room.getChannels(roomId);
-  let data = {
-    ...detail,
-  };
   if (channels.length !== 0) {
-    data.channel_id = channels[0].id;
+    detail.channel_id = channels[0].id;
   }
-  return res.json(data);
+  return res.status(200).json(detail);
 };
 
 module.exports.postCreateRoom = async (req, res) => {
-  const { room_name: roomName, user_id: userId } = req.body;
+  const { room_name: roomName } = req.body;
+  const userId = req.user.id;
   let roomId = await Room.create(req.files, roomName, userId, "public");
   let detail = await Room.getDetail(roomId, userId);
-  let data = {
-    ...detail,
-  };
-  return res.status(200).json(data);
+  return res.status(200).json(detail);
 };
 
 module.exports.getSearchResult = async (req, res) => {

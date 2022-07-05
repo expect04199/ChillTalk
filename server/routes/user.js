@@ -20,8 +20,8 @@ router.post("/users/signup", Util.errorCatcher(userController.postSignup));
 
 router.get("/users/info", Util.isAuth, Util.errorCatcher(userController.getInfo));
 
-router.put(
-  "/users",
+router.patch(
+  "/users/info",
   Util.isAuth,
   upload.fields([
     { name: "picture", maxCount: 1 },

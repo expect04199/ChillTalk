@@ -2,22 +2,22 @@ const router = require("express").Router();
 const msgController = require("../controllers/message");
 const Util = require("../../util/util");
 
-router.post("/messages/update", Util.errorCatcher(msgController.updateContent));
+router.post("/messages/pin", Util.isAuth, Util.errorCatcher(msgController.pinContent));
 
-router.post("/messages/delete", Util.errorCatcher(msgController.deleteContent));
+router.post("/messages/unpin", Util.isAuth, Util.errorCatcher(msgController.unpinContent));
 
-router.post("/messages/pin", Util.errorCatcher(msgController.pinContent));
+router.post("/messages/thumbs-up", Util.isAuth, Util.errorCatcher(msgController.postThumbsUp));
 
-router.post("/messages/unpin", Util.errorCatcher(msgController.unpinContent));
+router.delete("/messages/thumbs-up", Util.isAuth, Util.errorCatcher(msgController.deleteThumbsUp));
 
-router.post("/messages/thumbs-up", Util.errorCatcher(msgController.postThumbsUp));
-
-router.delete("/messages/thumbs-up", Util.errorCatcher(msgController.deleteThumbsUp));
-
-router.post("/messages/read", Util.errorCatcher(msgController.postReadStatus));
+router.post("/messages/read", Util.isAuth, Util.errorCatcher(msgController.postReadStatus));
 
 router.get("/messages/mail", Util.isAuth, Util.errorCatcher(msgController.getMail));
 
 router.get("/messages", Util.isAuth, Util.errorCatcher(msgController.getMessages));
+
+router.put("/messages", Util.isAuth, Util.errorCatcher(msgController.updateMessage));
+
+router.delete("/messages", Util.isAuth, Util.errorCatcher(msgController.deleteMessage));
 
 module.exports = router;

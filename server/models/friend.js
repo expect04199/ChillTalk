@@ -4,21 +4,26 @@ const Room = require("../models/room");
 const Channel = require("../models/channel");
 module.exports = class Friend {
   static async addFriend(hostId, userId) {
+    const conn = await db.getConnection();
     try {
+      await conn.query("START TRANSACTION");
+      // check if user exist
       let existSql = `
       SELECT id From users WHERE id = ?
     `;
-      let [exist] = await db.query(existSql, userId);
+      let [exist] = await conn.query(existSql, userId);
       if (!exist.length) {
-        throw new Error();
+        await conn.query("COMMIT");
+        return { error: "User does not exist", status: 400 };
       }
 
       let isFriendSql = `
       SELECT id FROM friends WHERE user_id = ? AND friend_id = ?
       `;
-      let [isFriend] = await db.query(isFriendSql, [hostId, userId]);
+      let [isFriend] = await conn.query(isFriendSql, [hostId, userId]);
       if (isFriend.length) {
-        throw new Error();
+        await conn.query("COMMIT");
+        return { error: "Already be friend", status: 400 };
       }
 
       let sql = `
@@ -30,11 +35,14 @@ module.exports = class Friend {
           [userId, hostId, "receiving"],
         ],
       ];
-      await db.query(sql, data);
+      await conn.query(sql, data);
+      await conn.query("COMMIT");
       return true;
     } catch (error) {
       console.log(error);
-      return { error };
+      await conn.query("ROLLBACK");
+    } finally {
+      await conn.release();
     }
   }
 
@@ -64,47 +72,54 @@ module.exports = class Friend {
   }
 
   static async deleteRequest(hostId, userId) {
+    const conn = await db.getConnection();
     try {
-      await db.query("START TRANSACTION");
-      await db.query("SET SQL_SAFE_UPDATES = 0");
+      await conn.query("START TRANSACTION");
+      await conn.query("SET SQL_SAFE_UPDATES = 0");
       let receiveSql = `
       DELETE FROM friends WHERE user_id = ? AND friend_id = ? AND status = "receiving"
       `;
-      await db.query(receiveSql, [hostId, userId]);
+      await conn.query(receiveSql, [hostId, userId]);
       let requestSql = `
       DELETE FROM friends WHERE user_id = ? AND friend_id = ? AND status = "sending"
       `;
-      await db.query(requestSql, [userId, hostId]);
-      await db.query("SET SQL_SAFE_UPDATES = 1");
-      await db.query("COMMIT");
+      await conn.query(requestSql, [userId, hostId]);
+      await conn.query("SET SQL_SAFE_UPDATES = 1");
+      await conn.query("COMMIT");
       return true;
     } catch (error) {
       console.log(error);
-      await db.query("ROLLBACK");
+      await conn.query("ROLLBACK");
       return { error };
+    } finally {
+      conn.release();
     }
   }
 
   static async acceptRequest(hostId, userId) {
-    console.log(hostId, userId);
+    const conn = await db.getConnection();
     try {
-      await db.query("START TRANSACTION");
-      await db.query("SET SQL_SAFE_UPDATES = 0");
-      let roomId = await Room.create([], `${hostId}/${userId}`, hostId, "private");
+      await conn.query("START TRANSACTION");
+      await conn.query("SET SQL_SAFE_UPDATES = 0");
+      const roomName = `${hostId}/${userId}`;
+      let roomId = await Room.create([], roomName, hostId, "private");
       await Room.join(roomId, userId);
-      let channelId = await Channel.save("text", `${hostId}/${userId}`, roomId);
+      const channelName = `${hostId}/${userId}`;
+      let channelId = await Channel.save("text", channelName, roomId);
       let acceptSql = `
       UPDATE friends SET status = "OK", room_id = ?, channel_id = ? WHERE user_id = ? AND friend_id = ?
       `;
-      await db.query(acceptSql, [roomId, channelId, hostId, userId]);
-      await db.query(acceptSql, [roomId, channelId, userId, hostId]);
-      await db.query("SET SQL_SAFE_UPDATES = 1");
-      await db.query("COMMIT");
+      await conn.query(acceptSql, [roomId, channelId, hostId, userId]);
+      await conn.query(acceptSql, [roomId, channelId, userId, hostId]);
+      await conn.query("SET SQL_SAFE_UPDATES = 1");
+      await conn.query("COMMIT");
       return { room_id: roomId, channel_id: channelId };
     } catch (error) {
       console.log(error);
-      await db.query("ROLLBACK");
+      await conn.query("ROLLBACK");
       return { error };
+    } finally {
+      await conn.release();
     }
   }
 
