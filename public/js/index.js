@@ -139,8 +139,8 @@ window.onload = async () => {
         body.append("name", name);
         body.append("introduction", introduction);
         let userData = await (
-          await fetch("/api/users", {
-            method: "PUT",
+          await fetch("/api/users/info", {
+            method: "PATCH",
             body,
             headers: { Authorization: `Bearer ${token}` },
           })
