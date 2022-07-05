@@ -57,10 +57,10 @@ module.exports.updateInfo = async (req, res) => {
   if (info.error) {
     return res.status(400).send("Bad Request");
   }
-  if (info.picture) {
+  if (!info.picture) {
     info.picture = original_picture;
   }
-  if (info.background) {
+  if (!info.background) {
     info.background = original_background;
   }
 
