@@ -5,7 +5,6 @@ const friendName = urlParams.get("friend");
 
 const channelSocket = io.connect("http://localhost:3000/channel");
 const roomSocket = io.connect("http://localhost:3000/room");
-const indexSocket = io.connect("http://localhost:3000/index");
 
 // user info
 const user = JSON.parse(localStorage.getItem("info"));
@@ -25,7 +24,6 @@ window.onload = async () => {
 
   channelSocket.emit("connect-room", channelId);
   roomSocket.emit("connect-room", roomsData);
-  indexSocket.emit("connect-room");
 
   // render friend requests
   let data = await (
@@ -497,7 +495,7 @@ async function showAddFriend(e) {
       alert(result.error);
       return;
     }
-    indexSocket.emit("add-friend", user);
+    roomSocket.emit("add-friend", user);
     maskDiv.innerHTML = "";
     maskDiv.classList.remove("enable");
   });
@@ -618,7 +616,6 @@ document.addEventListener("keypress", async (e) => {
 
     let searchBox = document.querySelector(".search-messages-box");
     if (searchBox) {
-      console.log(searchBox);
       searchBox.remove();
     }
 
@@ -779,22 +776,26 @@ async function showMailBox(e) {
 
 // when other people signin, update status
 roomSocket.on("other-signin", (userId) => {
-  let membersDiv = document.querySelectorAll(".member");
-  membersDiv.forEach((memberDiv) => {
-    if (+memberDiv.dataset.id === +userId) {
-      memberDiv.querySelector(".member-user-online").style.backgroundColor = "#00EE00";
-    }
-  });
+  let requestDiv = document.querySelector(`.friend-request[data-user-id="${userId}"]`);
+  if (requestDiv) {
+    requestDiv.querySelector(".request-online").style.backgroundColor = "#00EE00";
+  }
+  let friendDiv = document.querySelector(`.friend[data-user-id="${userId}"]`);
+  if (friendDiv) {
+    friendDiv.querySelector(".friend-online").style.backgroundColor = "#00EE00";
+  }
 });
 
 // when other people signout, update status
 roomSocket.on("other-signout", (userId) => {
-  let membersDiv = document.querySelectorAll(".member");
-  membersDiv.forEach((memberDiv) => {
-    if (+memberDiv.dataset.id === +userId) {
-      memberDiv.querySelector(".member-user-online").style.backgroundColor = "#CD0000";
-    }
-  });
+  let requestDiv = document.querySelector(`.friend-request[data-user-id="${userId}"]`);
+  if (requestDiv) {
+    requestDiv.querySelector(".request-online").style.backgroundColor = "#CD0000";
+  }
+  let friendDiv = document.querySelector(`.friend[data-user-id="${userId}"]`);
+  if (friendDiv) {
+    friendDiv.querySelector(".friend-online").style.backgroundColor = "#CD0000";
+  }
 });
 
 // listen to other people's message
@@ -887,7 +888,7 @@ channelSocket.on("not-thumbs-up", (messageId) => {
 });
 
 // listen to other add friend
-indexSocket.on("add-friend", (reqUser) => {
+roomSocket.on("add-friend", (reqUser) => {
   if (+reqUser.id === +user.id) return;
   let pendingFriends = document.querySelector(".pending-friends");
   let requestDiv = createRequestFriend(reqUser);
@@ -895,7 +896,7 @@ indexSocket.on("add-friend", (reqUser) => {
 });
 
 // listen to friend request accepted
-indexSocket.on("befriend", (reqUser) => {
+roomSocket.on("befriend", (reqUser) => {
   if (reqUser.id === user.id) return;
   let friendsDiv = document.querySelector(".friends");
   let friendDiv = createFriend(reqUser);
@@ -1825,7 +1826,7 @@ function createRequestFriend(reqUser) {
     let userInfo = user;
     userInfo.room_id = data.room_id;
     userInfo.channel_id = data.channel_id;
-    indexSocket.emit("befriend", userInfo);
+    roomSocket.emit("befriend", userInfo);
 
     let friendsDiv = document.querySelector(".friends");
     let friendDiv = createFriend(reqUser);
@@ -1861,6 +1862,7 @@ function createFriend(friend) {
   friendDiv.dataset.roomId = friend.room_id;
   friendDiv.dataset.channelId = friend.channel_id;
   friendDiv.dataset.lastMessageTime = friend.last_message_time;
+  friendDiv.dataset.userId = friend.id;
   if (+friend.room_id === +roomId && +friend.channel_id === +channelId) {
     friendDiv.classList.add("friend-enable");
   }

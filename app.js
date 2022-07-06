@@ -100,30 +100,44 @@ const roomIO = io.of("/room");
 roomIO.on("error", (e) => console.log(e));
 
 roomIO.on("connect", (socket) => {
+  const indexRoom = "index";
   console.log("Room connected");
   socket.on("connect-room", (rooms) => {
     let roomsId = rooms.map((room) => room.id);
+    roomsId.push(indexRoom);
     socket.join(roomsId);
   });
 
   socket.on("self-signin", async (data) => {
     await User.online(data.userId);
     let rooms = data.rooms;
-    rooms.forEach((room) => {
-      socket.to(room.id).emit("other-signin", data.userId);
+    let roomsId = rooms.map((room) => room.id);
+    roomsId.push(indexRoom);
+    roomsId.forEach((id) => {
+      socket.to(id).emit("other-signin", data.userId);
     });
   });
 
   socket.on("self-signout", async (data) => {
     await User.offline(data.userId);
     let rooms = data.rooms;
-    rooms.forEach((room) => {
-      socket.to(room.id).emit("other-signout", data.userId);
+    let roomsId = rooms.map((room) => room.id);
+    roomsId.push(indexRoom);
+    roomsId.forEach((id) => {
+      socket.to(id).emit("other-signout", data.userId);
     });
   });
 
   socket.on("join-room", (data) => {
     socket.to(data.roomId).emit("join-room", data.user);
+  });
+
+  socket.on("add-friend", (user) => {
+    socket.to(indexRoom).emit("add-friend", user);
+  });
+
+  socket.on("befriend", (user) => {
+    socket.to(indexRoom).emit("befriend", user);
   });
 });
 
@@ -167,22 +181,5 @@ videoIO.on("connect", (socket) => {
 
   socket.on("camera-off", (channelId, userId) => {
     socket.to(channelId).emit("camera-off", socket.id, userId);
-  });
-});
-
-const indexIO = io.of("/index");
-indexIO.on("connect", (socket) => {
-  const indexRoom = "index";
-  socket.on("connect-room", () => {
-    console.log("index connected");
-    socket.join(indexRoom);
-  });
-
-  socket.on("add-friend", (user) => {
-    socket.to(indexRoom).emit("add-friend", user);
-  });
-
-  socket.on("befriend", (user) => {
-    socket.to(indexRoom).emit("befriend", user);
   });
 });
