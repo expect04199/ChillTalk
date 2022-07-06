@@ -2,8 +2,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
 
-const roomSocket = io.connect("http://localhost:3000/room");
-const videoSocket = io.connect("http://localhost:3000/video");
+const roomSocket = io.connect("http://10.8.3.7:3000/room");
+const videoSocket = io.connect("http://10.8.3.7:3000/video");
 
 // user info
 const user = JSON.parse(localStorage.getItem("info"));
@@ -25,6 +25,7 @@ window.onload = async () => {
       method: "GET",
       headers: {
         "content-type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     })
   ).json();
@@ -599,8 +600,13 @@ function createChannelfn(channel) {
   channelDiv.classList.add("channel");
   channelDiv.innerHTML = channel.name;
   channelDiv.dataset.channelId = channel.id;
+  channelDiv.dataset.type = channel.type;
   channelDiv.addEventListener("click", () => {
-    window.location.href = `/room.html?roomId=${roomId}&channelId=${channel.id}`;
+    if (channel.type === "text") {
+      window.location.href = `/room.html?roomId=${roomId}&channelId=${channel.id}`;
+    } else if (channel.type === "voice") {
+      window.location.href = `/stream.html?roomId=${roomId}&channelId=${channel.id}`;
+    }
   });
   channelsDiv.append(channelDiv);
   updateStorage("channel", channel);
@@ -716,8 +722,8 @@ const config = {
 const videoConstraints = {
   audio: true,
   video: {
-    width: 200,
-    height: 100,
+    width: 600,
+    height: 300,
   },
 };
 
@@ -734,6 +740,7 @@ const gdmOptions = {
 
 let videoPCs = {};
 let videoSrc;
+
 // open camera
 const streamTools = document.querySelector(".stream-tools");
 const camera = streamTools.querySelector(".stream-camera");
@@ -750,6 +757,7 @@ camera.addEventListener("mousedown", (e) => {
         currVideo.muted = true;
 
         let pcs = Object.values(videoPCs);
+        console.log(pcs);
         pcs.forEach((pc) => {
           const senders = pc.getSenders();
           senders.forEach((sender) => pc.removeTrack(sender));

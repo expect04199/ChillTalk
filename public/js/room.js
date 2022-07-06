@@ -1256,8 +1256,13 @@ function createChannelfn(channel) {
   channelDiv.classList.add("channel");
   channelDiv.innerHTML = channel.name;
   channelDiv.dataset.channelId = channel.id;
+  channelDiv.dataset.type = channel.type;
   channelDiv.addEventListener("click", () => {
-    window.location.href = `/room.html?roomId=${roomId}&channelId=${channel.id}`;
+    if (channel.type === "text") {
+      window.location.href = `/room.html?roomId=${roomId}&channelId=${channel.id}`;
+    } else if (channel.type === "voice") {
+      window.location.href = `/stream.html?roomId=${roomId}&channelId=${channel.id}`;
+    }
   });
   channelsDiv.append(channelDiv);
   updateStorage("channel", channel);
