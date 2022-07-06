@@ -85,16 +85,21 @@ module.exports = class Room {
   static async join(roomId, userId) {
     const conn = await db.getConnection();
     try {
+      let existSql = `SELECT id FROM room_members WHERE room_id = ? AND user_id = ?`;
+      let [isExist] = await conn.query(existSql, [roomId, userId]);
+      if (isExist.length) {
+        return { error: "You have join the room", status: 403 };
+      }
       let sql = `INSERT INTO room_members SET ?`;
       let data = {
         room_id: roomId,
         user_id: userId,
       };
-      let [result] = await conn.query(sql, data);
-      return result.insertId;
+      await conn.query(sql, data);
+      return true;
     } catch (error) {
       console.log(error);
-      return { error };
+      return { error: "Can not join room.", status: 500 };
     } finally {
       await conn.release();
     }
@@ -154,7 +159,7 @@ module.exports = class Room {
     } catch (error) {
       await conn.query("ROLLBACK");
       console.log(error);
-      return { error };
+      return { error: "Can not create new room", status: 500 };
     } finally {
       await conn.release();
     }
@@ -173,17 +178,17 @@ module.exports = class Room {
     let constraints = [roomId];
 
     if (content) {
-      sql += "AND b.description LIKE ? ";
+      sql += "AND b.description LIKE BINARY(?) ";
       constraints.push(`%${content}%`);
     }
 
     if (fromUser) {
-      sql += "AND c.name = ? ";
+      sql += "AND c.name = BINARY(?) ";
       constraints.push(fromUser);
     }
 
     if (channelName) {
-      sql += "AND e.name = ? ";
+      sql += "AND e.name = BINARY(?) ";
       constraints.push(channelName);
     }
 

@@ -154,7 +154,7 @@ module.exports = class User {
         let data = {
           id: room.id,
           name: room.name,
-          picture: roomPicture,
+          picture: roomPic,
           host_id: room.host_id,
         };
         if (room.channel_id) {
@@ -226,6 +226,7 @@ module.exports = class User {
     ON a.room_id = b.room_id
     INNER JOIN chilltalk.rooms c ON b.room_id = c.id
     INNER JOIN chilltalk.pictures d ON c.id = d.source_id AND d.source = "room" AND d.type = "picture"
+    WHERE c.type = "public"
     `;
     const [roomsData] = await db.query(roomSql, [hostId, userId]);
     let rooms = [];
@@ -254,11 +255,11 @@ module.exports = class User {
     SELECT c.id, c.name ,
     d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset pic_preset
     FROM
-    (SELECT friend_id FROM chilltalk.friends WHERE user_id = 1) a
+    (SELECT friend_id FROM chilltalk.friends WHERE user_id = ?) a
     INNER JOIN 
-    (SELECT user_id, friend_id FROM chilltalk.friends WHERE user_id = 2) b
+    (SELECT friend_id FROM chilltalk.friends WHERE user_id = ?) b
     ON a.friend_id = b.friend_id
-    INNER JOIN chilltalk.users c ON b.user_id = c.id
+    INNER JOIN chilltalk.users c ON b.friend_id = c.id
     INNER JOIN chilltalk.pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
     `;
     const [friendsData] = await db.query(friendSql, [hostId, userId]);

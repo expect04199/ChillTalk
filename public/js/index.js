@@ -3,8 +3,8 @@ const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
 const friendName = urlParams.get("friend");
 
-const channelSocket = io.connect("http://localhost:3000/channel");
-const roomSocket = io.connect("http://localhost:3000/room");
+const channelSocket = io.connect("http://10.8.3.7:3000/channel");
+const roomSocket = io.connect("http://10.8.3.7:3000/room");
 
 // user info
 const user = JSON.parse(localStorage.getItem("info"));
@@ -128,6 +128,10 @@ window.onload = async () => {
       saveBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         let name = editName.innerHTML;
+        if (name.length > 10) {
+          alert("名稱限制10個字元");
+          return;
+        }
         let introduction = userIntroduction.value;
 
         let body = new FormData();
@@ -357,7 +361,7 @@ createRoom.addEventListener("click", (e) => {
         <div id="room-image-preview"></div>
       </div>
     </div>
-    <input type="text" class="create-room-name" placeholder="輸入房間名稱" />
+    <input type="text" class="create-room-name" placeholder="輸入房間名稱" maxlength="15"/>
     <button class="create-room-btn">建立房間</button>
     <p>或 加入房間</p>
     </div>
@@ -400,6 +404,10 @@ createRoom.addEventListener("click", (e) => {
         },
       })
     ).json();
+    if (roomData.error) {
+      alert(roomData.error);
+      return;
+    }
     updateStorage("room", roomData);
     roomSocket.emit("connect-room", [roomData.id]);
     window.location.href = `/room.html?roomId=${roomData.id}`;
@@ -447,6 +455,10 @@ createRoom.addEventListener("click", (e) => {
         },
       })
     ).json();
+    if (roomData.error) {
+      alert(roomData.error);
+      return;
+    }
     updateStorage("room", roomData);
     roomSocket.emit("join-room", { roomId: roomData.id, user });
     if (roomData.channelId) {
@@ -696,7 +708,7 @@ async function showMailBox(e) {
         mailChannelName.innerHTML = channelName;
         let mailRoomName = document.createElement("div");
         mailRoomName.classList.add("mail-room-name");
-        mailRoomName.innerHTML = roomName;
+        mailRoomName.innerHTML = roomName || "";
 
         mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
         mailChannel.append(mailChannelInfo);
@@ -715,6 +727,7 @@ async function showMailBox(e) {
       };
 
       const mailCallback = async (entries, observer) => {
+        console.log("hehe");
         for (let entry of entries) {
           if (!entry.isIntersecting || !nextPage) return;
           let result = await (
@@ -725,6 +738,7 @@ async function showMailBox(e) {
               },
             })
           ).json();
+          console.log(result);
           nextPage = result.next_paging;
           let messages = result.messages;
           let roomName = messages[0].room_name;
@@ -761,12 +775,16 @@ async function showMailBox(e) {
         }
         let messageBoxes = document.querySelectorAll(".mail-message-box");
         observer.observe(messageBoxes[messageBoxes.length - 1]);
+        console.log("observe");
       };
 
       const mailObserver = new IntersectionObserver(mailCallback, mailOptions);
       const lastMessage = mail.querySelectorAll(".mail-message-box");
       if (lastMessage[lastMessage.length - 1] && nextPage) {
+        console.log(lastMessage[lastMessage.length - 1]);
+        console.log(nextPage);
         mailObserver.observe(lastMessage[lastMessage.length - 1]);
+        console.log("observe");
       }
     } else {
       mailMessagesBox.remove();
@@ -811,6 +829,10 @@ channelSocket.on("message", (message) => {
     let description = document.querySelector(`.message-description[data-message-id="-1"]`);
     if (description) {
       description.dataset.messageId = message.id;
+    }
+    let messageDiv = document.querySelector(`.message[data-message-id="-1"]`);
+    if (messageDiv) {
+      messageDiv.dataset.messageId = message.id;
     }
   }
 });
@@ -975,7 +997,7 @@ function createMessage(message, scope) {
   ) {
     let descDiv = document.createElement("div");
     descDiv.classList.add("message-description");
-    descDiv.dataset.messageId = message.id;
+    descDiv.dataset.messageId = message.id || -1;
     descDiv.dataset.name = message.name;
     descDiv.dataset.pinned = +message.pinned || 0;
     let content = document.createElement("p");
@@ -1011,7 +1033,7 @@ function createMessage(message, scope) {
   messageDiv.classList.add("message");
   messageDiv.dataset.name = message.name;
   messageDiv.dataset.time = message.time;
-  messageDiv.dataset.messageId = message.id;
+  messageDiv.dataset.messageId = message.id || -1;
 
   // render user thumbnail
   let thumbnailBox = document.createElement("div");

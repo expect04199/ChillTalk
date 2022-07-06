@@ -99,7 +99,7 @@ module.exports = class Channel {
       return result.insertId;
     } catch (error) {
       console.log(error);
-      return { error };
+      return { error: "Can not create channel", status: 500 };
     } finally {
       await conn.release();
     }

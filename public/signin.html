@@ -14,12 +14,20 @@
         <div class="sign-up-container">
           <form>
             <h1>建立新帳號</h1>
-            <input type="text" placeholder="Name" id="signup-name" value="Harry" required />
+            <input
+              type="text"
+              placeholder="Name"
+              id="signup-name"
+              value="Harry"
+              maxlength="10"
+              required
+            />
             <input
               type="email"
               placeholder="Email"
               id="signup-email"
               value="test123@test.com"
+              maxlength="30"
               required
             />
             <input
@@ -27,6 +35,7 @@
               placeholder="Password"
               id="signup-password"
               value="test1234"
+              maxlength="30"
               required
             />
             <button class="form_btn" id="user-sign-up">繼續</button>
@@ -40,6 +49,7 @@
               placeholder="Email"
               id="signin-email"
               value="test123@test.com"
+              maxlength="30"
               required
             />
             <input
@@ -47,6 +57,7 @@
               placeholder="Password"
               id="signin-password"
               value="test1234"
+              maxlength="30"
               required
             />
             <button class="form_btn" id="user-sign-in">繼續</button>

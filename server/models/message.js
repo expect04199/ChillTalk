@@ -326,7 +326,7 @@ module.exports = class Message {
       };
 
       // -1 means see all messages
-      if (messageId === -1) {
+      if (+messageId === -1) {
         let [result] = await conn.query("SELECT MAX(id) id FROM messages WHERE channel_id = ?", [
           channelId,
         ]);
@@ -384,7 +384,7 @@ module.exports = class Message {
         // take all unread messages in channel
         let sql = `
         SELECT a.id, a.initial_time, b.type, b.description, c.id channel_id, c.name channel_name, 
-        d.id room_id, d.name room_name, e.id user_id, e.name user_name,
+        d.id room_id, d.name room_name, d.type room_type, e.id user_id, e.name user_name,
         f.source user_pic_src, f.type user_pic_type, f.image user_pic_img, f.preset user_preset,
         g.source room_pic_src, g.type room_pic_type, g.image room_pic_img, g.preset room_preset
         FROM chilltalk.messages a
@@ -421,6 +421,7 @@ module.exports = class Message {
             msg.room_pic_type,
             msg.room_pic_img
           );
+
           let message = {
             id: msg.id,
             type: msg.type,
@@ -435,17 +436,20 @@ module.exports = class Message {
             user_picture: userPic,
             room_picture: roomPic,
           };
+
+          if (msg.room_type === "private") {
+            message.room_picture = userPic;
+            message.channel_name = msg.user_name;
+            delete message.room_name;
+          }
+
           messagesArr.push(message);
         });
 
         // when messages are taken, record as read
         if (messages.length) {
           let lastMessage = messages[messages.length - 1];
-          let readSql = `
-          UPDATE user_read_status SET message_id = ? 
-          WHERE user_id = ? AND channel_id = ?
-          `;
-          await conn.query(readSql, [lastMessage.id, userId, channelId]);
+          await this.read(userId, lastMessage.room_id, lastMessage.channel_id, lastMessage.id);
         }
       }
       let next_paging;

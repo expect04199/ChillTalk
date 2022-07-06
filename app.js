@@ -139,6 +139,10 @@ roomIO.on("connect", (socket) => {
   socket.on("befriend", (user) => {
     socket.to(indexRoom).emit("befriend", user);
   });
+
+  socket.on("create-channel", (roomId, channelDetail) => {
+    socket.to(+roomId).emit("create-channel", channelDetail);
+  });
 });
 
 const videoIO = io.of("/video");

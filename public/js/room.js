@@ -2,8 +2,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
 
-const channelSocket = io.connect("http://localhost:3000/channel");
-const roomSocket = io.connect("http://localhost:3000/room");
+const channelSocket = io.connect("http://10.8.3.7:3000/channel");
+const roomSocket = io.connect("http://10.8.3.7:3000/room");
 
 // user info
 const user = JSON.parse(localStorage.getItem("info"));
@@ -125,6 +125,10 @@ window.onload = async () => {
       saveBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         let name = editName.innerHTML;
+        if (name.length > 10) {
+          alert("名稱限制10個字元");
+          return;
+        }
         let introduction = userIntroduction.value;
 
         let body = new FormData();
@@ -210,7 +214,7 @@ window.onload = async () => {
           <div id="edit-room-preview"></div>
         </div>
       </div>
-      <input type="text" class="edit-room-name" />
+      <input type="text" class="edit-room-name" maxlength="15"/>
       <button class="save-room-btn">儲存</button>
     </div>
     `;
@@ -454,7 +458,7 @@ createRoom.addEventListener("click", (e) => {
         <div id="room-image-preview"></div>
       </div>
     </div>
-    <input type="text" class="create-room-name" placeholder="輸入房間名稱" />
+    <input type="text" class="create-room-name" placeholder="輸入房間名稱" maxlength="15"/>
     <button class="create-room-btn">建立房間</button>
     <p>或 加入房間</p>
     </div>
@@ -497,6 +501,10 @@ createRoom.addEventListener("click", (e) => {
         },
       })
     ).json();
+    if (roomData.error) {
+      alert(roomData.error);
+      return;
+    }
     updateStorage("room", roomData);
     roomSocket.emit("connect-room", [roomData.id]);
     window.location.href = `/room.html?roomId=${roomData.id}`;
@@ -544,6 +552,10 @@ createRoom.addEventListener("click", (e) => {
         },
       })
     ).json();
+    if (roomData.error) {
+      alert(roomData.error);
+      return;
+    }
     updateStorage("room", roomData);
     roomSocket.emit("join-room", { roomId: roomData.id, user });
     if (roomData.channelId) {
@@ -574,7 +586,7 @@ createChannel.addEventListener("click", (e) => {
       <h3>Voice</h3>
       <h4>語音通話、視訊通話及畫面交流</h4>
     </div>
-    <input type="text" class="create-channel-name" placeholder="請輸入頻道名稱" />
+    <input type="text" class="create-channel-name" placeholder="請輸入頻道名稱" maxlength="20"/>
     <button type="button" class="create-channel-btn" data-type="text">建立頻道</button>
   </div>`;
 
@@ -610,6 +622,11 @@ createChannel.addEventListener("click", (e) => {
           },
         })
       ).json();
+      if (channelDetail.error) {
+        alert(channelDetail.error);
+        return;
+      }
+      roomSocket.emit("create-channel", roomId, channelDetail);
       createChannelInput.value = "";
       maskDiv.classList.remove("enable");
       maskDiv.innerHTML = "";
@@ -943,6 +960,11 @@ roomSocket.on("other-signout", (userId) => {
   });
 });
 
+// when other people create channel, add new channel div
+roomSocket.on("create-channel", (channelDetail) => {
+  createChannelfn(channelDetail);
+});
+
 // listen to other people's message
 channelSocket.on("message", (message) => {
   if (message.userId !== user.id) {
@@ -956,6 +978,10 @@ channelSocket.on("message", (message) => {
     let description = document.querySelector(`.message-description[data-message-id="-1"]`);
     if (description) {
       description.dataset.messageId = message.id;
+    }
+    let messageDiv = document.querySelector(`.message[data-message-id="-1"]`);
+    if (messageDiv) {
+      messageDiv.dataset.messageId = message.id;
     }
   }
 });
@@ -1103,7 +1129,7 @@ function createMessage(message, scope) {
   ) {
     let descDiv = document.createElement("div");
     descDiv.classList.add("message-description");
-    descDiv.dataset.messageId = message.id;
+    descDiv.dataset.messageId = message.id || -1;
     descDiv.dataset.name = message.name;
     descDiv.dataset.pinned = +message.pinned || 0;
     let content = document.createElement("p");
@@ -1139,7 +1165,7 @@ function createMessage(message, scope) {
   messageDiv.classList.add("message");
   messageDiv.dataset.name = message.name;
   messageDiv.dataset.time = message.time;
-  messageDiv.dataset.messageId = message.id;
+  messageDiv.dataset.messageId = message.id || -1;
 
   // render user thumbnail
   let thumbnailBox = document.createElement("div");
