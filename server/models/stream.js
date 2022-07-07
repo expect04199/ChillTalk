@@ -1,6 +1,13 @@
 const db = require("../../util/database");
 
 module.exports = class Stream {
+  static async getRoom(channelId, userId) {
+    let sql = `SELECT socket_id id FROM stream_members WHERE channel_id = ? AND user_id != ?`;
+    const [result] = await db.query(sql, [channelId, userId]);
+    let sockets = result.map((socket) => socket.id);
+    return sockets;
+  }
+
   static async save(channelId, userId, socketId) {
     const conn = await db.getConnection();
     try {

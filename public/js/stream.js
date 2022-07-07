@@ -29,7 +29,7 @@ window.onload = async () => {
       },
     })
   ).json();
-  videoSocket.emit("connect-room", channelId);
+  videoSocket.emit("connect-room", channelId, user.id);
   roomSocket.emit("connect-room", roomsData);
   // render room name
   let roomNameDiv = document.querySelector(".room-name p");
@@ -229,12 +229,12 @@ window.onload = async () => {
   // render channel-name
   let channelName = document.querySelector(".channel-name");
   channelName.innerHTML = channels.find((channel) => +channel.id === +channelId).name;
-
-  let participantBox = document.querySelector(".participant-box");
-  let participant = createParticipant(user);
-  participant.dataset.muted = true;
-  participantBox.append(participant);
 };
+
+let participantBox = document.querySelector(".participant-box");
+let participant = createParticipant(user);
+participant.dataset.muted = true;
+participantBox.append(participant);
 
 // when click home page, redirect to homepage
 let home = document.querySelector(".home");
@@ -710,103 +710,38 @@ function createParticipant(par) {
   return participant;
 }
 
-// webrtc
-const config = {
-  iceServers: [
-    {
-      urls: ["stun:stun.l.google.com:19302"],
-    },
-  ],
-};
+// // webrtc
+// const config = {
+//   iceServers: [
+//     {
+//       urls: ["stun:stun.l.google.com:19302"],
+//     },
+//   ],
+// };
 
-const videoConstraints = {
-  audio: true,
-  video: {
-    width: 600,
-    height: 300,
-  },
-};
+// const videoConstraints = {
+//   audio: true,
+//   video: {
+//     width: 600,
+//     height: 300,
+//   },
+// };
 
-const gdmOptions = {
-  video: {
-    cursor: "always",
-  },
-  audio: {
-    echoCancellation: true,
-    noiseSuppression: true,
-    sampleRate: 44100,
-  },
-};
+// const gdmOptions = {
+//   video: {
+//     cursor: "always",
+//   },
+//   audio: {
+//     echoCancellation: true,
+//     noiseSuppression: true,
+//     sampleRate: 44100,
+//   },
+// };
 
-let videoPCs = {};
-let videoSrc;
-
-// open camera
-const streamTools = document.querySelector(".stream-tools");
-const camera = streamTools.querySelector(".stream-camera");
-camera.addEventListener("mousedown", (e) => {
-  const currParticipant = document.querySelector(`.participant[data-id="${user.id}"]`);
-  let currVideo = currParticipant.querySelector(".participant-video");
-  if (!currVideo.srcObject) {
-    navigator.mediaDevices
-      .getUserMedia(videoConstraints)
-      .then((stream) => {
-        videoSrc = stream;
-        currVideo.srcObject = stream;
-        currVideo.style.display = "block";
-        currVideo.muted = true;
-
-        let pcs = Object.values(videoPCs);
-        console.log(pcs);
-        pcs.forEach((pc) => {
-          const senders = pc.getSenders();
-          senders.forEach((sender) => pc.removeTrack(sender));
-          stream.getTracks().forEach((track) => {
-            pc.addTrack(track, stream);
-          });
-        });
-      })
-      .catch((error) => console.error(error));
-  } else {
-    videoSocket.emit("camera-off", channelId, user.id);
-    currVideo.srcObject.getTracks().forEach((track) => {
-      track.stop();
-    });
-    currVideo.style.display = "none";
-    currVideo.srcObject = null;
-  }
-});
-let screenSrc;
-// share screen
-const screen = streamTools.querySelector(".stream-share-screen");
-screen.addEventListener("mousedown", (e) => {
-  const currParticipants = document.querySelectorAll(`.participant[data-id="${user.id}"]`);
-  const participantBox = document.querySelector(".participant-box");
-  if (currParticipants.length < 2) {
-    let screenParticipant = createParticipant(user);
-    screenParticipant.dataset.type = "screen";
-    participantBox.insertBefore(screenParticipant, currParticipants[0]);
-  }
-  let screenBox = participantBox.querySelector(
-    `.participant[data-id="${user.id}"][data-type="screen"]`
-  );
-  let currVideo = screenBox.querySelector(".participant-video");
-  if (!currVideo.srcObject) {
-    navigator.mediaDevices
-      .getDisplayMedia(gdmOptions)
-      .then((stream) => {
-        screenSrc = stream;
-        currVideo.srcObject = stream;
-        currVideo.style.display = "block";
-      })
-      .catch((error) => console.error(error));
-  } else {
-    currVideo.srcObject.getTracks().forEach((track) => {
-      track.stop();
-    });
-    screenBox.remove();
-  }
-});
+// let videoPCs = {};
+// let videoSrc;
+// let videoTrack;
+// let audioTrack;
 
 // quit stream
 let quit = document.querySelector(".stream-quit");
@@ -814,131 +749,387 @@ quit.addEventListener("click", (e) => {
   window.location.href = `/room.html?roomId=${roomId}`;
 });
 
-// video sockets
-const ICEconfig = {
-  iceServers: [],
-};
-let videoSocketId;
+// // open camera
+// const streamTools = document.querySelector(".stream-tools");
+// const camera = streamTools.querySelector(".stream-camera");
+// camera.addEventListener("mousedown", (e) => {
+//   const currParticipant = document.querySelector(`.participant[data-id="${user.id}"]`);
+//   let currVideo = currParticipant.querySelector(".participant-video");
+//   if (!currVideo.srcObject) {
+//     navigator.mediaDevices
+//       .getUserMedia(videoConstraints)
+//       .then((stream) => {
+//         videoSrc = stream;
+//         currVideo.srcObject = stream;
+//         currVideo.style.display = "block";
+//         currVideo.muted = true;
 
-// video former side
-videoSocket.on("watch", (id, par) => {
-  console.log("watch");
-  const participantBox = document.querySelector(".participant-box");
-  const participant = createParticipant(par);
-  participantBox.append(participant);
-  const videoPC = new RTCPeerConnection(ICEconfig);
-  videoPCs[id] = videoPC;
-  let videoStream = videoSrc;
-  if (videoStream) {
-    videoStream.getTracks().forEach((track) => {
-      videoPC.addTrack(track, videoStream);
+//         let pcs = Object.values(videoPCs);
+//         pcs.forEach((pc) => {
+//           const senders = pc.getSenders();
+//           senders.forEach((sender) => pc.removeTrack(sender));
+//           stream.getTracks().forEach((track) => {
+//             pc.addTrack(track, stream);
+//           });
+//         });
+//       })
+//       .catch((error) => console.error(error));
+//   } else {
+//     videoSocket.emit("camera-off", channelId, user.id);
+//     currVideo.srcObject.getTracks().forEach((track) => {
+//       track.stop();
+//     });
+//     currVideo.style.display = "none";
+//     currVideo.srcObject = null;
+//   }
+// });
+// let screenSrc;
+// // share screen
+// const screen = streamTools.querySelector(".stream-share-screen");
+// screen.addEventListener("mousedown", (e) => {
+//   const currParticipants = document.querySelectorAll(`.participant[data-id="${user.id}"]`);
+//   const participantBox = document.querySelector(".participant-box");
+//   if (currParticipants.length < 2) {
+//     let screenParticipant = createParticipant(user);
+//     screenParticipant.dataset.type = "screen";
+//     participantBox.insertBefore(screenParticipant, currParticipants[0]);
+//   }
+//   let screenBox = participantBox.querySelector(
+//     `.participant[data-id="${user.id}"][data-type="screen"]`
+//   );
+//   let currVideo = screenBox.querySelector(".participant-video");
+//   if (!currVideo.srcObject) {
+//     navigator.mediaDevices
+//       .getDisplayMedia(gdmOptions)
+//       .then((stream) => {
+//         screenSrc = stream;
+//         currVideo.srcObject = stream;
+//         currVideo.style.display = "block";
+//       })
+//       .catch((error) => console.error(error));
+//   } else {
+//     currVideo.srcObject.getTracks().forEach((track) => {
+//       track.stop();
+//     });
+//     screenBox.remove();
+//   }
+// });
+
+// // video sockets
+// const ICEconfig = {
+//   iceServers: [],
+// };
+// let videoSocketId;
+
+// // video former side
+// videoSocket.on("watch", (id, par) => {
+//   console.log("watch");
+//   const participantBox = document.querySelector(".participant-box");
+//   const participant = createParticipant(par);
+//   participantBox.append(participant);
+//   const videoPC = new RTCPeerConnection(ICEconfig);
+//   videoPCs[id] = videoPC;
+//   let videoStream = videoSrc;
+//   if (videoStream) {
+//     videoStream.getTracks().forEach((track) => {
+//       videoPC.addTrack(track, videoStream);
+//     });
+//   }
+
+//   // event is called when receive an ICE candidate
+//   videoPC.onicecandidate = (event) => {
+//     if (event.candidate) {
+//       videoSocket.emit("former-candidate", id, event.candidate);
+//     }
+//   };
+
+//   videoPC
+//     .createOffer()
+//     .then((sdp) => videoPC.setLocalDescription(sdp))
+//     .then(() => {
+//       videoSocket.emit("offer", id, videoPC.localDescription, user);
+//     })
+//     .catch((e) => console.log(e));
+
+//   videoPC.onnegotiationneeded = () => {
+//     videoPC
+//       .createOffer()
+//       .then((sdp) => videoPC.setLocalDescription(sdp))
+//       .then(() => {
+//         videoSocket.emit("offer", id, videoPC.localDescription, user);
+//       })
+//       .catch((e) => console.log(e));
+//   };
+// });
+
+// videoSocket.on("answer", (id, description) => {
+//   const desc = new RTCSessionDescription(description);
+//   videoPCs[id].setRemoteDescription(desc).catch((e) => console.log(e));
+// });
+
+// videoSocket.on("latter-candidate", (id, candidate) => {
+//   videoPCs[id].addIceCandidate(new RTCIceCandidate(candidate));
+// });
+
+// videoSocket.on("disconnectPeer", (id, userId) => {
+//   let userDivs = document.querySelectorAll(`.participant[data-id="${userId}"]`);
+//   userDivs.forEach((userDiv) => userDiv.remove());
+//   videoPCs[id].close();
+//   delete videoPCs[id];
+// });
+
+// // video later side
+// videoSocket.on("connect", () => {
+//   videoSocket.emit("watch", channelId, user);
+// });
+
+// videoSocket.on("offer", (id, description, par) => {
+//   const participantBox = document.querySelector(".participant-box");
+//   let participant = participantBox.querySelector(`.participant[data-id="${par.id}"]`);
+//   if (!participant) {
+//     participant = createParticipant(par);
+//     participantBox.append(participant);
+//   }
+//   const video = participant.children[0];
+
+//   let videoPC = new RTCPeerConnection(ICEconfig);
+//   videoPCs[id] = videoPC;
+//   console.log(id);
+//   videoPC.onnegotiationneeded = () => {
+//     videoPC
+//       .createOffer()
+//       .then((sdp) => videoPC.setLocalDescription(sdp))
+//       .then(() => {
+//         videoSocket.emit("offer", id, videoPC.localDescription, user);
+//       })
+//       .catch((e) => console.log(e));
+//   };
+
+//   if (description) {
+//     console.log("error");
+//     videoPC
+//       .setRemoteDescription(description)
+//       .then(() => videoPC.createAnswer())
+//       .then((sdp) => videoPC.setLocalDescription(sdp))
+//       .then(() => {
+//         videoSocket.emit("answer", id, videoPC.localDescription);
+//       })
+//       .catch((e) => console.log(e));
+//   }
+
+//   videoPC.ontrack = (event) => {
+//     console.log(event.streams);
+//     console.log(video);
+//     video.srcObject = event.streams[0];
+//     video.style.display = "block";
+//   };
+
+//   videoPC.onicecandidate = (event) => {
+//     if (event.candidate) {
+//       videoSocket.emit("latter-candidate", id, event.candidate);
+//     }
+//   };
+// });
+
+// videoSocket.on("former-candidate", (id, candidate) => {
+//   videoPCs[id].addIceCandidate(new RTCIceCandidate(candidate)).catch((e) => console.error(e));
+// });
+
+// videoSocket.on("camera-off", (id, userId) => {
+//   let participant = document.querySelector(`.participant[data-id="${userId}"]`);
+//   const video = participant.children[0];
+//   video.srcObject = null;
+//   video.style.display = "none";
+// });
+
+// // disconnect socket when leave page
+// window.onbeforeunload = () => {
+//   videoSocket.close();
+//   roomSocket.close();
+//   Object.values(videoPCs).forEach((pc) => pc.close());
+// };
+
+const peers = {};
+let userStream;
+const currParticipant = document.querySelector(`.participant[data-id="${user.id}"]`);
+let currVideo = currParticipant.querySelector(".participant-video");
+
+function callOtherUsers(otherUsers, stream) {
+  otherUsers.forEach((userSocketIdToCall) => {
+    videoSocket.emit("offer user info", userSocketIdToCall, user);
+    const peer = createPeer(userSocketIdToCall);
+    peers[userSocketIdToCall] = peer;
+
+    stream.getTracks().forEach((track) => {
+      peer.addTrack(track, stream);
+    });
+  });
+}
+
+function createPeer(userSocketIdToCall) {
+  const peer = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: ["stun:stun.l.google.com:19302"],
+      },
+    ],
+  });
+  peer.onnegotiationneeded = () =>
+    userSocketIdToCall ? handleNegotiationNeededEvent(peer, userSocketIdToCall) : null;
+  peer.onicecandidate = handleICECandidateEvent;
+
+  peer.ontrack = (e) => {
+    const participantBox = document.querySelector(".participant-box");
+    let participant = participantBox.querySelector(
+      `.participant[data-socket-id="${userSocketIdToCall}"]`
+    );
+    const video = participant.children[0];
+    video.srcObject = e.streams[0];
+    video.autoplay = true;
+    video.style.display = "block";
+  };
+
+  return peer;
+}
+
+async function handleNegotiationNeededEvent(peer, userSocketIdToCall) {
+  const offer = await peer.createOffer();
+  await peer.setLocalDescription(offer);
+  const payload = {
+    sdp: peer.localDescription,
+    userSocketIdToCall,
+  };
+
+  videoSocket.emit("peer connection request", payload);
+}
+
+async function handleReceiveOffer({ sdp, callerId }, stream) {
+  const peer = createPeer(callerId);
+  peers[callerId] = peer;
+  const desc = new RTCSessionDescription(sdp);
+  await peer.setRemoteDescription(desc);
+
+  stream.getTracks().forEach((track) => {
+    peer.addTrack(track, stream);
+  });
+
+  const answer = await peer.createAnswer();
+  await peer.setLocalDescription(answer);
+
+  const payload = {
+    userToAnswerTo: callerId,
+    sdp: peer.localDescription,
+  };
+  videoSocket.emit("connection answer", payload);
+}
+
+function handleAnswer({ sdp, answererId }) {
+  const desc = new RTCSessionDescription(sdp);
+  peers[answererId].setRemoteDescription(desc).catch((e) => console.log(e));
+}
+
+function handleICECandidateEvent(e) {
+  if (e.candidate) {
+    Object.keys(peers).forEach((id) => {
+      const payload = {
+        target: id,
+        candidate: e.candidate,
+      };
+      videoSocket.emit("ice-candidate", payload);
     });
   }
+}
 
-  // event is called when receive an ICE candidate
-  videoPC.onicecandidate = (event) => {
-    if (event.candidate) {
-      videoSocket.emit("former-candidate", id, event.candidate);
-    }
-  };
+function handleReceiveIce({ candidate, from }) {
+  const inComingCandidate = new RTCIceCandidate(candidate);
+  peers[from].addIceCandidate(inComingCandidate);
+}
 
-  videoPC
-    .createOffer()
-    .then((sdp) => videoPC.setLocalDescription(sdp))
-    .then(() => {
-      videoSocket.emit("offer", id, videoPC.localDescription, user);
-    })
-    .catch((e) => console.log(e));
+function createOfferUserBox(userSocketIdToAnswer, par) {
+  const participantBox = document.querySelector(".participant-box");
+  let participant = participantBox.querySelector(`.participant[data-id="${par.id}"]`);
+  if (!participant) {
+    participant = createParticipant(par, userSocketIdToAnswer);
+    participant.dataset.socketId = userSocketIdToAnswer;
+    participantBox.append(participant);
+  }
+  videoSocket.emit("answer user info", userSocketIdToAnswer, user);
+}
 
-  videoPC.onnegotiationneeded = () => {
-    videoPC
-      .createOffer()
-      .then((sdp) => videoPC.setLocalDescription(sdp))
-      .then(() => {
-        videoSocket.emit("offer", id, videoPC.localDescription, user);
-      })
-      .catch((e) => console.log(e));
-  };
-});
-
-videoSocket.on("answer", (id, description) => {
-  videoPCs[id].setRemoteDescription(description);
-});
-
-videoSocket.on("latter-candidate", (id, candidate) => {
-  videoPCs[id].addIceCandidate(new RTCIceCandidate(candidate));
-});
-
-videoSocket.on("disconnectPeer", (id, userId) => {
-  let userDivs = document.querySelectorAll(`.participant[data-id="${userId}"]`);
-  userDivs.forEach((userDiv) => userDiv.remove());
-  videoPCs[id].close();
-  delete videoPCs[id];
-});
-
-// video later side
-videoSocket.on("connect", () => {
-  videoSocket.emit("watch", channelId, user);
-});
-
-videoSocket.on("offer", (id, description, par) => {
+function createAnswerUserBox(socketId, par) {
   const participantBox = document.querySelector(".participant-box");
   let participant = participantBox.querySelector(`.participant[data-id="${par.id}"]`);
   if (!participant) {
     participant = createParticipant(par);
+    participant.dataset.socketId = socketId;
     participantBox.append(participant);
   }
-  const video = participant.children[0];
+}
 
-  let videoPC = new RTCPeerConnection(ICEconfig);
-  videoPCs[id] = videoPC;
+function handleDisconnect(userId) {
+  delete peers[userId];
+  document.getElementById(userId).remove();
+}
 
-  videoPC.onnegotiationneeded = () => {
-    videoPC
-      .createOffer()
-      .then((sdp) => videoPC.setLocalDescription(sdp))
-      .then(() => {
-        videoSocket.emit("offer", id, videoPC.localDescription, user);
-      })
-      .catch((e) => console.log(e));
-  };
-
-  if (description) {
-    videoPC
-      .setRemoteDescription(description)
-      .then(() => videoPC.createAnswer())
-      .then((sdp) => videoPC.setLocalDescription(sdp))
-      .then(() => {
-        videoSocket.emit("answer", id, videoPC.localDescription);
-      });
-  }
-
-  videoPC.ontrack = (event) => {
-    video.srcObject = event.streams[0];
-    video.style.display = "block";
-  };
-
-  videoPC.onicecandidate = (event) => {
-    if (event.candidate) {
-      videoSocket.emit("latter-candidate", id, event.candidate);
-    }
-  };
+const streamTools = document.querySelector(".stream-tools");
+const camera = streamTools.querySelector(".stream-camera");
+camera.addEventListener("mousedown", (e) => {
+  const videoTrack = userStream.getTracks().find((track) => track.kind === "video");
+  videoTrack.enabled = !videoTrack.enabled;
 });
 
-videoSocket.on("former-candidate", (id, candidate) => {
-  videoPCs[id].addIceCandidate(new RTCIceCandidate(candidate)).catch((e) => console.error(e));
+const voice = streamTools.querySelector(".stream-voice");
+voice.addEventListener("mousedown", (e) => {
+  const audioTrack = userStream.getTracks().find((track) => track.kind === "audio");
+  audioTrack.enabled = !audioTrack.enabled;
 });
 
-videoSocket.on("camera-off", (id, userId) => {
-  let participant = document.querySelector(`.participant[data-id="${userId}"]`);
-  const video = participant.children[0];
-  video.srcObject = null;
-  video.style.display = "none";
-});
+function hideCam() {
+  const videoTrack = userStream.getTracks().find((track) => track.kind === "video");
+  videoTrack.enabled = false;
+}
 
-// disconnect socket when leave page
-window.onbeforeunload = () => {
-  videoSocket.close();
-  roomSocket.close();
-  Object.values(videoPCs).forEach((pc) => pc.close());
-};
+function showCam() {
+  const videoTrack = userStream.getTracks().find((track) => track.kind === "video");
+  videoTrack.enabled = true;
+}
+
+async function init() {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: true,
+    video: {
+      width: 600,
+      height: 300,
+    },
+  });
+  userStream = stream;
+  currVideo.srcObject = stream;
+  currVideo.style.display = "block";
+  currVideo.muted = true;
+
+  videoSocket.emit("user joined room", +channelId, +user.id);
+
+  videoSocket.on("all other users", (otherUsers) => callOtherUsers(otherUsers, stream));
+
+  videoSocket.on("connection offer", (payload) => handleReceiveOffer(payload, stream));
+
+  videoSocket.on("connection answer", handleAnswer);
+
+  videoSocket.on("ice-candidate", handleReceiveIce);
+
+  videoSocket.on("offer user info", (userSocketIdToAnswer, user) =>
+    createOfferUserBox(userSocketIdToAnswer, user)
+  );
+
+  videoSocket.on("answer user info", (socketId, user) => createAnswerUserBox(socketId, user));
+
+  videoSocket.on("user disconnected", (userId) => handleDisconnect(userId));
+
+  videoSocket.on("hide cam", hideCam);
+
+  videoSocket.on("show cam", showCam);
+
+  videoSocket.on("server is full", () => alert("chat is full"));
+}
+
+init();

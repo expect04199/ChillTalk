@@ -149,41 +149,97 @@ const videoIO = io.of("/video");
 videoIO.on("error", (e) => console.log(e));
 
 videoIO.on("connect", (socket) => {
-  console.log("video connected");
-  socket.on("connect-room", (channelId) => {
-    socket.join(channelId);
+  socket.on("user joined room", async (roomId, userId) => {
+    const room = await Stream.getRoom(roomId, userId);
+
+    if (room && room.length === 10) {
+      socket.emit("server is full");
+      return;
+    }
+
+    const otherUsers = [];
+
+    if (room) {
+      room.forEach((id) => {
+        otherUsers.push(id);
+      });
+    }
+    await Stream.save(roomId, userId, socket.id);
+    socket.join(roomId);
+    socket.emit("all other users", otherUsers);
   });
 
-  socket.on("watch", async (channelId, user) => {
-    Stream.save(channelId, user.id, socket.id);
-    socket.to(channelId).emit("watch", socket.id, user);
+  socket.on("peer connection request", ({ userSocketIdToCall, sdp }) => {
+    videoIO.to(userSocketIdToCall).emit("connection offer", { sdp, callerId: socket.id });
   });
 
-  socket.on("latter-candidate", (id, message) => {
-    socket.to(id).emit("latter-candidate", socket.id, message);
+  socket.on("connection answer", ({ userToAnswerTo, sdp }) => {
+    videoIO.to(userToAnswerTo).emit("connection answer", { sdp, answererId: socket.id });
   });
 
-  socket.on("former-candidate", (id, message) => {
-    socket.to(id).emit("former-candidate", socket.id, message);
+  socket.on("ice-candidate", ({ target, candidate }) => {
+    videoIO.to(target).emit("ice-candidate", { candidate, from: socket.id });
   });
 
-  socket.on("offer", (id, message, user) => {
-    socket.to(id).emit("offer", socket.id, message, user);
+  socket.on("offer user info", (userSocketIdToCall, user) => {
+    videoIO.to(userSocketIdToCall).emit("offer user info", socket.id, user);
   });
 
-  socket.on("answer", (id, message) => {
-    socket.to(id).emit("answer", socket.id, message);
+  socket.on("answer user info", (userSocketIdToAnswer, user) => {
+    videoIO.to(userSocketIdToAnswer).emit("answer user info", socket.id, user);
   });
 
-  socket.on("disconnect", async () => {
-    let data = await Stream.delete(socket.id);
-    let sockets = data.sockets;
-    sockets.forEach((s) => {
-      videoIO.to(s).emit("disconnectPeer", socket.id, +data.userId);
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) => {
+      socket.to(room).emit("user disconnected", socket.id);
     });
   });
 
-  socket.on("camera-off", (channelId, userId) => {
-    socket.to(channelId).emit("camera-off", socket.id, userId);
+  socket.on("hide remote cam", (targetId) => {
+    videoIO.to(targetId).emit("hide cam");
+  });
+
+  socket.on("show remote cam", (targetId) => {
+    videoIO.to(targetId).emit("show cam");
   });
 });
+
+// videoIO.on("connect", (socket) => {
+//   console.log("video connected");
+//   socket.on("connect-room", (channelId) => {
+//     socket.join(channelId);
+//   });
+
+//   socket.on("watch", async (channelId, user) => {
+//     Stream.save(channelId, user.id, socket.id);
+//     socket.to(channelId).emit("watch", socket.id, user);
+//   });
+
+//   socket.on("latter-candidate", (id, message) => {
+//     socket.to(id).emit("latter-candidate", socket.id, message);
+//   });
+
+//   socket.on("former-candidate", (id, message) => {
+//     socket.to(id).emit("former-candidate", socket.id, message);
+//   });
+
+//   socket.on("offer", (id, message, user) => {
+//     socket.to(id).emit("offer", socket.id, message, user);
+//   });
+
+//   socket.on("answer", (id, message) => {
+//     socket.to(id).emit("answer", socket.id, message);
+//   });
+
+//   socket.on("disconnect", async () => {
+//     let data = await Stream.delete(socket.id);
+//     let sockets = data.sockets;
+//     sockets.forEach((s) => {
+//       videoIO.to(s).emit("disconnectPeer", socket.id, +data.userId);
+//     });
+//   });
+
+//   socket.on("camera-off", (channelId, userId) => {
+//     socket.to(channelId).emit("camera-off", socket.id, userId);
+//   });
+// });
