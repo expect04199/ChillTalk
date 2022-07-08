@@ -50,6 +50,7 @@ window.onload = async () => {
       if (e.target.dataset.channelType === "text") {
         window.location.href = `/room.html?roomId=${roomId}&channelId=${e.target.dataset.channelId}`;
       } else if (e.target.dataset.channelType === "voice") {
+        style.back;
         window.location.href = `/stream.html?roomId=${roomId}&channelId=${e.target.dataset.channelId}`;
       }
     });
@@ -942,12 +943,11 @@ quit.addEventListener("click", (e) => {
 //   video.style.display = "none";
 // });
 
-// // disconnect socket when leave page
-// window.onbeforeunload = () => {
-//   videoSocket.close();
-//   roomSocket.close();
-//   Object.values(videoPCs).forEach((pc) => pc.close());
-// };
+// disconnect socket when leave page
+window.onbeforeunload = () => {
+  videoSocket.close();
+  roomSocket.close();
+};
 
 const peers = {};
 let userStream;
@@ -1066,32 +1066,61 @@ function createAnswerUserBox(socketId, par) {
   }
 }
 
-function handleDisconnect(userId) {
-  delete peers[userId];
-  document.getElementById(userId).remove();
+function handleDisconnect(socketId) {
+  peers[socketId].close();
+  delete peers[socketId];
+  const participantBox = document.querySelector(".participant-box");
+  let participant = participantBox.querySelector(`.participant[data-socket-id="${socketId}"]`);
+  participant.remove();
 }
 
 const streamTools = document.querySelector(".stream-tools");
 const camera = streamTools.querySelector(".stream-camera");
+camera.style.backgroundColor = "rgb(255, 255, 255)";
+camera.children[0].style.color = "#454545";
+currVideo.style.display = "block";
 camera.addEventListener("mousedown", (e) => {
   const videoTrack = userStream.getTracks().find((track) => track.kind === "video");
+  camera.style.backgroundColor =
+    camera.style.backgroundColor === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
+  camera.children[0].style.color =
+    camera.children[0].style.color === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
+  currVideo.style.display = currVideo.style.display === "block" ? "none" : "block";
   videoTrack.enabled = !videoTrack.enabled;
+
+  if (currVideo.style.display === "none") {
+    videoSocket.emit("hide cam", channelId);
+  } else {
+    videoSocket.emit("show cam", channelId);
+  }
 });
 
 const voice = streamTools.querySelector(".stream-voice");
+voice.style.backgroundColor = "rgb(255, 255, 255)";
+currVideo.style.display = "block";
+voice.children[0].style.color = "#454545";
 voice.addEventListener("mousedown", (e) => {
   const audioTrack = userStream.getTracks().find((track) => track.kind === "audio");
   audioTrack.enabled = !audioTrack.enabled;
+
+  voice.style.backgroundColor =
+    voice.style.backgroundColor === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
+  voice.children[0].style.color =
+    voice.children[0].style.color === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
 });
 
-function hideCam() {
-  const videoTrack = userStream.getTracks().find((track) => track.kind === "video");
-  videoTrack.enabled = false;
+function hideCam(socketId) {
+  const participantBox = document.querySelector(".participant-box");
+  let participant = participantBox.querySelector(`.participant[data-socket-id="${socketId}"]`);
+  const video = participant.children[0];
+  video.style.display = "none";
 }
 
-function showCam() {
-  const videoTrack = userStream.getTracks().find((track) => track.kind === "video");
-  videoTrack.enabled = true;
+function showCam(socketId) {
+  const participantBox = document.querySelector(".participant-box");
+  let participant = participantBox.querySelector(`.participant[data-socket-id="${socketId}"]`);
+  const video = participant.children[0];
+  video.style.display = "block";
 }
 
 async function init() {
@@ -1125,9 +1154,9 @@ async function init() {
 
   videoSocket.on("user disconnected", (userId) => handleDisconnect(userId));
 
-  videoSocket.on("hide cam", hideCam);
+  videoSocket.on("hide cam", (socketId) => hideCam(socketId));
 
-  videoSocket.on("show cam", showCam);
+  videoSocket.on("show cam", (socketId) => showCam(socketId));
 
   videoSocket.on("server is full", () => alert("chat is full"));
 }

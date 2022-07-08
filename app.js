@@ -149,8 +149,8 @@ const videoIO = io.of("/video");
 videoIO.on("error", (e) => console.log(e));
 
 videoIO.on("connect", (socket) => {
-  socket.on("user joined room", async (roomId, userId) => {
-    const room = await Stream.getRoom(roomId, userId);
+  socket.on("user joined room", async (channelId, userId) => {
+    const room = await Stream.getRoom(channelId, userId);
 
     if (room && room.length === 10) {
       socket.emit("server is full");
@@ -164,8 +164,8 @@ videoIO.on("connect", (socket) => {
         otherUsers.push(id);
       });
     }
-    await Stream.save(roomId, userId, socket.id);
-    socket.join(roomId);
+    await Stream.save(channelId, userId, socket.id);
+    socket.join(channelId);
     socket.emit("all other users", otherUsers);
   });
 
@@ -195,12 +195,13 @@ videoIO.on("connect", (socket) => {
     });
   });
 
-  socket.on("hide remote cam", (targetId) => {
-    videoIO.to(targetId).emit("hide cam");
+  socket.on("hide cam", (channelId) => {
+    console.log("hide");
+    socket.to(+channelId).emit("hide cam", socket.id);
   });
 
-  socket.on("show remote cam", (targetId) => {
-    videoIO.to(targetId).emit("show cam");
+  socket.on("show cam", (channelId) => {
+    socket.to(+channelId).emit("show cam", socket.id);
   });
 });
 
