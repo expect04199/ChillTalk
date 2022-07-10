@@ -10,6 +10,7 @@ const Message = require("./server/models/message");
 const User = require("./server/models/user");
 const Stream = require("./server/models/stream");
 
+app.set("trust proxy", true);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -145,10 +146,10 @@ roomIO.on("connect", (socket) => {
   });
 });
 
-const videoIO = io.of("/video");
-videoIO.on("error", (e) => console.log(e));
+const camIO = io.of("/cam");
+camIO.on("error", (e) => console.log(e));
 
-videoIO.on("connect", (socket) => {
+camIO.on("connect", (socket) => {
   socket.on("user joined room", async (channelId, userId) => {
     const room = await Stream.getRoom(channelId, userId);
 
@@ -170,33 +171,33 @@ videoIO.on("connect", (socket) => {
   });
 
   socket.on("peer connection request", ({ userSocketIdToCall, sdp }) => {
-    videoIO.to(userSocketIdToCall).emit("connection offer", { sdp, callerId: socket.id });
+    camIO.to(userSocketIdToCall).emit("connection offer", { sdp, callerId: socket.id });
   });
 
   socket.on("connection answer", ({ userToAnswerTo, sdp }) => {
-    videoIO.to(userToAnswerTo).emit("connection answer", { sdp, answererId: socket.id });
+    camIO.to(userToAnswerTo).emit("connection answer", { sdp, answererId: socket.id });
   });
 
   socket.on("ice-candidate", ({ target, candidate }) => {
-    videoIO.to(target).emit("ice-candidate", { candidate, from: socket.id });
+    camIO.to(target).emit("ice-candidate", { candidate, from: socket.id });
   });
 
   socket.on("offer user info", (userSocketIdToCall, user) => {
-    videoIO.to(userSocketIdToCall).emit("offer user info", socket.id, user);
+    camIO.to(userSocketIdToCall).emit("offer user info", socket.id, user);
   });
 
   socket.on("answer user info", (userSocketIdToAnswer, user) => {
-    videoIO.to(userSocketIdToAnswer).emit("answer user info", socket.id, user);
+    camIO.to(userSocketIdToAnswer).emit("answer user info", socket.id, user);
   });
 
   socket.on("disconnecting", () => {
+    Stream.delete(socket.id);
     socket.rooms.forEach((room) => {
       socket.to(room).emit("user disconnected", socket.id);
     });
   });
 
   socket.on("hide cam", (channelId) => {
-    console.log("hide");
     socket.to(+channelId).emit("hide cam", socket.id);
   });
 
@@ -204,43 +205,3 @@ videoIO.on("connect", (socket) => {
     socket.to(+channelId).emit("show cam", socket.id);
   });
 });
-
-// videoIO.on("connect", (socket) => {
-//   console.log("video connected");
-//   socket.on("connect-room", (channelId) => {
-//     socket.join(channelId);
-//   });
-
-//   socket.on("watch", async (channelId, user) => {
-//     Stream.save(channelId, user.id, socket.id);
-//     socket.to(channelId).emit("watch", socket.id, user);
-//   });
-
-//   socket.on("latter-candidate", (id, message) => {
-//     socket.to(id).emit("latter-candidate", socket.id, message);
-//   });
-
-//   socket.on("former-candidate", (id, message) => {
-//     socket.to(id).emit("former-candidate", socket.id, message);
-//   });
-
-//   socket.on("offer", (id, message, user) => {
-//     socket.to(id).emit("offer", socket.id, message, user);
-//   });
-
-//   socket.on("answer", (id, message) => {
-//     socket.to(id).emit("answer", socket.id, message);
-//   });
-
-//   socket.on("disconnect", async () => {
-//     let data = await Stream.delete(socket.id);
-//     let sockets = data.sockets;
-//     sockets.forEach((s) => {
-//       videoIO.to(s).emit("disconnectPeer", socket.id, +data.userId);
-//     });
-//   });
-
-//   socket.on("camera-off", (channelId, userId) => {
-//     socket.to(channelId).emit("camera-off", socket.id, userId);
-//   });
-// });

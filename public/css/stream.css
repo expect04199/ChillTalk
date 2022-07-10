@@ -432,7 +432,7 @@ i.sign-out.icon {
   width: 100%;
   height: 100%;
   border-radius: 10px;
-  z-index: 10;
+  z-index: 1;
 }
 
 .participant-box {
@@ -472,7 +472,7 @@ i.sign-out.icon {
   width: 100%;
   height: 100%;
   position: absolute;
-  z-index: 10;
+  z-index: 1;
   display: "block";
   border-radius: 5px;
 }
