@@ -642,6 +642,7 @@ i.sign-out.icon {
   position: absolute;
   top: 10px;
   left: 30px;
+  background-position: center;
   background-size: cover;
   border-radius: 50%;
 }
@@ -891,6 +892,7 @@ i.sign-out.icon {
   width: 35px;
   height: 35px;
   border-radius: 100%;
+  background-position: center;
   background-size: cover;
   margin: 0 20px;
 }

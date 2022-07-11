@@ -128,8 +128,8 @@ window.onload = async () => {
       saveBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         let name = editName.innerHTML;
-        if (name.length > 10) {
-          alert("名稱限制10個字元");
+        if (name.length > 20) {
+          alert("名稱限制20個字元");
           return;
         }
         let introduction = userIntroduction.value;
@@ -143,6 +143,8 @@ window.onload = async () => {
         }
         body.append("name", name);
         body.append("introduction", introduction);
+        body.append("original_picture", user.picture);
+        body.append("original_background", user.background);
         let userData = await (
           await fetch("/api/users/info", {
             method: "PATCH",
@@ -187,7 +189,7 @@ window.onload = async () => {
 
   // when user scroll messages to top, show oldest content
   let nextOptions = {
-    rootMargin: "0px",
+    rootMargin: "0px 0px 50px 0px",
     threshold: 1,
   };
 
@@ -211,7 +213,7 @@ window.onload = async () => {
       });
 
       observer.unobserve(entry.target);
-      if (entry.target === messagesDiv.querySelectorAll(".message-description")[0]) return;
+      if (!nextPage) return;
     }
 
     observer.observe(messagesDiv.querySelectorAll(".message-description")[0]);
@@ -225,7 +227,7 @@ window.onload = async () => {
 
   // when user scroll messages to bottom, show latest content
   let prevOptions = {
-    rootMargin: "0px",
+    rootMargin: "100px 0px 0px 0px",
     threshold: 1,
   };
 
@@ -507,7 +509,7 @@ async function showAddFriend(e) {
       alert(result.error);
       return;
     }
-    roomSocket.emit("add-friend", user);
+    roomSocket.emit("add-friend", friendId, user);
     maskDiv.innerHTML = "";
     maskDiv.classList.remove("enable");
   });
@@ -722,7 +724,7 @@ async function showMailBox(e) {
 
       // when user scroll messages to bottom, show latest content
       let mailOptions = {
-        rootMargin: "0px",
+        rootMargin: "100px 0px 0px 0px",
         threshold: 1,
       };
 
@@ -835,6 +837,11 @@ channelSocket.on("message", (message) => {
       messageDiv.dataset.messageId = message.id;
     }
   }
+
+  let friends = document.querySelector(".friends");
+  let msgFriend = friends.querySelector(`.friend[data-user-id="${message.userId}"]`);
+  if (msgFriend === friends.children[0]) return;
+  insertToFirst(friends, msgFriend);
 });
 
 // listen to other people update message
@@ -910,8 +917,8 @@ channelSocket.on("not-thumbs-up", (messageId) => {
 });
 
 // listen to other add friend
-roomSocket.on("add-friend", (reqUser) => {
-  if (+reqUser.id === +user.id) return;
+roomSocket.on("add-friend", (friend, reqUser) => {
+  if (+reqUser.id === +user.id || friend !== user.id) return;
   let pendingFriends = document.querySelector(".pending-friends");
   let requestDiv = createRequestFriend(reqUser);
   pendingFriends.append(requestDiv);
@@ -1861,7 +1868,7 @@ function createRequestFriend(reqUser) {
   reject.innerHTML = `<i class="close icon"></i>`;
   reject.addEventListener("click", async (e) => {
     let body = {
-      user_id: user.id,
+      user_id: reqUser.id,
     };
     await fetch("/api/friends/requests", {
       method: "DELETE",

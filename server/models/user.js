@@ -299,25 +299,25 @@ module.exports = class User {
       // update picture
       let pic;
       if (files.picture) {
+        const fileName = Date.now();
+        Util.imageUpload(files.picture, "user", userId, "picture", fileName);
         let picSql = `
         UPDATE pictures SET image = ?, preset = 0 WHERE source = "user" AND type = "picture" AND source_id = ?
         `;
-        const fileName = Util.imageFormat(files.picture[0].originalname);
         await conn.query(picSql, [fileName, userId]);
-        const picName = Util.imageFormat(files.picture[0].originalname);
-        pic = Util.getImage(0, "user", userId, "picture", picName);
+        pic = Util.getImage(0, "user", userId, "picture", fileName);
       }
 
       // update background
       let bgd;
       if (files.background) {
+        const fileName = Date.now();
+        Util.imageUpload(files.background, "user", userId, "background", fileName);
         let bgdSql = `
         UPDATE pictures SET image = ?, preset = 0 WHERE source = "user" AND type = "background" AND source_id = ?
         `;
-        const fileName = Util.imageFormat(files.background[0].originalname);
         await conn.query(bgdSql, [fileName, userId]);
-        const bgdName = Util.imageFormat(files.background[0].originalname);
-        bgd = Util.getImage(0, "user", userId, "background", bgdName);
+        bgd = Util.getImage(0, "user", userId, "background", fileName);
       }
 
       let [user] = await conn.query("SELECT * FROM users WHERE id = ?", [userId]);
@@ -334,8 +334,6 @@ module.exports = class User {
       await conn.query("SET SQL_SAFE_UPDATES=1;");
       await conn.query("COMMIT");
 
-      Util.imageUpload(files.picture, "user", userId, "picture");
-      Util.imageUpload(files.background, "user", userId, "background");
       return info;
     } catch (error) {
       console.log(error);

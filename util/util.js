@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const { CDN_IP } = process.env;
 
 module.exports = class Util {
-  static async imageUpload(files, src, srcId, type) {
+  static async imageUpload(files, src, srcId, type, name) {
     const s3 = new aws.S3({
       accessKeyId: S3_ACCESS_KEY,
       secretAccessKey: S3_SECRET_KEY,
@@ -14,7 +14,7 @@ module.exports = class Util {
     for (let file of files) {
       const data = {
         Bucket: "chilltalk",
-        Key: `${src}/${srcId}/${type}/${file.originalname}`,
+        Key: `${src}/${srcId}/${type}/${name}`,
         Body: file.buffer,
         ContentType: file.mimetype,
       };

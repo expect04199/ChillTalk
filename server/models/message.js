@@ -1,6 +1,6 @@
 const db = require("../../util/database");
 const Util = require("../../util/util");
-const PAGESIZE = 5; // use read session as basis
+const PAGESIZE = 12; // use read session as basis
 
 module.exports = class Message {
   constructor(userId, channelId, time, isDeleted, reply, pinned, description) {
@@ -92,11 +92,11 @@ module.exports = class Message {
       LEFT JOIN chilltalk.pictures i ON h.id = i.source_id AND i.source = "user" AND i.type = "picture"
     ) as r 
     ON a.reply = r.reply_id 
-    LEFT JOIN (
-      SELECT session FROM chilltalk.messages WHERE channel_id = 1 GROUP BY session ORDER BY session DESC LIMIT ? OFFSET ?
+    INNER JOIN (
+      SELECT session FROM chilltalk.messages WHERE channel_id = ? GROUP BY session ORDER BY session DESC LIMIT ? OFFSET ?
     ) z ON a.session = z.session
     WHERE 1=1 `;
-    const constraints = [];
+    const constraints = [channelId];
     let takeCount;
     let startCount;
 
@@ -134,7 +134,6 @@ module.exports = class Message {
     constraints.push(takeCount, startCount);
     sql += "AND a.channel_id = ? GROUP BY a.id ORDER BY a.id DESC ";
     constraints.push(channelId);
-
     let [result] = await db.query(sql, constraints);
     result = result.reverse();
     let resultSessions = [];
@@ -144,6 +143,7 @@ module.exports = class Message {
         resultSessions.push(r.session);
       }
     });
+
     let next_paging;
     let prev_paging;
     if (userId && readId) {
@@ -240,11 +240,18 @@ module.exports = class Message {
   static async delete(id) {
     const conn = await db.getConnection();
     try {
+      await conn.query("START TRANSACTION");
+      await conn.query("SET SQL_SAFE_UPDATES=0;");
       let sql = "DELETE FROM messages WHERE id = ?";
       await conn.query(sql, id);
+      let contentSql = "DELETE FROM message_contents WHERE message_id = ?";
+      await conn.query(contentSql, id);
+      await conn.query("SET SQL_SAFE_UPDATES=1;");
+      await conn.query("COMMIT");
       return true;
     } catch (error) {
       console.log(error);
+      await conn.query("ROLLBACK");
       return { error };
     } finally {
       await conn.release();

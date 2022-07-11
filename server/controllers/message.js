@@ -2,7 +2,7 @@ const Message = require("../models/message");
 
 module.exports.getMessages = async (req, res) => {
   const channelId = +req.query.channelId;
-  const userId = req.user.id;
+  const userId = +req.query.userId;
   const paging = +req.query.paging || 1;
   if (!channelId) {
     return res.status(400).json({ error: "Bad Request" });

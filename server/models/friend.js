@@ -83,6 +83,7 @@ module.exports = class Friend {
   }
 
   static async deleteRequest(hostId, userId) {
+    console.log(hostId, userId);
     const conn = await db.getConnection();
     try {
       await conn.query("START TRANSACTION");

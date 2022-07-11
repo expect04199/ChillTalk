@@ -134,15 +134,16 @@ module.exports = class Room {
       let picSql = `INSERT INTO pictures SET ?`;
       let picData;
       if (files[0]) {
+        let picName = Date.now();
         picData = {
           source: "room",
           source_id: roomId,
           type: "picture",
-          image: files[0].originalname,
+          image: picName,
           storage_type: "original",
           preset: 0,
         };
-        await Util.imageUpload(files, "room", roomId, "picture");
+        await Util.imageUpload(files, "room", roomId, "picture", picName);
       } else {
         picData = {
           source: "room",
@@ -243,14 +244,14 @@ module.exports = class Room {
         INNER JOIN rooms b ON a.source_id = b.id AND a.source = "room" AND a.type = "picture"
         SET a.image = ?, a.preset = 0 WHERE b.id = ? AND b.host_id = ?;
         `;
-        let fileName = Util.imageFormat(files[0].originalname);
+        let fileName = Date.now();
         let [result] = await conn.query(fileSql, [fileName, id, userId]);
 
         if (result.affectedRows === 0) {
           throw new Error("File does not exist.");
         }
         pic = Util.getImage(0, "room", id, "picture", fileName);
-        Util.imageUpload(files, "room", id, "picture");
+        Util.imageUpload(files, "room", id, "picture", fileName);
       }
       let data = {
         id,

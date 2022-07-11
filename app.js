@@ -133,8 +133,8 @@ roomIO.on("connect", (socket) => {
     socket.to(data.roomId).emit("join-room", data.user);
   });
 
-  socket.on("add-friend", (user) => {
-    socket.to(indexRoom).emit("add-friend", user);
+  socket.on("add-friend", (friendId, user) => {
+    socket.to(indexRoom).emit("add-friend", friendId, user);
   });
 
   socket.on("befriend", (user) => {

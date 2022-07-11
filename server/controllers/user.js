@@ -70,5 +70,6 @@ module.exports.updateInfo = async (req, res) => {
     access_token,
     info,
   };
+  console.log(data);
   return res.status(200).json(data);
 };

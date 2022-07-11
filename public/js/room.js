@@ -125,8 +125,8 @@ window.onload = async () => {
       saveBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         let name = editName.innerHTML;
-        if (name.length > 10) {
-          alert("名稱限制10個字元");
+        if (name.length > 20) {
+          alert("名稱限制20個字元");
           return;
         }
         let introduction = userIntroduction.value;
@@ -198,7 +198,8 @@ window.onload = async () => {
   // when click room setting, show setting page
   roomSetting.addEventListener("click", (e) => {
     let mask = document.querySelector(".mask");
-    let room = roomsData.find((room) => (room.id = roomId));
+    let room = roomsData.find((room) => +room.id === +roomId);
+
     mask.classList.add("enable");
     mask.innerHTML = `
     <div class="edit-room-box">
@@ -289,7 +290,7 @@ window.onload = async () => {
 
   // when user scroll messages to top, show oldest content
   let nextOptions = {
-    rootMargin: "0px",
+    rootMargin: "0px 0px 100px 0px",
     threshold: 1,
   };
 
@@ -313,9 +314,8 @@ window.onload = async () => {
       });
 
       observer.unobserve(entry.target);
-      if (entry.target === messagesDiv.querySelectorAll(".message-description")[0]) return;
+      if (!nextPage) return;
     }
-
     observer.observe(messagesDiv.querySelectorAll(".message-description")[0]);
   };
 
@@ -327,7 +327,7 @@ window.onload = async () => {
 
   // when user scroll messages to bottom, show latest content
   let prevOptions = {
-    rootMargin: "0px",
+    rootMargin: "100px 0px 0px 0px",
     threshold: 1,
   };
 
@@ -876,7 +876,7 @@ async function showMailBox(e) {
 
       // when user scroll messages to bottom, show latest content
       let mailOptions = {
-        rootMargin: "0px",
+        rootMargin: "100px 0px 0px 0px",
         threshold: 1,
       };
 
