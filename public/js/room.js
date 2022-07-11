@@ -59,7 +59,7 @@ window.onload = async () => {
   document.querySelector(".host-thumbnail").style.backgroundImage = `url("${user.picture}")`;
   document.querySelector(".host-online").style.backgroundColor = user.online
     ? "#00EE00"
-    : "#CD0000";
+    : "#8E8E8E";
   document.querySelector(".host-name").innerHTML = user.name;
   let hostSetting = document.querySelector(".host-setting");
   hostSetting.addEventListener("click", (e) => {
@@ -174,7 +174,7 @@ window.onload = async () => {
     // user online
     let onlineDiv = document.createElement("div");
     onlineDiv.classList.add("member-user-online");
-    onlineDiv.style.backgroundColor = member.online ? "#00EE00" : "#CD0000";
+    onlineDiv.style.backgroundColor = member.online ? "#00EE00" : "#8E8E8E";
     let blackCircle = document.createElement("div");
     blackCircle.classList.add("black-circle");
 
@@ -290,13 +290,14 @@ window.onload = async () => {
 
   // when user scroll messages to top, show oldest content
   let nextOptions = {
-    rootMargin: "0px 0px 100px 0px",
+    rootMargin: "0px 0px 0px 0px",
     threshold: 1,
   };
 
   const nextCallback = async (entries, observer) => {
     for (let entry of entries) {
       if (!entry.isIntersecting || !nextPage) return;
+      setTimeout(() => {}, "100000");
       let result = await (
         await fetch(`/api/messages?channelId=${channelId}&paging=${nextPage}`, {
           method: "GET",
@@ -309,13 +310,14 @@ window.onload = async () => {
       nextPage = result.next_paging;
       const messages = result.messages;
       let sessions = createSession(messages);
+      let temp = messagesDiv.children[0];
       sessions.reverse().forEach((session) => {
         messagesDiv.prepend(session);
       });
-
+      messagesDiv.scrollTop = temp.offsetTop - 15;
       observer.unobserve(entry.target);
-      if (!nextPage) return;
     }
+    if (!nextPage) return;
     observer.observe(messagesDiv.querySelectorAll(".message-description")[0]);
   };
 
@@ -955,7 +957,7 @@ roomSocket.on("other-signout", (userId) => {
   let membersDiv = document.querySelectorAll(".member");
   membersDiv.forEach((memberDiv) => {
     if (+memberDiv.dataset.id === +userId) {
-      memberDiv.querySelector(".member-user-online").style.backgroundColor = "#CD0000";
+      memberDiv.querySelector(".member-user-online").style.backgroundColor = "#8E8E8E";
     }
   });
 });
@@ -1073,7 +1075,7 @@ roomSocket.on("join-room", (member) => {
   // user online
   let onlineDiv = document.createElement("div");
   onlineDiv.classList.add("member-user-online");
-  onlineDiv.style.backgroundColor = member.online ? "#00EE00" : "#CD0000";
+  onlineDiv.style.backgroundColor = member.online ? "#00EE00" : "#8E8E8E";
   let blackCircle = document.createElement("div");
   blackCircle.classList.add("black-circle");
 

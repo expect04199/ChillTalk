@@ -60,7 +60,7 @@ window.onload = async () => {
   document.querySelector(".host-thumbnail").style.backgroundImage = `url("${user.picture}")`;
   document.querySelector(".host-online").style.backgroundColor = user.online
     ? "#00EE00"
-    : "#CD0000";
+    : "#8E8E8E";
   document.querySelector(".host-name").innerHTML = user.name;
   let hostSetting = document.querySelector(".host-setting");
   hostSetting.addEventListener("click", (e) => {

@@ -61,7 +61,7 @@ window.onload = async () => {
   document.querySelector(".host-thumbnail").style.backgroundImage = `url("${user.picture}")`;
   document.querySelector(".host-online").style.backgroundColor = user.online
     ? "#00EE00"
-    : "#CD0000";
+    : "#8E8E8E";
   document.querySelector(".host-name").innerHTML = user.name;
   document.querySelector(".host-id").innerHTML += user.id;
   let hostSetting = document.querySelector(".host-setting");
@@ -189,7 +189,7 @@ window.onload = async () => {
 
   // when user scroll messages to top, show oldest content
   let nextOptions = {
-    rootMargin: "0px 0px 50px 0px",
+    rootMargin: "0px 0px 0px 0px",
     threshold: 1,
   };
 
@@ -208,14 +208,14 @@ window.onload = async () => {
       nextPage = result.next_paging;
       const messages = result.messages;
       let sessions = createSession(messages);
+      let temp = messagesDiv.children[0];
       sessions.reverse().forEach((session) => {
         messagesDiv.prepend(session);
       });
-
+      messagesDiv.scrollTop = temp.offsetTop - 15;
       observer.unobserve(entry.target);
-      if (!nextPage) return;
     }
-
+    if (!nextPage) return;
     observer.observe(messagesDiv.querySelectorAll(".message-description")[0]);
   };
 
@@ -810,11 +810,11 @@ roomSocket.on("other-signin", (userId) => {
 roomSocket.on("other-signout", (userId) => {
   let requestDiv = document.querySelector(`.friend-request[data-user-id="${userId}"]`);
   if (requestDiv) {
-    requestDiv.querySelector(".request-online").style.backgroundColor = "#CD0000";
+    requestDiv.querySelector(".request-online").style.backgroundColor = "#8E8E8E";
   }
   let friendDiv = document.querySelector(`.friend[data-user-id="${userId}"]`);
   if (friendDiv) {
-    friendDiv.querySelector(".friend-online").style.backgroundColor = "#CD0000";
+    friendDiv.querySelector(".friend-online").style.backgroundColor = "#8E8E8E";
   }
 });
 
@@ -947,7 +947,7 @@ roomSocket.on("join-room", (member) => {
   // user online
   let onlineDiv = document.createElement("div");
   onlineDiv.classList.add("member-user-online");
-  onlineDiv.style.backgroundColor = member.online ? "#00EE00" : "#CD0000";
+  onlineDiv.style.backgroundColor = member.online ? "#00EE00" : "#8E8E8E";
   let blackCircle = document.createElement("div");
   blackCircle.classList.add("black-circle");
 
@@ -1827,7 +1827,7 @@ function createRequestFriend(reqUser) {
 
   let online = document.createElement("div");
   online.classList.add("request-online");
-  online.style.backgroundColor = reqUser.online ? "#00EE00" : "#CD0000";
+  online.style.backgroundColor = reqUser.online ? "#00EE00" : "#8E8E8E";
 
   let accept = document.createElement("div");
   accept.classList.add("request-accept");
@@ -1902,7 +1902,7 @@ function createFriend(friend) {
 
   let online = document.createElement("div");
   online.classList.add("friend-online");
-  online.style.backgroundColor = friend.online ? "#00EE00" : "#CD0000";
+  online.style.backgroundColor = friend.online ? "#00EE00" : "#8E8E8E";
 
   let name = document.createElement("div");
   name.classList.add("friend-name");
