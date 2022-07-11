@@ -905,6 +905,7 @@ async function init() {
   currVideo.srcObject = stream;
   currVideo.style.display = "block";
   currVideo.muted = true;
+  document.querySelector(".main").srcObject = stream;
 
   camSocket.emit("user joined room", +channelId, +user.id);
 

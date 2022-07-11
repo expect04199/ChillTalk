@@ -14,14 +14,14 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-SET @MYSQLDUMP_TEMP_LOG_BIN = @@SESSION.SQL_LOG_BIN;
-SET @@SESSION.SQL_LOG_BIN= 0;
+-- SET @MYSQLDUMP_TEMP_LOG_BIN = @@SESSION.SQL_LOG_BIN;
+-- SET @@SESSION.SQL_LOG_BIN= 0;
 
 --
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '';
+-- SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '';
 
 --
 -- Table structure for table `channels`
@@ -345,7 +345,7 @@ LOCK TABLES `users` WRITE;
 INSERT INTO `users` VALUES (1,'Harry','test123@test.com','$2a$10$s6IYPT/b/00.qfBy3u9sg.WFP5FvOvg5sQMhukP6hDDNkR78kJB5i','No content',1,1657516058542),(2,'杰倫','test1231@test.com','$2a$10$remKSm1ynYbQt1wi/x1IsOfYxUo9k0WAQYA6DsQ0U171hLDMMjMZK','No content',0,1657444331360),(3,'周興哲','test1232@test.com','$2a$10$nzEJewpv.NlJ4CQ4Xae/muBPCf63lv4UfjvaIQyTFUrekr1202mjq','No content',0,1657444785906),(4,'鄧紫棋','test1233@test.com','$2a$10$cy1N7Gi8t6DlAT1Ti8jV4O3A8.aDxKkcYaLd5yKMTsyGOvm0O87ZC','No content',0,1657445233840),(5,'蔡依林','test1234@test.com','$2a$10$JHYtGQ9NtWE.56RhXKGIuOv0lPacR84T0T7UE3hNRhVbI8f6C2r0m','No content',0,1657445645257),(6,'J.Sheon','test1235@test.com','$2a$10$4JChVN9Eu5bSP2r6nkkRuOiKieQo70FgOKHqEL3I1zuUODOcDBeyO','No content',0,1657446749819),(7,'韋禮安','test1236@test.com','$2a$10$HgLKSlENiqff3yOB0EsMMOdhInHx8SaStEX6HZew0zZiB8RcexZrS','No content',0,1657447001082),(8,'張新成','test1237@test.com','$2a$10$2VLpFoTsALNVt2LvQyE3Sup2ax9isAuy9LV7VqnmB2oeyvz7ciSzu','No content',0,1657447513412),(9,'孫燕姿','test1238@test.com','$2a$10$L7mQy5VdLghDL1yg/ht3Uu2oO3z7V1aiIp8M2OHKyl59n2y5lV0U.','No content',0,1657448049140),(10,'Tom ','test1239@test.com','$2a$10$/P8irCY49su7k0.dDDJDYeF1cVdXJBtwnkAi6kQrX3fSv8o8HQlXa','No content',0,1657448302457),(12,'Natalie','test1240@test.com','$2a$10$Qbj4dL0ZEEn6lpxuWFbhyOYEkko8BiZ6CCwHOkfK3uBr49r9qN6CG','No content',0,1657455106310),(13,'Millie','test1241@test.com','$2a$10$ihyHclLn4f4lBTjXPsy75ucNbpNnuUo77isk8nELzG1VdVJdjY0mu','No content',0,1657455209295),(14,'Anne','test1242@test.com','$2a$10$MzFxejQTyOanOr68xV9CKOsOrIetO1KRU5eBteDuG0A1RGTcJVbrq','No content',0,1657455511645),(16,'Leonardo','test1243@test.com','$2a$10$iC2NaCO5ezQi5sPdCCQ3y.i8RFZL98gSLQQFNdqeTRoDKqpwYAFKK','No content',0,1657455672075),(17,'E.SO','test1244@test.com','$2a$10$hYinN4jIhLfH.qsEqtO1lO7KhWqjF5TPdyXreWOomhPrZalThlk62','No content',0,1657510537966),(19,'Muta','test1245@test.com','$2a$10$6rsfmj5PCroRRe6EAalYjObXi6DzKytQWjrUuHRhadm8YMtp8CiK2','No content',0,1657510363847),(20,'Kenzy','test1246@test.com','$2a$10$t8jYlxS2hXkoJG8yqfGBbOW1i/D/iS0qHZV5ecB4vbsV/RUcTWVxa','No content',0,1657504874030),(21,'熱狗','test1247@test.com','$2a$10$hWPY13ddFT8NmA5RRnPQDuOeAOsTjDl705nJSangxPLByvi1gjzoG','No content',0,1657504906134),(22,'張震嶽','test1248@test.com','$2a$10$qNplzZSdCQ9Rd5Xu/FigD.KU3e.D3glnMtHV0HGa2FUXrFUdwvm4e','No content',0,1657508810022),(24,'Backstreet Boys','test1249@test.com','$2a$10$X6CuzdUouwIkcAbtrqE7T.FozA0ICOLqEVwaQh8vOW/q8TjjHUGa2','No content',1,1657511105738);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
-SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
+/*SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;*/
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
