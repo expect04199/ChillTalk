@@ -2,8 +2,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
 
-const channelSocket = io.connect("http://10.8.3.7:3000/channel");
-const roomSocket = io.connect("http://10.8.3.7:3000/room");
+const channelSocket = io.connect("http://localhost:3000/channel");
+const roomSocket = io.connect("http://localhost:3000/room");
 
 // user info
 const user = JSON.parse(localStorage.getItem("info"));
@@ -864,7 +864,7 @@ async function showMailBox(e) {
         mailChannelName.innerHTML = channelName;
         let mailRoomName = document.createElement("div");
         mailRoomName.classList.add("mail-room-name");
-        mailRoomName.innerHTML = roomName;
+        mailRoomName.innerHTML = roomName || "";
 
         mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
         mailChannel.append(mailChannelInfo);
@@ -878,8 +878,8 @@ async function showMailBox(e) {
 
       // when user scroll messages to bottom, show latest content
       let mailOptions = {
-        rootMargin: "100px 0px 0px 0px",
-        threshold: 1,
+        rootMargin: "0px",
+        threshold: 0.5,
       };
 
       const mailCallback = async (entries, observer) => {
@@ -893,6 +893,7 @@ async function showMailBox(e) {
               },
             })
           ).json();
+          if (!result.messages.length) return;
           nextPage = result.next_paging;
           let messages = result.messages;
           let roomName = messages[0].room_name;
@@ -912,7 +913,7 @@ async function showMailBox(e) {
           mailChannelName.innerHTML = channelName;
           let mailRoomName = document.createElement("div");
           mailRoomName.classList.add("mail-room-name");
-          mailRoomName.innerHTML = roomName;
+          mailRoomName.innerHTML = roomName || "";
 
           mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
           mailChannel.append(mailChannelInfo);
@@ -922,12 +923,12 @@ async function showMailBox(e) {
             mailChannel.append(messageBox);
           });
           mailMessages.append(mailChannel);
-
           observer.unobserve(entry.target);
           let messageBoxes = mailChannel.querySelectorAll(".mail-message-box");
           if (entry.target === messageBoxes[messageBoxes.length - 1] && !nextPage) return;
         }
         let messageBoxes = document.querySelectorAll(".mail-message-box");
+
         observer.observe(messageBoxes[messageBoxes.length - 1]);
       };
 

@@ -219,6 +219,7 @@ i.sign-out.icon {
   position: absolute;
   right: 40px;
   font-size: 1.2rem;
+  color: rgb(17, 17, 17);
 }
 
 .request-accept:hover {
@@ -229,6 +230,7 @@ i.sign-out.icon {
   position: absolute;
   right: 10px;
   font-size: 1.2rem;
+  color: rgb(17, 17, 17);
 }
 
 .request-reject:hover {
