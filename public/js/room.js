@@ -1,3 +1,6 @@
+if (!localStorage.length) {
+  window.location.href = "/signin.html";
+}
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
@@ -408,6 +411,11 @@ if (!channelId || !roomId) {
 document.addEventListener("keypress", (e) => {
   if (e.key === "Enter" && e.target.value !== "" && e.target.classList.contains("enter-message")) {
     let description = e.target.value;
+    description = description.replaceAll(" ", "");
+    if (description === "") {
+      e.target.value = "";
+      return;
+    }
     let time = Date.now();
     let message = {
       userId: user.id,
@@ -484,8 +492,12 @@ createRoom.addEventListener("click", (e) => {
   let createRoomBtn = document.querySelector(".create-room-btn");
   createRoomBtn.addEventListener("click", async (e) => {
     e.preventDefault();
-    if (createRoomName.value === "") return;
     let name = createRoomName.value;
+    name = name.replaceAll(" ", "");
+    if (name === "") {
+      alert("請輸入房間名稱");
+      return;
+    }
     let userId = user.id;
     let body = new FormData();
     let imageInput = roomImage;
@@ -633,6 +645,8 @@ createChannel.addEventListener("click", (e) => {
       maskDiv.classList.remove("enable");
       maskDiv.innerHTML = "";
       createChannelfn(channelDetail);
+    } else {
+      alert("請輸入頻道名稱");
     }
   });
 });

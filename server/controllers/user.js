@@ -1,11 +1,15 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const validator = require("validator");
 
 const { TOKEN_SECRET } = process.env;
 
 module.exports.postSignin = async (req, res) => {
   const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(403).json({ error: "Wrong email or password" });
+  }
   const info = await User.signin(email, password);
   if (info.error) {
     return res.status(info.status).json({ error: info.error });
@@ -22,7 +26,16 @@ module.exports.postSignin = async (req, res) => {
 };
 
 module.exports.postSignup = async (req, res) => {
-  const { name: userName, email, password } = req.body;
+  let { name: userName, email, password } = req.body;
+  if (!userName || !email || !password) {
+    return res.status(400).json({ error: "Name, email or password is invalid" });
+  }
+
+  if (!validator.isEmail(email)) {
+    return res.status(400).json({ error: "Name, email or password is invalid" });
+  }
+  userName = validator.escape(userName);
+
   const salt = bcrypt.genSaltSync(10);
   const hashPwd = bcrypt.hashSync(password, salt);
   const info = await User.signup(userName, email, hashPwd);
@@ -70,6 +83,5 @@ module.exports.updateInfo = async (req, res) => {
     access_token,
     info,
   };
-  console.log(data);
   return res.status(200).json(data);
 };

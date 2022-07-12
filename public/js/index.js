@@ -1,3 +1,6 @@
+if (!localStorage.length) {
+  window.location.href = "/signin.html";
+}
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
@@ -307,6 +310,12 @@ if (!channelId || !roomId) {
 document.addEventListener("keypress", (e) => {
   if (e.key === "Enter" && e.target.value !== "" && e.target.classList.contains("enter-message")) {
     let description = e.target.value;
+    description = description.replaceAll(" ", "");
+    if (description === "") {
+      e.target.value = "";
+      return;
+    }
+
     let time = Date.now();
     let message = {
       userId: user.id,
@@ -339,6 +348,7 @@ document.addEventListener("keypress", (e) => {
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
     let friends = document.querySelector(".friends");
     let currFriend = document.querySelector(".friend-enable");
+    console.log(currFriend);
     insertToFirst(friends, currFriend);
   }
 });
@@ -387,8 +397,12 @@ createRoom.addEventListener("click", (e) => {
   let createRoomBtn = document.querySelector(".create-room-btn");
   createRoomBtn.addEventListener("click", async (e) => {
     e.preventDefault();
-    if (createRoomName.value === "") return;
     let name = createRoomName.value;
+    name = name.replaceAll(" ", "");
+    if (name === "") {
+      alert("請輸入房間名稱");
+      return;
+    }
     let userId = user.id;
     let body = new FormData();
     let imageInput = roomImage;
@@ -1910,7 +1924,7 @@ function createFriend(friend) {
 }
 
 function insertToFirst(parent, child) {
-  if (child === parent.children[0]) return;
+  if (parent.children.length === 1) return;
   let temp = child;
   child.remove();
   parent.prepend(temp);

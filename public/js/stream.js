@@ -1,3 +1,6 @@
+if (!localStorage.length) {
+  window.location.href = "/signin.html";
+}
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
@@ -50,7 +53,6 @@ window.onload = async () => {
       if (e.target.dataset.channelType === "text") {
         window.location.href = `/room.html?roomId=${roomId}&channelId=${e.target.dataset.channelId}`;
       } else if (e.target.dataset.channelType === "voice") {
-        style.back;
         window.location.href = `/stream.html?roomId=${roomId}&channelId=${e.target.dataset.channelId}`;
       }
     });
@@ -137,9 +139,11 @@ window.onload = async () => {
         }
         body.append("name", name);
         body.append("introduction", introduction);
+        body.append("original_picture", user.picture);
+        body.append("original_background", user.background);
         let userData = await (
-          await fetch("/api/users", {
-            method: "PUT",
+          await fetch("/api/users/info", {
+            method: "PATCH",
             body,
             headers: { Authorization: `Bearer ${token}` },
           })
@@ -210,8 +214,8 @@ window.onload = async () => {
       body.append("original_picture", room.picture);
 
       let roomInfo = await (
-        await fetch("/api/rooms", {
-          method: "PUT",
+        await fetch("/api/rooms/info", {
+          method: "PATCH",
           body,
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -307,8 +311,12 @@ createRoom.addEventListener("click", (e) => {
   let createRoomBtn = document.querySelector(".create-room-btn");
   createRoomBtn.addEventListener("click", async (e) => {
     e.preventDefault();
-    if (createRoomName.value === "") return;
     let name = createRoomName.value;
+    name = name.replaceAll(" ", "");
+    if (name === "") {
+      alert("請輸入房間名稱");
+      return;
+    }
     let userId = user.id;
     let body = new FormData();
     let imageInput = roomImage;

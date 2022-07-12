@@ -88,7 +88,7 @@ module.exports = class Room {
       let existSql = `SELECT id FROM room_members WHERE room_id = ? AND user_id = ?`;
       let [isExist] = await conn.query(existSql, [roomId, userId]);
       if (isExist.length) {
-        return { error: "You have join the room", status: 403 };
+        return { error: "You have joined the room", status: 403 };
       }
       let sql = `INSERT INTO room_members SET ?`;
       let data = {

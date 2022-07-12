@@ -50,6 +50,7 @@ userSignUp.addEventListener("click", async (e) => {
   const password = document.querySelector("#signup-password").value;
   if (name === "" || email.indexOf("@") === -1 || password === "") {
     alert("請輸入正確資料");
+    return;
   }
   let body = {
     name,
