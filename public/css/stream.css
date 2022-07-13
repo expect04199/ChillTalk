@@ -298,9 +298,18 @@ i.sign-out.icon {
   color: #dcdddc;
 }
 
+.mail-box-headline div.loader {
+  margin-left: 10px !important;
+  margin-bottom: 5px !important;
+}
+
 .mail-messages {
   height: calc(100% - 40px);
   overflow-y: scroll;
+}
+
+.mail-messages div.loader {
+  margin-left: 160px !important;
 }
 
 .mail-channel-info {

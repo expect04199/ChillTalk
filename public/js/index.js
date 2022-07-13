@@ -6,8 +6,8 @@ const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
 const friendName = urlParams.get("friend");
 
-const channelSocket = io.connect("http://localhost:3000/channel");
-const roomSocket = io.connect("http://localhost:3000/room");
+const channelSocket = io.connect("http://10.8.3.7:3000/channel");
+const roomSocket = io.connect("http://10.8.3.7:3000/room");
 
 // user info
 const user = JSON.parse(localStorage.getItem("info"));
@@ -135,6 +135,7 @@ window.onload = async () => {
       let saveBtn = mask.querySelector(".edit-host-btn");
       saveBtn.addEventListener("click", async (e) => {
         e.preventDefault();
+        if (e.target.innerHTML !== "儲存") return;
         let name = editName.innerHTML;
         if (name.length > 20) {
           alert("名稱限制20個字元");
@@ -153,6 +154,7 @@ window.onload = async () => {
         body.append("introduction", introduction);
         body.append("original_picture", user.picture);
         body.append("original_background", user.background);
+        e.target.innerHTML = `<div class="ui active small inline loader"></div>`;
         let userData = await (
           await fetch("/api/users/info", {
             method: "PATCH",
@@ -160,6 +162,11 @@ window.onload = async () => {
             headers: { Authorization: `Bearer ${token}` },
           })
         ).json();
+        if (userData.error) {
+          e.target.innerHTML = `儲存`;
+          alert(userData.error);
+          return;
+        }
         localStorage.setItem("info", JSON.stringify(userData.info));
         localStorage.setItem("token", userData.access_token);
         history.go(0);
@@ -353,7 +360,6 @@ document.addEventListener("keypress", (e) => {
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
     let friends = document.querySelector(".friends");
     let currFriend = document.querySelector(".friend-enable");
-    console.log(currFriend);
     insertToFirst(friends, currFriend);
   }
 });
@@ -402,6 +408,7 @@ createRoom.addEventListener("click", (e) => {
   let createRoomBtn = document.querySelector(".create-room-btn");
   createRoomBtn.addEventListener("click", async (e) => {
     e.preventDefault();
+    if (e.target.innerHTML !== "建立房間") return;
     let name = createRoomName.value;
     name = name.replaceAll(" ", "");
     if (name === "") {
@@ -416,6 +423,9 @@ createRoom.addEventListener("click", (e) => {
     }
     body.append("room_name", name);
     body.append("user_id", userId);
+    e.target.innerHTML = `
+    <div class="ui active inline loader"></div>
+    `;
     let roomData = await (
       await fetch("/api/rooms/create", {
         method: "POST",
@@ -426,6 +436,7 @@ createRoom.addEventListener("click", (e) => {
       })
     ).json();
     if (roomData.error) {
+      e.target.innerHTML = `建立房間`;
       alert(roomData.error);
       return;
     }
@@ -459,13 +470,16 @@ createRoom.addEventListener("click", (e) => {
   let joinRoomBtn = document.querySelector(".join-room-btn");
   joinRoomBtn.addEventListener("click", async (e) => {
     e.preventDefault();
-    if (existRoomId.value === "") return;
+    if (existRoomId.value === "" || e.target.innerHTML !== "加入房間") return;
     let roomId = existRoomId.value;
     let userId = user.id;
     let body = {
-      room_id: roomId,
+      room_id: +roomId,
       user_id: userId,
     };
+    e.target.innerHTML = `
+    <div class="ui active inline loader"></div>
+    `;
     let roomData = await (
       await fetch("/api/rooms/join", {
         method: "POST",
@@ -477,6 +491,7 @@ createRoom.addEventListener("click", (e) => {
       })
     ).json();
     if (roomData.error) {
+      e.target.innerHTML = "加入房間";
       alert(roomData.error);
       return;
     }
@@ -511,6 +526,11 @@ async function showAddFriend(e) {
       alert("Please enter number");
       return;
     }
+    if (e.target.innerHTML !== "傳送好友請求") return;
+    console.log("hey");
+    e.target.innerHTML = `
+    <div class="ui active inline loader"></div>
+    `;
     let body = {
       user_id: friendId,
     };
@@ -526,6 +546,7 @@ async function showAddFriend(e) {
     ).json();
     if (result.error) {
       alert(result.error);
+      e.target.innerHTML = "傳送好友請求";
       return;
     }
     roomSocket.emit("add-friend", friendId, user);
@@ -646,6 +667,9 @@ document.addEventListener("keypress", async (e) => {
   let roomSearchInput = document.querySelector(".room-search input");
   if (e.key === "Enter" && roomSearchInput.parentElement.contains(e.target)) {
     let content = roomSearchInput.value;
+    let loader = document.createElement("div");
+    loader.classList.add("ui", "active", "small", "inline", "loader");
+    roomSearchInput.parentElement.appendChild(loader);
     let data = await (
       await fetch(`/api/rooms/search?room_id=${roomId}&content=${content}`, {
         method: "GET",
@@ -654,6 +678,7 @@ document.addEventListener("keypress", async (e) => {
         },
       })
     ).json();
+
     let messages = data.messages;
 
     let searchBox = document.querySelector(".search-messages-box");
@@ -684,6 +709,7 @@ document.addEventListener("keypress", async (e) => {
       let searchMessageBox = createSearchMessage(message);
       searchMessages.append(searchMessageBox);
     });
+    loader.remove();
   }
 });
 
@@ -709,6 +735,8 @@ async function showMailBox(e) {
       mailMessagesBox.append(mailBoxHeadline, mailMessages);
       mail.append(mailMessagesBox);
       let nextPage = false;
+      mailBoxHeadline.innerHTML += `<div class="ui active small inline loader"></div>`;
+
       let result = await (
         await fetch(`/api/messages/mail`, {
           method: "GET",
@@ -717,37 +745,46 @@ async function showMailBox(e) {
           },
         })
       ).json();
-
+      mailBoxHeadline.innerHTML = "收件匣";
       nextPage = result.next_paging;
       let messages = result.messages;
       if (messages.length !== 0) {
-        let roomName = messages[0].room_name;
-        let channelName = messages[0].channel_name;
-        let roomPic = messages[0].room_picture;
+        function createMailChannel(message) {
+          let mailChannel = document.createElement("div");
+          mailChannel.classList.add("mail-channel");
 
-        let mailChannel = document.createElement("div");
-        mailChannel.classList.add("mail-channel");
+          let mailChannelInfo = document.createElement("div");
+          mailChannelInfo.classList.add("mail-channel-info");
+          let roomThumbnail = document.createElement("div");
+          roomThumbnail.classList.add("mail-room-thumbnail");
+          roomThumbnail.style.backgroundImage = `url("${message.room_picture}"`;
+          let mailChannelName = document.createElement("div");
+          mailChannelName.classList.add("mail-channel-name");
+          mailChannelName.innerHTML = message.channel_name;
+          let mailRoomName = document.createElement("div");
+          mailRoomName.classList.add("mail-room-name");
+          mailRoomName.innerHTML = message.room_name || "";
 
-        let mailChannelInfo = document.createElement("div");
-        mailChannelInfo.classList.add("mail-channel-info");
-        let roomThumbnail = document.createElement("div");
-        roomThumbnail.classList.add("mail-room-thumbnail");
-        roomThumbnail.style.backgroundImage = `url("${roomPic}"`;
-        let mailChannelName = document.createElement("div");
-        mailChannelName.classList.add("mail-channel-name");
-        mailChannelName.innerHTML = channelName;
-        let mailRoomName = document.createElement("div");
-        mailRoomName.classList.add("mail-room-name");
-        mailRoomName.innerHTML = roomName || "";
-
-        mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
-        mailChannel.append(mailChannelInfo);
+          mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
+          mailChannel.append(mailChannelInfo);
+          return mailChannel;
+        }
+        let channelId = messages[0].channel_id;
+        let mailChannel = createMailChannel(messages[0]);
+        mailMessages.append(mailChannel);
 
         messages.forEach((message) => {
-          let messageBox = createMail(message);
-          mailChannel.append(messageBox);
+          if (message.channel_id === channelId) {
+            let messageBox = createMail(message);
+            mailChannel.append(messageBox);
+          } else {
+            mailChannel = createMailChannel(message);
+            channelId = message.channel_id;
+            mailMessages.append(mailChannel);
+            let messageBox = createMail(message);
+            mailChannel.append(messageBox);
+          }
         });
-        mailMessages.append(mailChannel);
       }
 
       // when user scroll messages to bottom, show latest content
@@ -759,6 +796,9 @@ async function showMailBox(e) {
       const mailCallback = async (entries, observer) => {
         for (let entry of entries) {
           if (!entry.isIntersecting || !nextPage) return;
+          let loader = document.createElement("div");
+          loader.classList.add("ui", "active", "small", "inline", "loader");
+          mailMessages.appendChild(loader);
           let result = await (
             await fetch(`/api/messages/mail?`, {
               method: "GET",
@@ -767,36 +807,46 @@ async function showMailBox(e) {
               },
             })
           ).json();
+          loader.remove();
           if (!result.messages.length) return;
           nextPage = result.next_paging;
           let messages = result.messages;
-          let roomName = messages[0].room_name;
-          let channelName = messages[0].channel_name;
-          let roomPic = messages[0].room_picture;
+          function createMailChannel(message) {
+            let mailChannel = document.createElement("div");
+            mailChannel.classList.add("mail-channel");
 
-          let mailChannel = document.createElement("div");
-          mailChannel.classList.add("mail-channel");
+            let mailChannelInfo = document.createElement("div");
+            mailChannelInfo.classList.add("mail-channel-info");
+            let roomThumbnail = document.createElement("div");
+            roomThumbnail.classList.add("mail-room-thumbnail");
+            roomThumbnail.style.backgroundImage = `url("${message.room_picture}"`;
+            let mailChannelName = document.createElement("div");
+            mailChannelName.classList.add("mail-channel-name");
+            mailChannelName.innerHTML = message.channel_name;
+            let mailRoomName = document.createElement("div");
+            mailRoomName.classList.add("mail-room-name");
+            mailRoomName.innerHTML = message.room_name || "";
 
-          let mailChannelInfo = document.createElement("div");
-          mailChannelInfo.classList.add("mail-channel-info");
-          let roomThumbnail = document.createElement("div");
-          roomThumbnail.classList.add("mail-room-thumbnail");
-          roomThumbnail.style.backgroundImage = `url("${roomPic}"`;
-          let mailChannelName = document.createElement("div");
-          mailChannelName.classList.add("mail-channel-name");
-          mailChannelName.innerHTML = channelName;
-          let mailRoomName = document.createElement("div");
-          mailRoomName.classList.add("mail-room-name");
-          mailRoomName.innerHTML = roomName || "";
-
-          mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
-          mailChannel.append(mailChannelInfo);
+            mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
+            mailChannel.append(mailChannelInfo);
+            return mailChannel;
+          }
+          let channelId = messages[0].channel_id;
+          let mailChannel = createMailChannel(messages[0]);
+          mailMessages.append(mailChannel);
 
           messages.forEach((message) => {
-            let messageBox = createMail(message);
-            mailChannel.append(messageBox);
+            if (+message.channel_id === +channelId) {
+              let messageBox = createMail(message);
+              mailChannel.append(messageBox);
+            } else {
+              mailChannel = createMailChannel(message);
+              channelId = message.channel_id;
+              mailMessages.append(mailChannel);
+              let messageBox = createMail(message);
+              mailChannel.append(messageBox);
+            }
           });
-          mailMessages.append(mailChannel);
           observer.unobserve(entry.target);
           let messageBoxes = mailChannel.querySelectorAll(".mail-message-box");
           if (entry.target === messageBoxes[messageBoxes.length - 1] && !nextPage) return;
@@ -859,6 +909,10 @@ channelSocket.on("message", (message) => {
       messagesDiv.append(messageDiv);
     }
     messagesDiv.scrollTop = messagesDiv.scrollHeight - messagesDiv.clientHeight;
+    let friends = document.querySelector(".friends");
+    let msgFriend = friends.querySelector(`.friend[data-user-id="${message.userId}"]`);
+    if (msgFriend === friends.children[0]) return;
+    insertToFirst(friends, msgFriend);
   } else {
     let description = document.querySelector(`.message-description[data-message-id="-1"]`);
     if (description) {
@@ -869,11 +923,6 @@ channelSocket.on("message", (message) => {
       messageDiv.dataset.messageId = message.id;
     }
   }
-
-  let friends = document.querySelector(".friends");
-  let msgFriend = friends.querySelector(`.friend[data-user-id="${message.userId}"]`);
-  if (msgFriend === friends.children[0]) return;
-  insertToFirst(friends, msgFriend);
 });
 
 // listen to other people update message
@@ -1852,6 +1901,10 @@ function createRequestFriend(reqUser) {
   accept.classList.add("request-accept");
   accept.innerHTML = `<i class="check icon"></i>`;
   accept.addEventListener("mousedown", async (e) => {
+    if (name.querySelector("div")) return;
+    name.innerHTML += `
+    <div class="ui active small inline loader"></div>
+    `;
     let body = {
       user_id: reqUser.id,
     };
@@ -1886,6 +1939,10 @@ function createRequestFriend(reqUser) {
   reject.classList.add("request-reject");
   reject.innerHTML = `<i class="close icon"></i>`;
   reject.addEventListener("click", async (e) => {
+    if (name.querySelector("div")) return;
+    name.innerHTML += `
+    <div class="ui active small inline loader"></div>
+    `;
     let body = {
       user_id: reqUser.id,
     };

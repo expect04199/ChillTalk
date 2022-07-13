@@ -654,6 +654,16 @@ i.sign-out.icon {
   word-break: break-all;
 }
 
+.room-search {
+  position: relative;
+}
+
+.room-search div.loader {
+  position: absolute !important;
+  left: 220px !important;
+  top: 3px !important;
+}
+
 .room-search input {
   border: none;
   background-color: #292929;
@@ -728,9 +738,18 @@ i.sign-out.icon {
   color: #dcdddc;
 }
 
+.mail-box-headline div.loader {
+  margin-left: 10px !important;
+  margin-bottom: 5px !important;
+}
+
 .mail-messages {
   height: calc(100% - 40px);
   overflow-y: scroll;
+}
+
+.mail-messages div.loader {
+  margin-left: 160px !important;
 }
 
 .mail-channel-info {

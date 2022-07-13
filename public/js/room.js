@@ -5,8 +5,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
 
-const channelSocket = io.connect("http://localhost:3000/channel");
-const roomSocket = io.connect("http://localhost:3000/room");
+const channelSocket = io.connect("http://10.8.3.7:3000/channel");
+const roomSocket = io.connect("http://10.8.3.7:3000/room");
 
 // user info
 const user = JSON.parse(localStorage.getItem("info"));
@@ -136,6 +136,7 @@ window.onload = async () => {
       let saveBtn = mask.querySelector(".edit-host-btn");
       saveBtn.addEventListener("click", async (e) => {
         e.preventDefault();
+        if (e.target.innerHTML !== "儲存") return;
         let name = editName.innerHTML;
         if (name.length > 20) {
           alert("名稱限制20個字元");
@@ -154,6 +155,7 @@ window.onload = async () => {
         body.append("introduction", introduction);
         body.append("original_picture", user.picture);
         body.append("original_background", user.background);
+        e.target.innerHTML = `<div class="ui active small inline loader"></div>`;
         let userData = await (
           await fetch("/api/users/info", {
             method: "PATCH",
@@ -161,6 +163,11 @@ window.onload = async () => {
             headers: { Authorization: `Bearer ${token}` },
           })
         ).json();
+        if (userData.error) {
+          e.target.innerHTML = `儲存`;
+          alert(userData.error);
+          return;
+        }
         localStorage.setItem("info", JSON.stringify(userData.info));
         localStorage.setItem("token", userData.access_token);
         history.go(0);
@@ -242,6 +249,7 @@ window.onload = async () => {
     nameInput.value = room.name;
     let saveBtn = mask.querySelector(".save-room-btn");
     saveBtn.addEventListener("click", async (e) => {
+      if (e.target.innerHTML !== "儲存") return;
       e.preventDefault();
       let body = new FormData();
       body.append("id", +room.id);
@@ -254,7 +262,7 @@ window.onload = async () => {
       }
       body.append("original_name", room.name);
       body.append("original_picture", room.picture);
-
+      e.target.innerHTML = `<div class="ui active inline loader"></div>`;
       let roomInfo = await (
         await fetch("/api/rooms/info", {
           method: "PATCH",
@@ -262,6 +270,11 @@ window.onload = async () => {
           headers: { Authorization: `Bearer ${token}` },
         })
       ).json();
+      if (roomInfo.error) {
+        e.target.innerHTML = "儲存";
+        alert(roomInfo.error);
+        return;
+      }
       let index = roomsData.indexOf(room);
       roomInfo.host_id = room.host_id;
       roomInfo.channel_id = room.channel_id;
@@ -502,6 +515,7 @@ createRoom.addEventListener("click", (e) => {
   let createRoomBtn = document.querySelector(".create-room-btn");
   createRoomBtn.addEventListener("click", async (e) => {
     e.preventDefault();
+    if (e.target.innerHTML !== "建立房間") return;
     let name = createRoomName.value;
     name = name.replaceAll(" ", "");
     if (name === "") {
@@ -516,6 +530,9 @@ createRoom.addEventListener("click", (e) => {
     }
     body.append("room_name", name);
     body.append("user_id", userId);
+    e.target.innerHTML = `
+    <div class="ui active inline loader"></div>
+    `;
     let roomData = await (
       await fetch("/api/rooms/create", {
         method: "POST",
@@ -526,6 +543,7 @@ createRoom.addEventListener("click", (e) => {
       })
     ).json();
     if (roomData.error) {
+      e.target.innerHTML = `建立房間`;
       alert(roomData.error);
       return;
     }
@@ -559,13 +577,16 @@ createRoom.addEventListener("click", (e) => {
   let joinRoomBtn = document.querySelector(".join-room-btn");
   joinRoomBtn.addEventListener("click", async (e) => {
     e.preventDefault();
-    if (existRoomId.value === "") return;
+    if (existRoomId.value === "" || e.target.innerHTML !== "加入房間") return;
     let roomId = existRoomId.value;
     let userId = user.id;
     let body = {
       room_id: +roomId,
       user_id: userId,
     };
+    e.target.innerHTML = `
+    <div class="ui active inline loader"></div>
+    `;
     let roomData = await (
       await fetch("/api/rooms/join", {
         method: "POST",
@@ -577,6 +598,7 @@ createRoom.addEventListener("click", (e) => {
       })
     ).json();
     if (roomData.error) {
+      e.target.innerHTML = "加入房間";
       alert(roomData.error);
       return;
     }
@@ -629,7 +651,7 @@ createChannel.addEventListener("click", (e) => {
     createChannelBtn.dataset.type = "voice";
   });
   createChannelBtn.addEventListener("click", async (e) => {
-    if (createChannelInput.value !== "" && roomId) {
+    if (createChannelInput.value !== "" && roomId && e.target.innerHTML === "建立頻道") {
       let channelType = e.target.dataset.type;
       let channelName = createChannelInput.value;
       let data = {
@@ -637,6 +659,9 @@ createChannel.addEventListener("click", (e) => {
         channel_name: channelName,
         room_id: roomId,
       };
+      e.target.innerHTML = `
+      <div class="ui active inline loader"></div>
+      `;
       let channelDetail = await (
         await fetch("/api/channels/create", {
           method: "POST",
@@ -647,6 +672,7 @@ createChannel.addEventListener("click", (e) => {
         })
       ).json();
       if (channelDetail.error) {
+        e.target.innerHTML = "儲存";
         alert(channelDetail.error);
         return;
       }
@@ -807,6 +833,9 @@ document.addEventListener("keypress", async (e) => {
     let inChannel = inChannelInput.value;
     let isPinned = messagePinned.classList.contains("red");
     let content = roomSearchInput.value;
+    let loader = document.createElement("div");
+    loader.classList.add("ui", "active", "small", "inline", "loader");
+    roomSearchInput.parentElement.appendChild(loader);
     let data = await (
       await fetch(
         `/api/rooms/search?room_id=${roomId}&from_user=${fromUser}&channel_name=${inChannel}&pinned=${isPinned}&content=${content}`,
@@ -843,6 +872,7 @@ document.addEventListener("keypress", async (e) => {
       let searchMessageBox = createSearchMessage(message);
       searchMessages.append(searchMessageBox);
     });
+    loader.remove();
   }
 });
 
@@ -868,6 +898,8 @@ async function showMailBox(e) {
       mailMessagesBox.append(mailBoxHeadline, mailMessages);
       mail.append(mailMessagesBox);
       let nextPage = false;
+      mailBoxHeadline.innerHTML += `<div class="ui active small inline loader"></div>`;
+
       let result = await (
         await fetch(`/api/messages/mail`, {
           method: "GET",
@@ -876,37 +908,46 @@ async function showMailBox(e) {
           },
         })
       ).json();
-
+      mailBoxHeadline.innerHTML = "收件匣";
       nextPage = result.next_paging;
       let messages = result.messages;
       if (messages.length !== 0) {
-        let roomName = messages[0].room_name;
-        let channelName = messages[0].channel_name;
-        let roomPic = messages[0].room_picture;
+        function createMailChannel(message) {
+          let mailChannel = document.createElement("div");
+          mailChannel.classList.add("mail-channel");
 
-        let mailChannel = document.createElement("div");
-        mailChannel.classList.add("mail-channel");
+          let mailChannelInfo = document.createElement("div");
+          mailChannelInfo.classList.add("mail-channel-info");
+          let roomThumbnail = document.createElement("div");
+          roomThumbnail.classList.add("mail-room-thumbnail");
+          roomThumbnail.style.backgroundImage = `url("${message.room_picture}"`;
+          let mailChannelName = document.createElement("div");
+          mailChannelName.classList.add("mail-channel-name");
+          mailChannelName.innerHTML = message.channel_name;
+          let mailRoomName = document.createElement("div");
+          mailRoomName.classList.add("mail-room-name");
+          mailRoomName.innerHTML = message.room_name || "";
 
-        let mailChannelInfo = document.createElement("div");
-        mailChannelInfo.classList.add("mail-channel-info");
-        let roomThumbnail = document.createElement("div");
-        roomThumbnail.classList.add("mail-room-thumbnail");
-        roomThumbnail.style.backgroundImage = `url("${roomPic}"`;
-        let mailChannelName = document.createElement("div");
-        mailChannelName.classList.add("mail-channel-name");
-        mailChannelName.innerHTML = channelName;
-        let mailRoomName = document.createElement("div");
-        mailRoomName.classList.add("mail-room-name");
-        mailRoomName.innerHTML = roomName || "";
-
-        mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
-        mailChannel.append(mailChannelInfo);
+          mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
+          mailChannel.append(mailChannelInfo);
+          return mailChannel;
+        }
+        let channelId = messages[0].channel_id;
+        let mailChannel = createMailChannel(messages[0]);
+        mailMessages.append(mailChannel);
 
         messages.forEach((message) => {
-          let messageBox = createMail(message);
-          mailChannel.append(messageBox);
+          if (message.channel_id === channelId) {
+            let messageBox = createMail(message);
+            mailChannel.append(messageBox);
+          } else {
+            mailChannel = createMailChannel(message);
+            channelId = message.channel_id;
+            mailMessages.append(mailChannel);
+            let messageBox = createMail(message);
+            mailChannel.append(messageBox);
+          }
         });
-        mailMessages.append(mailChannel);
       }
 
       // when user scroll messages to bottom, show latest content
@@ -918,6 +959,9 @@ async function showMailBox(e) {
       const mailCallback = async (entries, observer) => {
         for (let entry of entries) {
           if (!entry.isIntersecting || !nextPage) return;
+          let loader = document.createElement("div");
+          loader.classList.add("ui", "active", "small", "inline", "loader");
+          mailMessages.appendChild(loader);
           let result = await (
             await fetch(`/api/messages/mail?`, {
               method: "GET",
@@ -926,36 +970,46 @@ async function showMailBox(e) {
               },
             })
           ).json();
+          loader.remove();
           if (!result.messages.length) return;
           nextPage = result.next_paging;
           let messages = result.messages;
-          let roomName = messages[0].room_name;
-          let channelName = messages[0].channel_name;
-          let roomPic = messages[0].room_picture;
+          function createMailChannel(message) {
+            let mailChannel = document.createElement("div");
+            mailChannel.classList.add("mail-channel");
 
-          let mailChannel = document.createElement("div");
-          mailChannel.classList.add("mail-channel");
+            let mailChannelInfo = document.createElement("div");
+            mailChannelInfo.classList.add("mail-channel-info");
+            let roomThumbnail = document.createElement("div");
+            roomThumbnail.classList.add("mail-room-thumbnail");
+            roomThumbnail.style.backgroundImage = `url("${message.room_picture}"`;
+            let mailChannelName = document.createElement("div");
+            mailChannelName.classList.add("mail-channel-name");
+            mailChannelName.innerHTML = message.channel_name;
+            let mailRoomName = document.createElement("div");
+            mailRoomName.classList.add("mail-room-name");
+            mailRoomName.innerHTML = message.room_name || "";
 
-          let mailChannelInfo = document.createElement("div");
-          mailChannelInfo.classList.add("mail-channel-info");
-          let roomThumbnail = document.createElement("div");
-          roomThumbnail.classList.add("mail-room-thumbnail");
-          roomThumbnail.style.backgroundImage = `url("${roomPic}"`;
-          let mailChannelName = document.createElement("div");
-          mailChannelName.classList.add("mail-channel-name");
-          mailChannelName.innerHTML = channelName;
-          let mailRoomName = document.createElement("div");
-          mailRoomName.classList.add("mail-room-name");
-          mailRoomName.innerHTML = roomName || "";
-
-          mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
-          mailChannel.append(mailChannelInfo);
+            mailChannelInfo.append(roomThumbnail, mailChannelName, mailRoomName);
+            mailChannel.append(mailChannelInfo);
+            return mailChannel;
+          }
+          let channelId = messages[0].channel_id;
+          let mailChannel = createMailChannel(messages[0]);
+          mailMessages.append(mailChannel);
 
           messages.forEach((message) => {
-            let messageBox = createMail(message);
-            mailChannel.append(messageBox);
+            if (+message.channel_id === +channelId) {
+              let messageBox = createMail(message);
+              mailChannel.append(messageBox);
+            } else {
+              mailChannel = createMailChannel(message);
+              channelId = message.channel_id;
+              mailMessages.append(mailChannel);
+              let messageBox = createMail(message);
+              mailChannel.append(messageBox);
+            }
           });
-          mailMessages.append(mailChannel);
           observer.unobserve(entry.target);
           let messageBoxes = mailChannel.querySelectorAll(".mail-message-box");
           if (entry.target === messageBoxes[messageBoxes.length - 1] && !nextPage) return;

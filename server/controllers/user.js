@@ -68,7 +68,7 @@ module.exports.updateInfo = async (req, res) => {
   const userId = req.user.id;
   let info = await User.update(req.files, userId, name, introduction);
   if (info.error) {
-    return res.status(400).send("Bad Request");
+    return res.status(info.status).json({ error: info.error });
   }
   if (!info.picture) {
     info.picture = original_picture;

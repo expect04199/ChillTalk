@@ -338,7 +338,7 @@ module.exports = class User {
     } catch (error) {
       console.log(error);
       await conn.query("ROLLBACK");
-      return { error };
+      return { error: "Can not update user info", status: 403 };
     } finally {
       await conn.release();
     }

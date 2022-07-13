@@ -62,7 +62,7 @@ module.exports.updateInfo = async (req, res) => {
   const userId = req.user.id;
   let result = await Room.update(+id, name, req.files, userId);
   if (result.error) {
-    return res.status(400).send("Bad request");
+    return res.status(result.status).json({ error: result.error });
   }
   if (!result.name) {
     result.name = originalName;

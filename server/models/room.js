@@ -264,7 +264,7 @@ module.exports = class Room {
     } catch (error) {
       console.log(error);
       await conn.query("ROLLBACK");
-      return { error };
+      return { error: "Can not update room info.", status: 403 };
     } finally {
       await conn.release();
     }
