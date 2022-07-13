@@ -279,7 +279,8 @@ window.onload = async () => {
   let nextPage;
   let prevPage;
   let readSession;
-  channelName.innerHTML = channels.find((channel) => +channel.id === +channelId).name;
+  channelName.innerHTML =
+    "<i class='hashtag icon'></i> " + channels.find((channel) => +channel.id === +channelId).name;
   // render messages
   let result = await (
     await fetch(`/api/messages?channelId=${channelId}&userId=${user.id}`, {

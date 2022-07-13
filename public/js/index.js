@@ -170,7 +170,7 @@ window.onload = async () => {
 
   if (!channelId) return;
   // render channel name
-  document.querySelector(".channel-name").innerHTML = friendName;
+  document.querySelector(".channel-name").innerHTML = "<i class='hashtag icon'></i> " + friendName;
 
   let nextPage;
   let prevPage;
@@ -1155,19 +1155,6 @@ function timeTransform(timestamp) {
   moment.locale("zh-tw");
   let time = moment(date).fromNow();
   return time;
-}
-
-function createChannelfn(channel) {
-  let channelsDiv = document.querySelector(".channels");
-  let channelDiv = document.createElement("div");
-  channelDiv.classList.add("channel");
-  channelDiv.innerHTML = channel.name;
-  channelDiv.dataset.channelId = channel.id;
-  channelDiv.addEventListener("click", () => {
-    window.location.href = `/room.html?roomId=${roomId}&channelId=${channel.id}`;
-  });
-  channelsDiv.append(channelDiv);
-  updateStorage("channel", channel);
 }
 
 function createRoomfn(room) {

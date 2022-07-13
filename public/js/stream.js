@@ -45,7 +45,11 @@ window.onload = async () => {
   channels.forEach((channel) => {
     let channelDiv = document.createElement("div");
     channelDiv.classList.add("channel");
-    channelDiv.innerHTML = channel.name;
+    if (channel.type === "text") {
+      channelDiv.innerHTML = "<i class='hashtag icon'></i> " + channel.name;
+    } else {
+      channelDiv.innerHTML = "<i class='volume up icon'></i> " + channel.name;
+    }
     channelDiv.dataset.channelId = channel.id;
     channelDiv.dataset.channelType = channel.type;
     channelDiv.addEventListener("click", (e) => {
@@ -238,7 +242,8 @@ window.onload = async () => {
 
   // render channel-name
   let channelName = document.querySelector(".channel-name");
-  channelName.innerHTML = channels.find((channel) => +channel.id === +channelId).name;
+  channelName.innerHTML =
+    "<i class='volume up icon'></i> " + channels.find((channel) => +channel.id === +channelId).name;
 };
 
 let participantBox = document.querySelector(".participant-box");
@@ -621,7 +626,11 @@ function createChannelfn(channel) {
   let channelsDiv = document.querySelector(".channels");
   let channelDiv = document.createElement("div");
   channelDiv.classList.add("channel");
-  channelDiv.innerHTML = channel.name;
+  if (channel.type === "text") {
+    channelDiv.innerHTML = "<i class='hashtag icon'></i> " + channel.name;
+  } else {
+    channelDiv.innerHTML = "<i class='volume up icon'></i> " + channel.name;
+  }
   channelDiv.dataset.channelId = channel.id;
   channelDiv.dataset.type = channel.type;
   channelDiv.addEventListener("click", () => {

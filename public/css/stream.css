@@ -588,10 +588,6 @@ i.sign-out.icon {
   font-size: 1.5rem;
 }
 
-.channel-name::before {
-  content: "# ";
-}
-
 .float {
   position: absolute;
   z-index: 2;

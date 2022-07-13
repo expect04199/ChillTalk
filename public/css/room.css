@@ -597,10 +597,6 @@ i.sign-out.icon {
   font-size: 1.5rem;
 }
 
-.channel-name::before {
-  content: "# ";
-}
-
 .chat {
   position: absolute;
   width: calc(100vw - 550px);
