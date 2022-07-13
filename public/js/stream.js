@@ -121,6 +121,11 @@ window.onload = async () => {
 
       let editName = mask.querySelector(".edit-host-name");
       editName.innerHTML = user.name;
+      editName.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+        }
+      });
       let userIntroduction = mask.querySelector(".edit-host-introduction");
       userIntroduction.innerHTML = user.introduction;
 
@@ -587,6 +592,15 @@ async function showMailBox(e) {
     }
   }
 }
+
+// when not click mailbox, remove mailbox
+document.addEventListener("mousedown", (e) => {
+  let messagesBox = document.querySelector(".mail-messages-box");
+  if (messagesBox && !messagesBox.contains(e.target)) {
+    messagesBox.remove();
+    document.querySelector(".tool-enable").classList.remove("tool-enable");
+  }
+});
 
 // log out button
 let singOutDiv = document.querySelector(".sign-out");

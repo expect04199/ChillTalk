@@ -8,6 +8,7 @@ module.exports.getDetail = async (req, res) => {
 
 module.exports.createChannel = async (req, res) => {
   const { channel_type: channelType, channel_name: channelName, room_id: roomId } = req.body;
+
   let id = await Channel.save(channelType, channelName, roomId);
   if (id.error) {
     return res.status(id.status).json({ error: id.error });

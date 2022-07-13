@@ -45,7 +45,11 @@ window.onload = async () => {
   channels.forEach((channel) => {
     let channelDiv = document.createElement("div");
     channelDiv.classList.add("channel");
-    channelDiv.innerHTML = channel.name;
+    if (channel.type === "text") {
+      channelDiv.innerHTML = "<i class='hashtag icon'></i> " + channel.name;
+    } else {
+      channelDiv.innerHTML = "<i class='volume up icon'></i> " + channel.name;
+    }
     channelDiv.dataset.channelId = channel.id;
     channelDiv.dataset.channelType = channel.type;
     channelDiv.addEventListener("click", (e) => {
@@ -121,6 +125,11 @@ window.onload = async () => {
 
       let editName = mask.querySelector(".edit-host-name");
       editName.innerHTML = user.name;
+      editName.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+        }
+      });
       let userIntroduction = mask.querySelector(".edit-host-introduction");
       userIntroduction.innerHTML = user.introduction;
 
@@ -715,6 +724,15 @@ roomPin.addEventListener("click", async (e) => {
   }
 });
 
+// when not click pinbox, remove pinbox
+document.addEventListener("mousedown", (e) => {
+  let pinMessagesBox = document.querySelector(".pin-messages-box");
+  if (pinMessagesBox && !pinMessagesBox.contains(e.target)) {
+    pinMessagesBox.remove();
+    document.querySelector(".tool-enable").classList.remove("tool-enable");
+  }
+});
+
 // when click search box, show search options
 let search = document.querySelector(".room-search input#search");
 if (channelId) {
@@ -956,6 +974,15 @@ async function showMailBox(e) {
     }
   }
 }
+
+// when not click mailbox, remove mailbox
+document.addEventListener("mousedown", (e) => {
+  let messagesBox = document.querySelector(".mail-messages-box");
+  if (messagesBox && !messagesBox.contains(e.target)) {
+    messagesBox.remove();
+    document.querySelector(".tool-enable").classList.remove("tool-enable");
+  }
+});
 
 // when other people signin, update status
 roomSocket.on("other-signin", (userId) => {
@@ -1272,6 +1299,11 @@ function createChannelfn(channel) {
   let channelDiv = document.createElement("div");
   channelDiv.classList.add("channel");
   channelDiv.innerHTML = channel.name;
+  if (channel.type === "text") {
+    channelDiv.innerHTML = "<i class='hashtag icon'></i> " + channel.name;
+  } else {
+    channelDiv.innerHTML = "<i class='volume up icon'></i> " + channel.name;
+  }
   channelDiv.dataset.channelId = channel.id;
   channelDiv.dataset.type = channel.type;
   channelDiv.addEventListener("click", () => {

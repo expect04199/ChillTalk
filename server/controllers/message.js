@@ -12,7 +12,7 @@ module.exports.getMessages = async (req, res) => {
 };
 
 module.exports.updateMessage = async (req, res) => {
-  const { message_id: messageId, type, description } = req.body;
+  let { message_id: messageId, type, description } = req.body;
   let result = await Message.update(messageId, type, description);
   if (result.error) {
     return res.status(403).json({ error: "Can not update message." });

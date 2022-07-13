@@ -28,10 +28,10 @@ module.exports = class User {
         return { error: "Wrong email or password", status: 403 };
       }
 
-      if (user.online === 1) {
-        await conn.query("COMMIT");
-        return { error: "User has already login", status: 403 };
-      }
+      // if (user.online === 1) {
+      //   await conn.query("COMMIT");
+      //   return { error: "User has already login", status: 403 };
+      // }
 
       // update user status
       const lastLogin = Date.now();
