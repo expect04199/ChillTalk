@@ -35,6 +35,7 @@ app.use("/api", [
   require("./server/routes/user"),
   require("./server/routes/message"),
   require("./server/routes/friend"),
+  require("./server/routes/test"),
 ]);
 
 app.use("*", (req, res) => {
