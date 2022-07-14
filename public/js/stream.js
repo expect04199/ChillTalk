@@ -5,8 +5,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get("roomId");
 const channelId = urlParams.get("channelId");
 
-const roomSocket = io.connect("http://10.8.3.7:3000/room");
-const camSocket = io.connect("http://10.8.3.7:3000/cam");
+const roomSocket = io.connect("http://localhost:3000/room");
+const camSocket = io.connect("http://localhost:3000/cam");
 
 // user info
 const user = JSON.parse(localStorage.getItem("info"));
