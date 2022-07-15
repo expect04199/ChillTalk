@@ -27,6 +27,7 @@ const io = require("socket.io")(server, {
   cors: {
     origin: "*",
   },
+  parser: require("socket.io-msgpack-parser"),
 });
 
 app.use("/api", [

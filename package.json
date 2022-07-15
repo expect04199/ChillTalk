@@ -18,6 +18,7 @@
     "mysql2": "^2.3.3",
     "redis": "^4.2.0",
     "socket.io": "^4.5.1",
+    "socket.io-msgpack-parser": "^3.0.1",
     "swagger-jsdoc": "^6.2.1",
     "swagger-ui-express": "^4.5.0",
     "validator": "^13.7.0"
