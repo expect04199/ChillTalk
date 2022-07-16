@@ -4,6 +4,25 @@ const app = express();
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const { createClient } = require("redis");
+const { createAdapter } = require("@socket.io/redis-adapter");
+
+const { REDIS_NAME } = process.env;
+
+// Initialize socket server
+const http = require("http");
+const server = http.createServer(app);
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
+// connect to redis adapter
+const pubClient = createClient({ host: REDIS_NAME, port: 6379 });
+const subClient = pubClient.duplicate();
+
+io.adapter(createAdapter(pubClient, subClient));
 
 // models
 const Message = require("./server/models/message");
@@ -19,15 +38,6 @@ app.use(express.json());
 app.use(cors());
 
 const { SERVER_PORT } = process.env;
-
-// Initialize socket server
-const http = require("http");
-const server = http.createServer(app);
-const io = require("socket.io")(server, {
-  cors: {
-    origin: "*",
-  },
-});
 
 app.use("/api", [
   require("./server/routes/room"),

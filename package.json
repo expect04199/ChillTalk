@@ -4,6 +4,7 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "@socket.io/redis-adapter": "^7.2.0",
     "artillery": "^2.0.0-21",
     "artillery-engine-socketio-v3": "^1.1.2",
     "aws-sdk": "^2.1175.0",
