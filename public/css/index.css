@@ -885,6 +885,7 @@ i.sign-out.icon {
   position: absolute;
   top: 10px;
   left: 30px;
+  background-position: center;
   background-size: cover;
   border-radius: 50%;
 }
