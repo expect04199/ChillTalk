@@ -18,11 +18,11 @@ const io = require("socket.io")(server, {
   },
 });
 
-// connect to redis adapter
-const pubClient = createClient({ host: REDIS_NAME, port: 6379 });
-const subClient = pubClient.duplicate();
+// // connect to redis adapter
+// const pubClient = createClient({ host: REDIS_NAME, port: 6379 });
+// const subClient = pubClient.duplicate();
 
-io.adapter(createAdapter(pubClient, subClient));
+// io.adapter(createAdapter(pubClient, subClient));
 
 // models
 const Message = require("./server/models/message");
@@ -56,6 +56,14 @@ app.use((err, req, res, next) => {
   console.log(err);
   return res.status(500).json({ error: "Internal server error" });
 });
+
+// (async function () {
+//   await Promise.all([pubClient.connect(), subClient.connect()]);
+//   io.adapter(createAdapter(pubClient, subClient));
+//   server.listen(SERVER_PORT, () => {
+//     console.log("Server Connected.");
+//   });
+// })();
 
 server.listen(SERVER_PORT, () => {
   console.log("Server Connected.");

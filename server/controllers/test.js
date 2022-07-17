@@ -1,17 +1,17 @@
 const Message = require("../models/message");
 
 module.exports.postMsgs = async (req, res) => {
-  let time = 1657788775760;
-  for (let i = 0; i < 2000; i++) {
+  let time = 1658040736655;
+  for (let i = 0; i < 1000; i++) {
     time += 700;
     let msg = {
-      userId: 1,
+      userId: 5,
       type: "text",
-      channelId: "28",
+      channelId: "1",
       description: i.toString(),
       time: time,
-      name: "Harry",
-      picture: "https://d28ad0xxqchuot.cloudfront.net/user/1/picture/1657449479361",
+      name: "Ron",
+      picture: "https://d28ad0xxqchuot.cloudfront.net/user/5/picture/1658039669138",
     };
     await Message.save(msg);
   }
