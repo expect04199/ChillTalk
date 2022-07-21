@@ -8,10 +8,10 @@ module.exports = class Channel {
     d.id user_id, d.name user_name,
     e.source pic_src, e.type pic_type, e.image pic_img, e.preset pic_preset
     FROM channels a
-    LEFT JOIN messages b on a.id = b.channel_id
-    LEFT JOIN message_contents c on b.id = c.message_id
-    LEFT JOIN users d on b.user_id = d.id
-    LEFT JOIN pictures e on d.id = e.source_id AND e.source = "user" AND e.type = "picture"
+    LEFT JOIN messages b ON a.id = b.channel_id
+    LEFT JOIN message_contents c ON b.id = c.message_id
+    LEFT JOIN users d ON b.user_id = d.id
+    LEFT JOIN pictures e ON d.id = e.source_id AND e.source = "user" AND e.type = "picture"
     WHERE a.id = ? AND b.pinned = 1 GROUP BY b.id 
     `;
 

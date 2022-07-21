@@ -2,11 +2,11 @@ const router = require("express").Router();
 const friendController = require("../controllers/friend");
 const Util = require("../../util/util");
 
-router.post("/friends/befriend", Util.isAuth, Util.errorCatcher(friendController.postAddFriend));
+router.post("/friends/requests", Util.isAuth, Util.errorCatcher(friendController.addFriend));
 
 router.get("/friends/requests", Util.isAuth, Util.errorCatcher(friendController.getRequests));
 
-router.post("/friends/requests", Util.isAuth, Util.errorCatcher(friendController.acceptRequest));
+router.patch("/friends/requests", Util.isAuth, Util.errorCatcher(friendController.acceptRequest));
 
 router.delete("/friends/requests", Util.isAuth, Util.errorCatcher(friendController.deleteRequest));
 

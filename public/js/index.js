@@ -533,7 +533,7 @@ async function showAddFriend(e) {
       user_id: friendId,
     };
     let result = await (
-      await fetch("/api/friends/befriend", {
+      await fetch("/api/friends/requests", {
         method: "POST",
         body: JSON.stringify(body),
         headers: {
@@ -1126,9 +1126,7 @@ function createMessage(message, scope) {
   thumbnailBox.classList.add("message-thumbnail-box");
   let thumbnail = document.createElement("div");
   thumbnail.classList.add("message-user-thumbnail");
-  thumbnail.style.backgroundImage = message.picture
-    ? `url('${message.picture}')`
-    : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
+  thumbnail.style.backgroundImage = message.picture ? `url('${message.picture}')` : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
   thumbnailBox.append(thumbnail);
 
   // render user text
@@ -1644,9 +1642,7 @@ function createSession(messages) {
     thumbnailBox.classList.add("message-thumbnail-box");
     let thumbnail = document.createElement("div");
     thumbnail.classList.add("message-user-thumbnail");
-    thumbnail.style.backgroundImage = message.picture
-      ? `url('${message.picture}')`
-      : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
+    thumbnail.style.backgroundImage = message.picture ? `url('${message.picture}')` : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
     thumbnailBox.append(thumbnail);
 
     // render user text
@@ -1902,7 +1898,7 @@ function createRequestFriend(reqUser) {
     };
     let data = await (
       await fetch("/api/friends/requests", {
-        method: "POST",
+        method: "PATCH",
         body: JSON.stringify(body),
         headers: {
           "content-type": "application/json",

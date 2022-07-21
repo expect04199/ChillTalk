@@ -7,20 +7,16 @@ module.exports = class Friend {
     const conn = await db.getConnection();
     try {
       await conn.query("START TRANSACTION");
+
       // check if user exist
-      let existSql = `
-      SELECT id From users WHERE id = ?
-    `;
-      let [exist] = await conn.query(existSql, userId);
-      if (!exist.length) {
+      const [user] = await conn.query(`SELECT id FROM users WHERE id = ?`, userId);
+      if (!user.length) {
         await conn.query("COMMIT");
         return { error: "User does not exist", status: 403 };
       }
 
-      let statusSql = `
-      SELECT status FROM friends WHERE user_id = ? AND friend_id = ?
-      `;
-      let [friendStatus] = await conn.query(statusSql, [hostId, userId]);
+      // check if users haven't be friend
+      const [friendStatus] = await conn.query(`SELECT status FROM friends WHERE user_id = ? AND friend_id = ?`, [hostId, userId]);
       if (friendStatus.length) {
         await conn.query("COMMIT");
         const status = friendStatus[0].status;
@@ -36,20 +32,16 @@ module.exports = class Friend {
         }
       }
 
-      let sql = `
-      INSERT INTO friends(user_id, friend_id, status) VALUES ?
-    `;
-      let data = [
+      const data = [
         [
           [hostId, userId, "sending"],
           [userId, hostId, "receiving"],
         ],
       ];
-      await conn.query(sql, data);
+      await conn.query(`INSERT INTO friends(user_id, friend_id, status) VALUES ?`, data);
       await conn.query("COMMIT");
       return true;
     } catch (error) {
-      console.log(error);
       await conn.query("ROLLBACK");
       return { error: "Unable to send friend request.", status: 500 };
     } finally {
@@ -58,7 +50,7 @@ module.exports = class Friend {
   }
 
   static async getRequests(hostId) {
-    let sql = `
+    const sql = `
     SELECT b.id, b.name, b.online,
     c.source pic_src, c.type pic_type, c.image pic_img, c.preset
     FROM friends a
@@ -66,18 +58,7 @@ module.exports = class Friend {
     INNER JOIN pictures c ON c.source_id = b.id AND c.source = "user" AND c.type = "picture"
     WHERE a.user_id = ? AND a.status = "receiving"
     `;
-    let [userData] = await db.query(sql, [hostId]);
-    let users = [];
-    userData.forEach((data) => {
-      let userPic = Util.getImage(data.preset, data.pic_src, data.id, data.pic_type, data.pic_img);
-      let user = {
-        id: data.id,
-        name: data.name,
-        picture: userPic,
-        online: data.online,
-      };
-      users.push(user);
-    });
+    const [users] = await db.query(sql, [hostId]);
     return users;
   }
 
@@ -86,21 +67,19 @@ module.exports = class Friend {
     try {
       await conn.query("START TRANSACTION");
       await conn.query("SET SQL_SAFE_UPDATES = 0");
-      let receiveSql = `
-      DELETE FROM friends WHERE user_id = ? AND friend_id = ? AND status = "receiving"
-      `;
+
+      const receiveSql = `DELETE FROM friends WHERE user_id = ? AND friend_id = ? AND status = "receiving"`;
       await conn.query(receiveSql, [hostId, userId]);
-      let requestSql = `
-      DELETE FROM friends WHERE user_id = ? AND friend_id = ? AND status = "sending"
-      `;
+
+      const requestSql = `DELETE FROM friends WHERE user_id = ? AND friend_id = ? AND status = "sending"`;
       await conn.query(requestSql, [userId, hostId]);
+
       await conn.query("SET SQL_SAFE_UPDATES = 1");
       await conn.query("COMMIT");
       return true;
     } catch (error) {
-      console.log(error);
       await conn.query("ROLLBACK");
-      return { error };
+      return { error: "Can not delete friend request", status: 500 };
     } finally {
       conn.release();
     }
@@ -111,21 +90,24 @@ module.exports = class Friend {
     try {
       await conn.query("START TRANSACTION");
       await conn.query("SET SQL_SAFE_UPDATES = 0");
+
+      // create a new room for private chat
       const roomName = `${hostId}/${userId}`;
-      let roomId = await Room.create([], roomName, hostId, "private");
+      const roomId = await Room.create([], roomName, hostId, "private");
       await Room.join(roomId, userId);
+
+      // create a new channel for private chat
       const channelName = `${hostId}/${userId}`;
-      let channelId = await Channel.save("text", channelName, roomId);
-      let acceptSql = `
-      UPDATE friends SET status = "OK", room_id = ?, channel_id = ? WHERE user_id = ? AND friend_id = ?
-      `;
-      await conn.query(acceptSql, [roomId, channelId, hostId, userId]);
-      await conn.query(acceptSql, [roomId, channelId, userId, hostId]);
+      const channelId = await Channel.save("text", channelName, roomId);
+
+      const sql = `UPDATE friends SET status = "OK", room_id = ?, channel_id = ? WHERE user_id = ? AND friend_id = ?`;
+      await conn.query(sql, [roomId, channelId, hostId, userId]);
+      await conn.query(sql, [roomId, channelId, userId, hostId]);
+
       await conn.query("SET SQL_SAFE_UPDATES = 1");
       await conn.query("COMMIT");
       return { room_id: roomId, channel_id: channelId };
     } catch (error) {
-      console.log(error);
       await conn.query("ROLLBACK");
       return { error: "Can not accept request.", status: 500 };
     } finally {
@@ -134,9 +116,9 @@ module.exports = class Friend {
   }
 
   static async getFriends(hostId) {
-    let sql = `
-    SELECT a.room_id,a.channel_id c_id, b.*,
-    c.source pic_src, c.type pic_type, c.image pic_img, c.preset, d.*
+    const sql = `
+    SELECT a.room_id, a.channel_id, b.*,
+    c.source pic_src, c.type pic_type, c.image pic_img, c.preset pic_preset, d.*
     FROM friends a
     INNER JOIN users b ON a.friend_id = b.id
     INNER JOIN pictures c ON c.source_id = b.id AND c.source = "user" AND c.type = "picture"
@@ -146,26 +128,8 @@ module.exports = class Friend {
     ) d ON a.channel_id = d.channel_id 
     WHERE a.user_id = ? AND a.status = "OK" ORDER BY d.initial_time DESC
     `;
-    let [result] = await db.query(sql, [hostId]);
-    let friends = result.map((data) => {
-      let friendPic = Util.getImage(
-        data.preset,
-        data.pic_src,
-        data.id,
-        data.pic_type,
-        data.pic_img
-      );
-      let friend = {
-        id: data.id,
-        name: data.name,
-        online: data.online,
-        picture: friendPic,
-        last_message_time: data.initial_time,
-        room_id: data.room_id,
-        channel_id: data.c_id,
-      };
-      return friend;
-    });
+
+    const [friends] = await db.query(sql, [hostId]);
     return friends;
   }
 };
