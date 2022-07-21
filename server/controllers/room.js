@@ -37,6 +37,9 @@ module.exports.postJoinRoom = async (req, res) => {
 module.exports.postCreateRoom = async (req, res) => {
   const { room_name: roomName } = req.body;
   const userId = req.user.id;
+  if (!roomName || !roomName.replace(/\s/g, "")) {
+    return res.status(403).json({ error: "Incorrect name" });
+  }
   let roomId = await Room.create(req.files, roomName, userId, "public");
   if (roomId.error) {
     return res.status(roomId.status).json({ error: roomId.error });
