@@ -62,9 +62,7 @@ window.onload = async () => {
 
   // render host info
   document.querySelector(".host-thumbnail").style.backgroundImage = `url("${user.picture}")`;
-  document.querySelector(".host-online").style.backgroundColor = user.online
-    ? "#00EE00"
-    : "#8E8E8E";
+  document.querySelector(".host-online").style.backgroundColor = user.online ? "#00EE00" : "#8E8E8E";
   document.querySelector(".host-name").innerHTML = user.name;
   document.querySelector(".host-id").innerHTML += user.id;
   let hostSetting = document.querySelector(".host-setting");
@@ -321,6 +319,7 @@ if (!channelId || !roomId) {
 
 document.addEventListener("keypress", (e) => {
   if (e.key === "Enter" && e.target.value !== "" && e.target.classList.contains("enter-message")) {
+    e.preventDefault();
     let description = e.target.value;
     description = description.replaceAll(" ", "");
     if (description === "") {
@@ -584,7 +583,12 @@ roomPin.addEventListener("click", async (e) => {
     let pinMessagesBox = pinDiv.querySelector(".pin-messages-box");
     if (!pinMessagesBox) {
       let data = await (
-        await fetch(`/api/channels/details?channelId=${channelId}&pinned=true`)
+        await fetch(`/api/channels/pin-messages?channelId=${channelId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
       ).json();
       let messages = data.messages;
 
@@ -1076,12 +1080,7 @@ function createMessage(message, scope) {
   //if previous message is same name and sent in two minutes, append
   let latestMessage = scope.querySelectorAll(".message");
   latestMessage = latestMessage ? latestMessage[latestMessage.length - 1] : null;
-  if (
-    latestMessage &&
-    message.name === latestMessage.dataset.name &&
-    message.time < +latestMessage.dataset.time + 3000 &&
-    !message.reply
-  ) {
+  if (latestMessage && message.name === latestMessage.dataset.name && message.time < +latestMessage.dataset.time + 3000 && !message.reply) {
     let descDiv = document.createElement("div");
     descDiv.classList.add("message-description");
     descDiv.dataset.messageId = message.id || -1;
@@ -1397,6 +1396,7 @@ function enableMessageOptions(description) {
           return;
         }
         if (e.target.innerHTML !== current) {
+          e.preventDefault();
           let body = {
             message_id: description.dataset.messageId,
             type: "text",
@@ -1419,10 +1419,7 @@ function enableMessageOptions(description) {
         }
         e.target.setAttribute("contentEditable", false);
         e.target.removeEventListener("focusout", editFocusOut);
-        if (
-          e.target.parentElement.innerHTML.indexOf("(已編輯)") === -1 &&
-          e.target.innerHTML !== current
-        ) {
+        if (e.target.parentElement.innerHTML.indexOf("(已編輯)") === -1 && e.target.innerHTML !== current) {
           let small = document.createElement("small");
           small.innerHTML = "(已編輯)";
           e.target.parentElement.appendChild(small);
@@ -1440,6 +1437,7 @@ function enableMessageOptions(description) {
       return;
     }
     if (e.target.innerHTML !== current) {
+      e.preventDefault();
       let body = {
         message_id: description.dataset.messageId,
         type: "text",
@@ -1462,10 +1460,7 @@ function enableMessageOptions(description) {
     }
     e.target.setAttribute("contentEditable", false);
     e.target.removeEventListener("focusout", editFocusOut);
-    if (
-      e.target.parentElement.innerHTML.indexOf("(已編輯)") === -1 &&
-      e.target.innerHTML !== current
-    ) {
+    if (e.target.parentElement.innerHTML.indexOf("(已編輯)") === -1 && e.target.innerHTML !== current) {
       let small = document.createElement("small");
       small.innerHTML = "(已編輯)";
       e.target.parentElement.appendChild(small);
@@ -1751,9 +1746,7 @@ function createMail(message) {
 }
 
 async function showUserInfo(e) {
-  const userId = e.target.classList.contains("member")
-    ? +e.target.dataset.id
-    : e.target.parentElement.dataset.id;
+  const userId = e.target.classList.contains("member") ? +e.target.dataset.id : e.target.parentElement.dataset.id;
   let userInfo = document.createElement("div");
   userInfo.classList.add("user-info");
   let mask = document.querySelector(".mask");

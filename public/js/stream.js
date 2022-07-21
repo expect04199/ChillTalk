@@ -482,11 +482,12 @@ createChannel.addEventListener("click", (e) => {
       <div class="ui active inline loader"></div>
       `;
       let channelDetail = await (
-        await fetch("/api/channels/create", {
+        await fetch("/api/channels", {
           method: "POST",
           body: JSON.stringify(data),
           headers: {
             "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         })
       ).json();

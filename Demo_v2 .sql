@@ -103,31 +103,6 @@ INSERT INTO `likes` VALUES (1,1,1019);
 UNLOCK TABLES;
 
 --
--- Table structure for table `mentions`
---
-
-DROP TABLE IF EXISTS `mentions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `mentions` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `message_id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `role` varchar(255) NOT NULL COMMENT 'member or host',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `mentions`
---
-
-LOCK TABLES `mentions` WRITE;
-/*!40000 ALTER TABLE `mentions` DISABLE KEYS */;
-/*!40000 ALTER TABLE `mentions` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `message_contents`
 --
 
@@ -197,7 +172,6 @@ CREATE TABLE `pictures` (
   `source_id` int NOT NULL,
   `type` varchar(30) NOT NULL COMMENT 'compress or original',
   `image` varchar(255) NOT NULL,
-  `storage_type` varchar(45) NOT NULL,
   `preset` int NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -209,7 +183,7 @@ CREATE TABLE `pictures` (
 
 LOCK TABLES `pictures` WRITE;
 /*!40000 ALTER TABLE `pictures` DISABLE KEYS */;
-INSERT INTO `pictures` VALUES (1,'user',1,'picture','1658039525703','original',0),(2,'user',1,'background','1658039525839','original',0),(3,'user',2,'picture','1658035151339','original',0),(4,'user',2,'background','sunset.jpg','original',1),(5,'user',3,'picture','1658035216519','original',0),(6,'user',3,'background','sunset.jpg','original',1),(7,'user',5,'picture','1658039669138','original',0),(8,'user',5,'background','sunset.jpg','original',1),(9,'room',1,'picture','1658040606220','original',0),(10,'room',2,'picture','1658040731341','original',0),(11,'room',3,'picture','dogee.png','original',1),(12,'user',6,'picture','1658042395430','original',0),(13,'user',6,'background','sunset.jpg','original',1),(14,'room',4,'picture','dogee.png','original',1),(15,'user',7,'picture','1658042479748','original',0),(16,'user',7,'background','sunset.jpg','original',1),(17,'room',5,'picture','dogee.png','original',1),(18,'user',8,'picture','1658043174647','original',0),(19,'user',8,'background','sunset.jpg','original',1),(20,'room',6,'picture','dogee.png','original',1),(21,'room',7,'picture','dogee.png','original',1),(22,'user',9,'picture','1658199253651','original',0),(23,'user',9,'background','sunset.jpg','original',1);
+INSERT INTO `pictures` VALUES (1,'user',1,'picture','1658039525703',0),(2,'user',1,'background','1658039525839',0),(3,'user',2,'picture','1658035151339',0),(4,'user',2,'background','sunset.jpg',1),(5,'user',3,'picture','1658035216519',0),(6,'user',3,'background','sunset.jpg',1),(7,'user',5,'picture','1658039669138',0),(8,'user',5,'background','sunset.jpg',1),(9,'room',1,'picture','1658040606220',0),(10,'room',2,'picture','1658040731341',0),(11,'room',3,'picture','dogee.png',1),(12,'user',6,'picture','1658042395430',0),(13,'user',6,'background','sunset.jpg',1),(14,'room',4,'picture','dogee.png',1),(15,'user',7,'picture','1658042479748',0),(16,'user',7,'background','sunset.jpg',1),(17,'room',5,'picture','dogee.png',1),(18,'user',8,'picture','1658043174647',0),(19,'user',8,'background','sunset.jpg',1),(20,'room',6,'picture','dogee.png',1),(21,'room',7,'picture','dogee.png',1),(22,'user',9,'picture','1658199253651',0),(23,'user',9,'background','sunset.jpg',1);
 /*!40000 ALTER TABLE `pictures` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -342,7 +316,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Harry','test123@test.com','$2a$10$rNHRVHhVbLQUO4RV.oP7/.dR98ZW/QWWbr7OuwjaED1gTWvLkNHpS','No content',1,1658200042135),(2,'Banana','test1234@test.com','$2a$10$J71GmuFKHGik3ymf19ul/epF.0cNjYWmPAuCQIqqrNHpcgf/fBOlK','No content',0,1658042522415),(3,'Sinchen','test12345@test.com','$2a$10$nMhkBevWSmjAXQqu6T1w2OknFTfbizoIHsK9y3tAKbGE.WSfxYbgm','No content',0,1658042559560),(5,'Ron','test124@test.com','$2a$10$GVZr2b73o0m6ueDqcS0QQOKOTAezeZK0Q9t7u1mO2EL4W4W6LC8oi','No content',0,1658198928866),(6,'Hermione','test125@test.com','$2a$10$EFvvgmCu99PtRishb9nC1.iUYInxq3DS55A/eO2AkAmPCtc4HWju6','No content',0,1658198912474),(7,'Hagrid','test126@test.com','$2a$10$6HYtF6R7/f8Vpc4BakSlXuYDl7A5tcYfA8a1tfzm/OEB8qHzxcQ86','No content',0,1658061433779),(8,'Sully','test127@test.com','$2a$10$dC/KufG.KQJP.KJOwb1T5.6We6XDa292XhyDtNQ.b/MkUjGv0mBP2','No content',1,1658200062315),(9,'Snape','test128@test.com','$2a$10$inVL.1JJnYawKuYQ8NtBmORzsEDfV4e4IBhQemSW3QsEEuwhM3FAe','No content',0,1658199245113);
+INSERT INTO `users` VALUES (1,'Harry','test123@test.com','$2a$10$rNHRVHhVbLQUO4RV.oP7/.dR98ZW/QWWbr7OuwjaED1gTWvLkNHpS','No content',0,1658200042135),(2,'Banana','test1234@test.com','$2a$10$J71GmuFKHGik3ymf19ul/epF.0cNjYWmPAuCQIqqrNHpcgf/fBOlK','No content',0,1658042522415),(3,'Sinchen','test12345@test.com','$2a$10$nMhkBevWSmjAXQqu6T1w2OknFTfbizoIHsK9y3tAKbGE.WSfxYbgm','No content',0,1658042559560),(5,'Ron','test124@test.com','$2a$10$GVZr2b73o0m6ueDqcS0QQOKOTAezeZK0Q9t7u1mO2EL4W4W6LC8oi','No content',0,1658198928866),(6,'Hermione','test125@test.com','$2a$10$EFvvgmCu99PtRishb9nC1.iUYInxq3DS55A/eO2AkAmPCtc4HWju6','No content',0,1658198912474),(7,'Hagrid','test126@test.com','$2a$10$6HYtF6R7/f8Vpc4BakSlXuYDl7A5tcYfA8a1tfzm/OEB8qHzxcQ86','No content',0,1658061433779),(8,'Sully','test127@test.com','$2a$10$dC/KufG.KQJP.KJOwb1T5.6We6XDa292XhyDtNQ.b/MkUjGv0mBP2','No content',0,1658200062315),(9,'Snape','test128@test.com','$2a$10$inVL.1JJnYawKuYQ8NtBmORzsEDfV4e4IBhQemSW3QsEEuwhM3FAe','No content',0,1658199245113);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 -- SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
@@ -356,4 +330,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-07-19 11:09:22
+-- Dump completed on 2022-07-21 14:45:27

@@ -64,9 +64,7 @@ window.onload = async () => {
   });
   // render host info
   document.querySelector(".host-thumbnail").style.backgroundImage = `url("${user.picture}")`;
-  document.querySelector(".host-online").style.backgroundColor = user.online
-    ? "#00EE00"
-    : "#8E8E8E";
+  document.querySelector(".host-online").style.backgroundColor = user.online ? "#00EE00" : "#8E8E8E";
   document.querySelector(".host-name").innerHTML = user.name;
   let hostSetting = document.querySelector(".host-setting");
   hostSetting.addEventListener("click", (e) => {
@@ -292,8 +290,7 @@ window.onload = async () => {
   let nextPage;
   let prevPage;
   let readSession;
-  channelName.innerHTML =
-    "<i class='hashtag icon'></i> " + channels.find((channel) => +channel.id === +channelId).name;
+  channelName.innerHTML = "<i class='hashtag icon'></i> " + channels.find((channel) => +channel.id === +channelId).name;
   // render messages
   let result = await (
     await fetch(`/api/messages?channelId=${channelId}&userId=${user.id}`, {
@@ -433,6 +430,7 @@ if (!channelId || !roomId) {
 }
 document.addEventListener("keypress", (e) => {
   if (e.key === "Enter" && e.target.value !== "" && e.target.classList.contains("enter-message")) {
+    e.preventDefault();
     let description = e.target.value;
     description = description.replaceAll(" ", "");
     if (description === "") {
@@ -663,11 +661,12 @@ createChannel.addEventListener("click", (e) => {
       <div class="ui active inline loader"></div>
       `;
       let channelDetail = await (
-        await fetch("/api/channels/create", {
+        await fetch("/api/channels", {
           method: "POST",
           body: JSON.stringify(data),
           headers: {
             "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         })
       ).json();
@@ -717,7 +716,12 @@ roomPin.addEventListener("click", async (e) => {
     let pinMessagesBox = pinDiv.querySelector(".pin-messages-box");
     if (!pinMessagesBox) {
       let data = await (
-        await fetch(`/api/channels/details?channelId=${channelId}&pinned=true`)
+        await fetch(`/api/channels/pin-messages?channelId=${channelId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
       ).json();
       let messages = data.messages;
 
@@ -837,15 +841,12 @@ document.addEventListener("keypress", async (e) => {
     loader.classList.add("ui", "active", "small", "inline", "loader");
     roomSearchInput.parentElement.appendChild(loader);
     let data = await (
-      await fetch(
-        `/api/rooms/search?room_id=${roomId}&from_user=${fromUser}&channel_name=${inChannel}&pinned=${isPinned}&content=${content}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
+      await fetch(`/api/rooms/search?room_id=${roomId}&from_user=${fromUser}&channel_name=${inChannel}&pinned=${isPinned}&content=${content}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
     ).json();
     let messages = data.messages;
 
@@ -1220,12 +1221,7 @@ function createMessage(message, scope) {
   //if previous message is same name and sent in two minutes, append
   let latestMessage = scope.querySelectorAll(".message");
   latestMessage = latestMessage ? latestMessage[latestMessage.length - 1] : null;
-  if (
-    latestMessage &&
-    message.name === latestMessage.dataset.name &&
-    message.time < +latestMessage.dataset.time + 3000 &&
-    !message.reply
-  ) {
+  if (latestMessage && message.name === latestMessage.dataset.name && message.time < +latestMessage.dataset.time + 3000 && !message.reply) {
     let descDiv = document.createElement("div");
     descDiv.classList.add("message-description");
     descDiv.dataset.messageId = message.id || -1;
@@ -1560,6 +1556,7 @@ function enableMessageOptions(description) {
           return;
         }
         if (e.target.innerHTML !== current) {
+          e.preventDefault();
           let body = {
             message_id: description.dataset.messageId,
             type: "text",
@@ -1582,10 +1579,7 @@ function enableMessageOptions(description) {
         }
         e.target.setAttribute("contentEditable", false);
         e.target.removeEventListener("focusout", editFocusOut);
-        if (
-          e.target.parentElement.innerHTML.indexOf("(已編輯)") === -1 &&
-          e.target.innerHTML !== current
-        ) {
+        if (e.target.parentElement.innerHTML.indexOf("(已編輯)") === -1 && e.target.innerHTML !== current) {
           let small = document.createElement("small");
           small.innerHTML = "(已編輯)";
           e.target.parentElement.appendChild(small);
@@ -1603,6 +1597,7 @@ function enableMessageOptions(description) {
       return;
     }
     if (e.target.innerHTML !== current) {
+      e.preventDefault();
       let body = {
         message_id: description.dataset.messageId,
         type: "text",
@@ -1625,10 +1620,7 @@ function enableMessageOptions(description) {
     }
     e.target.setAttribute("contentEditable", false);
     e.target.removeEventListener("focusout", editFocusOut);
-    if (
-      e.target.parentElement.innerHTML.indexOf("(已編輯)") === -1 &&
-      e.target.innerHTML !== current
-    ) {
+    if (e.target.parentElement.innerHTML.indexOf("(已編輯)") === -1 && e.target.innerHTML !== current) {
       let small = document.createElement("small");
       small.innerHTML = "(已編輯)";
       e.target.parentElement.appendChild(small);
@@ -1914,9 +1906,7 @@ function createMail(message) {
 }
 
 async function showUserInfo(e) {
-  const userId = e.target.classList.contains("member")
-    ? +e.target.dataset.id
-    : e.target.parentElement.dataset.id;
+  const userId = e.target.classList.contains("member") ? +e.target.dataset.id : e.target.parentElement.dataset.id;
   let userInfo = document.createElement("div");
   userInfo.classList.add("user-info");
   let mask = document.querySelector(".mask");
