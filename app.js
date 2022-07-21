@@ -45,7 +45,6 @@ app.use("/api", [
   require("./server/routes/user"),
   require("./server/routes/message"),
   require("./server/routes/friend"),
-  require("./server/routes/test"),
 ]);
 
 app.use("*", (req, res) => {
@@ -224,3 +223,5 @@ camIO.on("connect", (socket) => {
     socket.to(+channelId).emit("show cam", socket.id);
   });
 });
+
+module.exports = app;

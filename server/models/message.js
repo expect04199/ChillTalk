@@ -76,24 +76,24 @@ module.exports = class Message {
     let sql = `
     SELECT a.*, b.type, b.description, c.name user_name,
     d.source pic_src, d.type pic_type, d.image pic_img, d.preset, JSON_ARRAYAGG(e.user_id) thumbs, r.*
-    FROM chilltalk.messages a
-    LEFT JOIN chilltalk.message_contents b ON a.id = b.message_id
-    INNER JOIN (SELECT max(id) id FROM chilltalk.message_contents GROUP BY message_id) b1 ON b.id = b1.id
-    LEFT JOIN chilltalk.users c ON a.user_id = c.id
-    LEFT JOIN chilltalk.pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
-    LEFT JOIN chilltalk.likes e ON a.id = e.message_id
+    FROM messages a
+    LEFT JOIN message_contents b ON a.id = b.message_id
+    INNER JOIN (SELECT max(id) id FROM message_contents GROUP BY message_id) b1 ON b.id = b1.id
+    LEFT JOIN users c ON a.user_id = c.id
+    LEFT JOIN pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
+    LEFT JOIN likes e ON a.id = e.message_id
     LEFT JOIN (
       SELECT f.id reply_id, f.user_id reply_user_id, g.description reply_description, h.name reply_name,
       i.source reply_pic_src, i.type reply_pic_type, i.image reply_pic_img, i.preset reply_preset
-      FROM chilltalk.messages f
-      LEFT JOIN chilltalk.message_contents g ON f.id = g.message_id
-      INNER JOIN (SELECT max(id) id FROM chilltalk.message_contents GROUP BY message_id) g1 ON g.id = g1.id
-      LEFT JOIN chilltalk.users h ON f.user_id = h.id
-      LEFT JOIN chilltalk.pictures i ON h.id = i.source_id AND i.source = "user" AND i.type = "picture"
+      FROM messages f
+      LEFT JOIN message_contents g ON f.id = g.message_id
+      INNER JOIN (SELECT max(id) id FROM message_contents GROUP BY message_id) g1 ON g.id = g1.id
+      LEFT JOIN users h ON f.user_id = h.id
+      LEFT JOIN pictures i ON h.id = i.source_id AND i.source = "user" AND i.type = "picture"
     ) as r 
     ON a.reply = r.reply_id 
     INNER JOIN (
-      SELECT session FROM chilltalk.messages WHERE channel_id = ? GROUP BY session ORDER BY session DESC LIMIT ? OFFSET ?
+      SELECT session FROM messages WHERE channel_id = ? GROUP BY session ORDER BY session DESC LIMIT ? OFFSET ?
     ) z ON a.session = z.session
     WHERE 1=1 `;
     const constraints = [channelId];
@@ -119,7 +119,7 @@ module.exports = class Message {
         SELECT b.ranks FROM 
         (
           SELECT a.session, RANK() OVER (ORDER BY a.session DESC) ranks
-          FROM chilltalk.messages a WHERE a.channel_id = ? GROUP BY a.session
+          FROM messages a WHERE a.channel_id = ? GROUP BY a.session
         ) b WHERE b.session = ?
       `;
       const [result] = await db.query(orderSql, [channelId, readId]);
@@ -373,10 +373,10 @@ module.exports = class Message {
       // find channels user in
       let channelSql = `
       SELECT d.id 
-      FROM chilltalk.users a
-      INNER JOIN chilltalk.room_members b ON a.id = b.user_id
-      INNER JOIN chilltalk.rooms c ON b.room_id = c.id
-      INNER JOIN chilltalk.channels d ON c.id = d.room_id
+      FROM users a
+      INNER JOIN room_members b ON a.id = b.user_id
+      INNER JOIN rooms c ON b.room_id = c.id
+      INNER JOIN channels d ON c.id = d.room_id
       WHERE a.id = ?
     `;
 
@@ -394,20 +394,20 @@ module.exports = class Message {
         d.id room_id, d.name room_name, d.type room_type, e.id user_id, e.name user_name,
         f.source user_pic_src, f.type user_pic_type, f.image user_pic_img, f.preset user_preset,
         g.source room_pic_src, g.type room_pic_type, g.image room_pic_img, g.preset room_preset
-        FROM chilltalk.messages a
-        LEFT JOIN chilltalk.message_contents b ON a.id = b.message_id
-        INNER JOIN (SELECT max(id) id FROM chilltalk.message_contents GROUP BY message_id) b1 ON b.id = b1.id
-        LEFT JOIN chilltalk.channels c ON a.channel_id = c.id
-        LEFT JOIN chilltalk.rooms d ON c.room_id = d.id
-        LEFT JOIN chilltalk.users e ON a.user_id = e.id
-        LEFT JOIN chilltalk.pictures f ON e.id = f.source_id AND f.source = "user" AND f.type = "picture"
-        LEFT JOIN chilltalk.pictures g ON d.id = g.source_id AND g.source = "room" AND g.type = "picture"
+        FROM messages a
+        LEFT JOIN message_contents b ON a.id = b.message_id
+        INNER JOIN (SELECT max(id) id FROM message_contents GROUP BY message_id) b1 ON b.id = b1.id
+        LEFT JOIN channels c ON a.channel_id = c.id
+        LEFT JOIN rooms d ON c.room_id = d.id
+        LEFT JOIN users e ON a.user_id = e.id
+        LEFT JOIN pictures f ON e.id = f.source_id AND f.source = "user" AND f.type = "picture"
+        LEFT JOIN pictures g ON d.id = g.source_id AND g.source = "room" AND g.type = "picture"
         WHERE c.id = ? AND a.id > 
         (
           SELECT CASE WHEN EXISTS
-          (select g.message_id from chilltalk.user_read_status g WHERE g.user_id = ? AND g.channel_id = ?) 
+          (select g.message_id from user_read_status g WHERE g.user_id = ? AND g.channel_id = ?) 
           THEN 
-          (select g.message_id from chilltalk.user_read_status g WHERE g.user_id = ? AND g.channel_id = ?) 
+          (select g.message_id from user_read_status g WHERE g.user_id = ? AND g.channel_id = ?) 
           ELSE 0 
           END AS message_id
         )

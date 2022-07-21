@@ -527,7 +527,6 @@ async function showAddFriend(e) {
       return;
     }
     if (e.target.innerHTML !== "傳送好友請求") return;
-    console.log("hey");
     e.target.innerHTML = `
     <div class="ui active inline loader"></div>
     `;

@@ -140,7 +140,6 @@ module.exports = class Room {
           source_id: roomId,
           type: "picture",
           image: picName,
-          storage_type: "original",
           preset: 0,
         };
         await Util.imageUpload(files, "room", roomId, "picture", picName);
@@ -150,7 +149,6 @@ module.exports = class Room {
           source_id: roomId,
           type: "picture",
           image: PRESET_PICTURE,
-          storage_type: "original",
           preset: 1,
         };
       }
@@ -170,12 +168,12 @@ module.exports = class Room {
     let sql = `
     SELECT  a.id, a.channel_id, a.initial_time, b.type, b.description, c.id AS user_id, c.name AS user_name,
     d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset
-    FROM chilltalk.messages a
-    LEFT JOIN chilltalk.message_contents b ON a.id = b.message_id
-    INNER JOIN (SELECT max(id) id FROM chilltalk.message_contents GROUP BY message_id) b1 ON b.id = b1.id
-    LEFT JOIN chilltalk.users c ON a.user_id = c.id
-    LEFT JOIN chilltalk.pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
-    LEFT JOIN chilltalk.channels e ON a.channel_id = e.id WHERE e.room_id = ? `;
+    FROM messages a
+    LEFT JOIN message_contents b ON a.id = b.message_id
+    INNER JOIN (SELECT max(id) id FROM message_contents GROUP BY message_id) b1 ON b.id = b1.id
+    LEFT JOIN users c ON a.user_id = c.id
+    LEFT JOIN pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
+    LEFT JOIN channels e ON a.channel_id = e.id WHERE e.room_id = ? `;
     let constraints = [roomId];
 
     if (content) {

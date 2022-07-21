@@ -61,12 +61,11 @@ module.exports = class Friend {
     let sql = `
     SELECT b.id, b.name, b.online,
     c.source pic_src, c.type pic_type, c.image pic_img, c.preset
-    FROM chilltalk.friends a
-    INNER JOIN chilltalk.users b ON a.friend_id = b.id
-    INNER JOIN chilltalk.pictures c ON c.source_id = b.id AND c.source = "user" AND c.type = "picture"
+    FROM friends a
+    INNER JOIN users b ON a.friend_id = b.id
+    INNER JOIN pictures c ON c.source_id = b.id AND c.source = "user" AND c.type = "picture"
     WHERE a.user_id = ? AND a.status = "receiving"
     `;
-
     let [userData] = await db.query(sql, [hostId]);
     let users = [];
     userData.forEach((data) => {
@@ -83,7 +82,6 @@ module.exports = class Friend {
   }
 
   static async deleteRequest(hostId, userId) {
-    console.log(hostId, userId);
     const conn = await db.getConnection();
     try {
       await conn.query("START TRANSACTION");
@@ -139,12 +137,12 @@ module.exports = class Friend {
     let sql = `
     SELECT a.room_id,a.channel_id c_id, b.*,
     c.source pic_src, c.type pic_type, c.image pic_img, c.preset, d.*
-    FROM chilltalk.friends a
-    INNER JOIN chilltalk.users b ON a.friend_id = b.id
-    INNER JOIN chilltalk.pictures c ON c.source_id = b.id AND c.source = "user" AND c.type = "picture"
+    FROM friends a
+    INNER JOIN users b ON a.friend_id = b.id
+    INNER JOIN pictures c ON c.source_id = b.id AND c.source = "user" AND c.type = "picture"
     LEFT JOIN (
-    SELECT channel_id, initial_time FROM chilltalk.messages a
-    INNER JOIN (SELECT max(id) id FROM chilltalk.messages GROUP BY channel_id) a1 ON a.id = a1.id
+    SELECT channel_id, initial_time FROM messages a
+    INNER JOIN (SELECT max(id) id FROM messages GROUP BY channel_id) a1 ON a.id = a1.id
     ) d ON a.channel_id = d.channel_id 
     WHERE a.user_id = ? AND a.status = "OK" ORDER BY d.initial_time DESC
     `;

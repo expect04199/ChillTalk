@@ -36,7 +36,7 @@ CREATE TABLE `channels` (
   `name` varchar(255) NOT NULL,
   `room_id` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -45,7 +45,7 @@ CREATE TABLE `channels` (
 
 LOCK TABLES `channels` WRITE;
 /*!40000 ALTER TABLE `channels` DISABLE KEYS */;
-INSERT INTO `channels` VALUES (1,'text','for loop',1),(2,'voice','Voice',2),(3,'text','1/5',3),(4,'text','1/6',4),(5,'text','1/7',5);
+INSERT INTO `channels` VALUES (1,'text','for loop',1),(2,'voice','Voice',2),(3,'text','1/5',3),(4,'text','1/6',4),(5,'text','1/7',5),(6,'text','1/8',6),(7,'text','5/6',7);
 /*!40000 ALTER TABLE `channels` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -64,7 +64,7 @@ CREATE TABLE `friends` (
   `room_id` int DEFAULT NULL,
   `channel_id` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -73,7 +73,7 @@ CREATE TABLE `friends` (
 
 LOCK TABLES `friends` WRITE;
 /*!40000 ALTER TABLE `friends` DISABLE KEYS */;
-INSERT INTO `friends` VALUES (1,5,1,'OK',3,'3'),(2,1,5,'OK',3,'3'),(3,6,1,'OK',4,'4'),(4,1,6,'OK',4,'4'),(5,7,1,'OK',5,'5'),(6,1,7,'OK',5,'5');
+INSERT INTO `friends` VALUES (1,5,1,'OK',3,'3'),(2,1,5,'OK',3,'3'),(3,6,1,'OK',4,'4'),(4,1,6,'OK',4,'4'),(5,7,1,'OK',5,'5'),(6,1,7,'OK',5,'5'),(7,8,1,'OK',6,'6'),(8,1,8,'OK',6,'6'),(9,6,5,'OK',7,'7'),(10,5,6,'OK',7,'7'),(11,9,1,'sending',NULL,NULL),(12,1,9,'receiving',NULL,NULL);
 /*!40000 ALTER TABLE `friends` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -89,7 +89,7 @@ CREATE TABLE `likes` (
   `user_id` int NOT NULL,
   `message_id` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -98,6 +98,7 @@ CREATE TABLE `likes` (
 
 LOCK TABLES `likes` WRITE;
 /*!40000 ALTER TABLE `likes` DISABLE KEYS */;
+INSERT INTO `likes` VALUES (1,1,1019);
 /*!40000 ALTER TABLE `likes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -140,7 +141,7 @@ CREATE TABLE `message_contents` (
   `description` varchar(255) NOT NULL COMMENT 'text content or url',
   `time` bigint NOT NULL COMMENT 'latest update time',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1019 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1027 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -170,7 +171,7 @@ CREATE TABLE `messages` (
   `is_edited` tinyint(1) NOT NULL DEFAULT '0',
   `session` int unsigned NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1019 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1023 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -199,7 +200,7 @@ CREATE TABLE `pictures` (
   `storage_type` varchar(45) NOT NULL,
   `preset` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -208,7 +209,7 @@ CREATE TABLE `pictures` (
 
 LOCK TABLES `pictures` WRITE;
 /*!40000 ALTER TABLE `pictures` DISABLE KEYS */;
-INSERT INTO `pictures` VALUES (1,'user',1,'picture','1658039525703','original',0),(2,'user',1,'background','1658039525839','original',0),(3,'user',2,'picture','1658035151339','original',0),(4,'user',2,'background','sunset.jpg','original',1),(5,'user',3,'picture','1658035216519','original',0),(6,'user',3,'background','sunset.jpg','original',1),(7,'user',5,'picture','1658039669138','original',0),(8,'user',5,'background','sunset.jpg','original',1),(9,'room',1,'picture','1658040606220','original',0),(10,'room',2,'picture','1658040731341','original',0),(11,'room',3,'picture','dogee.png','original',1),(12,'user',6,'picture','1658042395430','original',0),(13,'user',6,'background','sunset.jpg','original',1),(14,'room',4,'picture','dogee.png','original',1),(15,'user',7,'picture','1658042479748','original',0),(16,'user',7,'background','sunset.jpg','original',1),(17,'room',5,'picture','dogee.png','original',1),(18,'user',8,'picture','1658043174647','original',0),(19,'user',8,'background','sunset.jpg','original',1);
+INSERT INTO `pictures` VALUES (1,'user',1,'picture','1658039525703','original',0),(2,'user',1,'background','1658039525839','original',0),(3,'user',2,'picture','1658035151339','original',0),(4,'user',2,'background','sunset.jpg','original',1),(5,'user',3,'picture','1658035216519','original',0),(6,'user',3,'background','sunset.jpg','original',1),(7,'user',5,'picture','1658039669138','original',0),(8,'user',5,'background','sunset.jpg','original',1),(9,'room',1,'picture','1658040606220','original',0),(10,'room',2,'picture','1658040731341','original',0),(11,'room',3,'picture','dogee.png','original',1),(12,'user',6,'picture','1658042395430','original',0),(13,'user',6,'background','sunset.jpg','original',1),(14,'room',4,'picture','dogee.png','original',1),(15,'user',7,'picture','1658042479748','original',0),(16,'user',7,'background','sunset.jpg','original',1),(17,'room',5,'picture','dogee.png','original',1),(18,'user',8,'picture','1658043174647','original',0),(19,'user',8,'background','sunset.jpg','original',1),(20,'room',6,'picture','dogee.png','original',1),(21,'room',7,'picture','dogee.png','original',1),(22,'user',9,'picture','1658199253651','original',0),(23,'user',9,'background','sunset.jpg','original',1);
 /*!40000 ALTER TABLE `pictures` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -224,7 +225,7 @@ CREATE TABLE `room_members` (
   `room_id` int NOT NULL,
   `user_id` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -233,7 +234,7 @@ CREATE TABLE `room_members` (
 
 LOCK TABLES `room_members` WRITE;
 /*!40000 ALTER TABLE `room_members` DISABLE KEYS */;
-INSERT INTO `room_members` VALUES (1,1,1),(2,1,5),(3,2,1),(4,3,1),(5,3,5),(6,4,1),(7,4,6),(8,5,1),(9,5,7),(10,2,2),(11,2,3);
+INSERT INTO `room_members` VALUES (1,1,1),(2,1,5),(3,2,1),(4,3,1),(5,3,5),(6,4,1),(7,4,6),(8,5,1),(9,5,7),(10,2,2),(11,2,3),(12,6,1),(13,6,8),(14,7,5),(15,7,6);
 /*!40000 ALTER TABLE `room_members` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -250,7 +251,7 @@ CREATE TABLE `rooms` (
   `host_id` int NOT NULL,
   `type` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -259,7 +260,7 @@ CREATE TABLE `rooms` (
 
 LOCK TABLES `rooms` WRITE;
 /*!40000 ALTER TABLE `rooms` DISABLE KEYS */;
-INSERT INTO `rooms` VALUES (1,'Javascript',1,'public'),(2,'WebRTC',1,'public'),(3,'1/5',1,'private'),(4,'1/6',1,'private'),(5,'1/7',1,'private');
+INSERT INTO `rooms` VALUES (1,'Javascript',1,'public'),(2,'WebRTC',1,'public'),(3,'1/5',1,'private'),(4,'1/6',1,'private'),(5,'1/7',1,'private'),(6,'1/8',1,'private'),(7,'5/6',5,'private');
 /*!40000 ALTER TABLE `rooms` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -302,7 +303,7 @@ CREATE TABLE `user_read_status` (
   `channel_id` int NOT NULL,
   `message_id` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -311,7 +312,7 @@ CREATE TABLE `user_read_status` (
 
 LOCK TABLES `user_read_status` WRITE;
 /*!40000 ALTER TABLE `user_read_status` DISABLE KEYS */;
-INSERT INTO `user_read_status` VALUES (1,1,1,1,500),(2,5,3,3,1007),(3,6,4,4,1015),(4,7,5,5,1018);
+INSERT INTO `user_read_status` VALUES (1,1,1,1,950),(2,5,3,3,1007),(3,6,4,4,1015),(4,7,5,5,1018),(13,8,6,6,1021);
 /*!40000 ALTER TABLE `user_read_status` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -332,7 +333,7 @@ CREATE TABLE `users` (
   `last_login` bigint NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email_UNIQUE` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -341,7 +342,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Harry','test123@test.com','$2a$10$rNHRVHhVbLQUO4RV.oP7/.dR98ZW/QWWbr7OuwjaED1gTWvLkNHpS','No content',1,1658062301953),(2,'Banana','test1234@test.com','$2a$10$J71GmuFKHGik3ymf19ul/epF.0cNjYWmPAuCQIqqrNHpcgf/fBOlK','No content',0,1658042522415),(3,'Sinchen','test12345@test.com','$2a$10$nMhkBevWSmjAXQqu6T1w2OknFTfbizoIHsK9y3tAKbGE.WSfxYbgm','No content',0,1658042559560),(5,'Ron','test124@test.com','$2a$10$GVZr2b73o0m6ueDqcS0QQOKOTAezeZK0Q9t7u1mO2EL4W4W6LC8oi','No content',1,1658061815570),(6,'Hermione','test125@test.com','$2a$10$EFvvgmCu99PtRishb9nC1.iUYInxq3DS55A/eO2AkAmPCtc4HWju6','No content',0,1658061806785),(7,'Hagrid','test126@test.com','$2a$10$6HYtF6R7/f8Vpc4BakSlXuYDl7A5tcYfA8a1tfzm/OEB8qHzxcQ86','No content',0,1658061433779),(8,'Sully','test127@test.com','$2a$10$dC/KufG.KQJP.KJOwb1T5.6We6XDa292XhyDtNQ.b/MkUjGv0mBP2','No content',0,1658043165888);
+INSERT INTO `users` VALUES (1,'Harry','test123@test.com','$2a$10$rNHRVHhVbLQUO4RV.oP7/.dR98ZW/QWWbr7OuwjaED1gTWvLkNHpS','No content',1,1658200042135),(2,'Banana','test1234@test.com','$2a$10$J71GmuFKHGik3ymf19ul/epF.0cNjYWmPAuCQIqqrNHpcgf/fBOlK','No content',0,1658042522415),(3,'Sinchen','test12345@test.com','$2a$10$nMhkBevWSmjAXQqu6T1w2OknFTfbizoIHsK9y3tAKbGE.WSfxYbgm','No content',0,1658042559560),(5,'Ron','test124@test.com','$2a$10$GVZr2b73o0m6ueDqcS0QQOKOTAezeZK0Q9t7u1mO2EL4W4W6LC8oi','No content',0,1658198928866),(6,'Hermione','test125@test.com','$2a$10$EFvvgmCu99PtRishb9nC1.iUYInxq3DS55A/eO2AkAmPCtc4HWju6','No content',0,1658198912474),(7,'Hagrid','test126@test.com','$2a$10$6HYtF6R7/f8Vpc4BakSlXuYDl7A5tcYfA8a1tfzm/OEB8qHzxcQ86','No content',0,1658061433779),(8,'Sully','test127@test.com','$2a$10$dC/KufG.KQJP.KJOwb1T5.6We6XDa292XhyDtNQ.b/MkUjGv0mBP2','No content',1,1658200062315),(9,'Snape','test128@test.com','$2a$10$inVL.1JJnYawKuYQ8NtBmORzsEDfV4e4IBhQemSW3QsEEuwhM3FAe','No content',0,1658199245113);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 -- SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
@@ -355,4 +356,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-07-17 20:54:38
+-- Dump completed on 2022-07-19 11:09:22

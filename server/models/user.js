@@ -67,7 +67,7 @@ module.exports = class User {
       };
       return info;
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       await conn.query("ROLLBACK");
       return { error: "Can not sign in", status: 500 };
     } finally {
@@ -95,13 +95,12 @@ module.exports = class User {
       let [user] = await conn.query(userSql, userData);
 
       // save picture
-      let picSql = `INSERT INTO pictures(source, source_id, type, image, storage_type, preset) VALUES ?`;
+      let picSql = `INSERT INTO pictures(source, source_id, type, image, preset) VALUES ?`;
       let picData = {
         source: "user",
         source_id: user.insertId,
         type: "picture",
         image: PRESET_PICTURE,
-        storage_type: "original",
         preset: 1,
       };
       let bgdData = {
@@ -109,7 +108,6 @@ module.exports = class User {
         source_id: user.insertId,
         type: "background",
         image: PRESET_BACKGROUND,
-        storage_type: "original",
         preset: 1,
       };
       await conn.query(picSql, [[Object.values(picData), Object.values(bgdData)]]);
@@ -120,7 +118,7 @@ module.exports = class User {
       await conn.query("COMMIT");
       return userData;
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       await conn.query("ROLLBACK");
       return {
         error: "Email Already Exists",
@@ -182,9 +180,9 @@ module.exports = class User {
     SELECT a.* ,
     b.source AS pic_src, b.type AS pic_type, b.image AS pic_img, b.preset pic_preset,
     c.source AS bgd_src, c.type AS bgd_type, c.image AS bgd_img, c.preset bgd_preset
-    FROM chilltalk.users a
-    INNER JOIN chilltalk.pictures b ON a.id = b.source_id AND b.source = "user" AND b.type = "picture"
-    INNER JOIN chilltalk.pictures c ON a.id = c.source_id AND c.source = "user" AND c.type = "background"
+    FROM users a
+    INNER JOIN pictures b ON a.id = b.source_id AND b.source = "user" AND b.type = "picture"
+    INNER JOIN pictures c ON a.id = c.source_id AND c.source = "user" AND c.type = "background"
     WHERE a.id = ?
     `;
     let [infos] = await db.query(infoSql, userId);
@@ -220,12 +218,12 @@ module.exports = class User {
     SELECT c.id, c.name ,
     d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset pic_preset
     FROM
-    (SELECT room_id FROM chilltalk.room_members WHERE user_id = ?) a
+    (SELECT room_id FROM room_members WHERE user_id = ?) a
     INNER JOIN 
-    (SELECT user_id, room_id FROM chilltalk.room_members WHERE user_id = ?) b
+    (SELECT user_id, room_id FROM room_members WHERE user_id = ?) b
     ON a.room_id = b.room_id
-    INNER JOIN chilltalk.rooms c ON b.room_id = c.id
-    INNER JOIN chilltalk.pictures d ON c.id = d.source_id AND d.source = "room" AND d.type = "picture"
+    INNER JOIN rooms c ON b.room_id = c.id
+    INNER JOIN pictures d ON c.id = d.source_id AND d.source = "room" AND d.type = "picture"
     WHERE c.type = "public"
     `;
     const [roomsData] = await db.query(roomSql, [hostId, userId]);
@@ -255,12 +253,12 @@ module.exports = class User {
     SELECT c.id, c.name ,
     d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset pic_preset
     FROM
-    (SELECT friend_id FROM chilltalk.friends WHERE user_id = ?) a
+    (SELECT friend_id FROM friends WHERE user_id = ?) a
     INNER JOIN 
-    (SELECT friend_id FROM chilltalk.friends WHERE user_id = ?) b
+    (SELECT friend_id FROM friends WHERE user_id = ?) b
     ON a.friend_id = b.friend_id
-    INNER JOIN chilltalk.users c ON b.friend_id = c.id
-    INNER JOIN chilltalk.pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
+    INNER JOIN users c ON b.friend_id = c.id
+    INNER JOIN pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
     `;
     const [friendsData] = await db.query(friendSql, [hostId, userId]);
     let friends = [];
@@ -336,7 +334,7 @@ module.exports = class User {
 
       return info;
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       await conn.query("ROLLBACK");
       return { error: "Can not update user info", status: 403 };
     } finally {

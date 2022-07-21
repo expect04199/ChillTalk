@@ -31,6 +31,10 @@ module.exports.postSignup = async (req, res) => {
     return res.status(400).json({ error: "Name, email or password is invalid" });
   }
 
+  if (userName.length > 20 || email.length > 20 || password.length > 20) {
+    return res.status(400).json({ error: "Name, email or password is invalid" });
+  }
+
   if (!validator.isEmail(email)) {
     return res.status(400).json({ error: "Name, email or password is invalid" });
   }

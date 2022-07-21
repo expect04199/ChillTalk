@@ -50,9 +50,9 @@ module.exports = class Stream {
       await conn.query("START TRANSACTION");
       await conn.query("SET SQL_SAFE_UPDATES=0;");
       let selectSql = `
-      SELECT * FROM chilltalk.stream_members
+      SELECT * FROM stream_members
       WHERE channel_id in (
-        SELECT channel_id FROM chilltalk.stream_members WHERE socket_id = ?
+        SELECT channel_id FROM stream_members WHERE socket_id = ?
       )
         `;
       let [result] = await conn.query(selectSql, [socketId]);
