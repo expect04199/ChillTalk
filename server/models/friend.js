@@ -43,6 +43,7 @@ module.exports = class Friend {
       return true;
     } catch (error) {
       await conn.query("ROLLBACK");
+      console.log(error);
       return { error: "Unable to send friend request.", status: 500 };
     } finally {
       await conn.release();
@@ -123,9 +124,9 @@ module.exports = class Friend {
     INNER JOIN users b ON a.friend_id = b.id
     INNER JOIN pictures c ON c.source_id = b.id AND c.source = "user" AND c.type = "picture"
     LEFT JOIN (
-    SELECT channel_id, initial_time FROM messages a
+    SELECT channel_id c_id, initial_time FROM messages a
     INNER JOIN (SELECT max(id) id FROM messages GROUP BY channel_id) a1 ON a.id = a1.id
-    ) d ON a.channel_id = d.channel_id 
+    ) d ON a.channel_id = d.c_id 
     WHERE a.user_id = ? AND a.status = "OK" ORDER BY d.initial_time DESC
     `;
 

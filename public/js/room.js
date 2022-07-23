@@ -1267,9 +1267,7 @@ function createMessage(message, scope) {
   thumbnailBox.classList.add("message-thumbnail-box");
   let thumbnail = document.createElement("div");
   thumbnail.classList.add("message-user-thumbnail");
-  thumbnail.style.backgroundImage = message.picture
-    ? `url('${message.picture}')`
-    : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
+  thumbnail.style.backgroundImage = message.picture ? `url('${message.picture}')` : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
   thumbnailBox.append(thumbnail);
 
   // render user text
@@ -1804,9 +1802,7 @@ function createSession(messages) {
     thumbnailBox.classList.add("message-thumbnail-box");
     let thumbnail = document.createElement("div");
     thumbnail.classList.add("message-user-thumbnail");
-    thumbnail.style.backgroundImage = message.picture
-      ? `url('${message.picture}')`
-      : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
+    thumbnail.style.backgroundImage = message.picture ? `url('${message.picture}')` : `url('https://s2.coinmarketcap.com/static/img/coins/200x200/14447.png')`;
     thumbnailBox.append(thumbnail);
 
     // render user text

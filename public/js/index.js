@@ -542,6 +542,7 @@ async function showAddFriend(e) {
         },
       })
     ).json();
+    console.log(result);
     if (result.error) {
       alert(result.error);
       e.target.innerHTML = "傳送好友請求";

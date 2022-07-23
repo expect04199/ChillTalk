@@ -7,11 +7,11 @@ module.exports.addFriend = async (req, res) => {
   if (hostId === userId) {
     return res.status(400).json({ error: "Can not add yourself." });
   }
-  let result = await Friend.addFriend(hostId, userId);
+  const result = await Friend.addFriend(hostId, userId);
   if (result.error) {
     return res.status(result.status).json({ error: result.error });
   }
-  return res.status(204);
+  return res.status(200).json({ msg: "success" });
 };
 
 module.exports.getRequests = async (req, res) => {
@@ -50,7 +50,7 @@ module.exports.deleteRequest = async (req, res) => {
   if (result.error) {
     return res.status(400).send("Bad request");
   }
-  return res.status(204);
+  return res.status(200).json({ msg: "success" });
 };
 
 module.exports.getFriends = async (req, res) => {
@@ -66,7 +66,7 @@ module.exports.getFriends = async (req, res) => {
       picture: friendPic,
       last_message_time: f.initial_time,
       room_id: f.room_id,
-      channel_id: f.channel_id,
+      channel_id: +f.channel_id,
     };
     return friend;
   });

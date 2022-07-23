@@ -6,9 +6,9 @@ router.post("/messages/pin", Util.isAuth, Util.errorCatcher(msgController.pinCon
 
 router.post("/messages/unpin", Util.isAuth, Util.errorCatcher(msgController.unpinContent));
 
-router.post("/messages/thumbs-up", Util.isAuth, Util.errorCatcher(msgController.postThumbsUp));
+router.post("/messages/thumbs-up", Util.isAuth, Util.errorCatcher(msgController.postLike));
 
-router.delete("/messages/thumbs-up", Util.isAuth, Util.errorCatcher(msgController.deleteThumbsUp));
+router.delete("/messages/thumbs-up", Util.isAuth, Util.errorCatcher(msgController.deleteLike));
 
 router.post("/messages/read", Util.isAuth, Util.errorCatcher(msgController.postReadStatus));
 
