@@ -6,14 +6,13 @@ const { CDN_IP } = process.env;
 const PRESET_PICTURE = "dogee.png";
 const PRESET_BACKGROUND = "sunset.jpg";
 const PRESET_INTRODUCTION = "No content";
-
 module.exports = class User {
   static async signin(email, password) {
     const conn = await db.getConnection();
     try {
       await conn.query("START TRANSACTION");
       // check if user exist
-      let sql = `
+      const sql = `
       SELECT a.*, b.source AS pic_src, b.type AS pic_type, b.image AS pic_img, b.preset AS pic_preset,
       c.source AS bgd_src, c.type AS bgd_type, c.image AS bgd_img, c.preset AS bgd_preset
       FROM users a 
@@ -21,17 +20,12 @@ module.exports = class User {
       LEFT JOIN pictures c ON a.id = c.source_id AND c.source = "user" AND c.type = "background"
       WHERE a.email = ?
       `;
-      let [users] = await conn.query(sql, [email]);
-      let user = users[0];
+      const [users] = await conn.query(sql, [email]);
+      const user = users[0];
       if (!user || !bcrypt.compareSync(password, user.password)) {
         await conn.query("COMMIT");
         return { error: "Wrong email or password", status: 403 };
       }
-
-      // if (user.online === 1) {
-      //   await conn.query("COMMIT");
-      //   return { error: "User has already login", status: 403 };
-      // }
 
       // update user status
       const lastLogin = Date.now();
@@ -39,23 +33,10 @@ module.exports = class User {
       await conn.query(updateSql, [1, lastLogin, user.id]);
       await conn.query("COMMIT");
 
-      const userPic = Util.getImage(
-        user.pic_preset,
-        user.pic_src,
-        user.id,
-        user.pic_type,
-        user.pic_img
-      );
+      const userPic = Util.getImage(user.pic_preset, user.pic_src, user.id, user.pic_type, user.pic_img);
+      const userBgd = Util.getImage(user.bgd_preset, user.bgd_src, user.id, user.bgd_type, user.bgd_img);
 
-      const userBgd = Util.getImage(
-        user.bgd_preset,
-        user.bgd_src,
-        user.id,
-        user.bgd_type,
-        user.bgd_img
-      );
-
-      let info = {
+      const info = {
         id: user.id,
         name: user.name,
         email: user.email,
@@ -67,7 +48,6 @@ module.exports = class User {
       };
       return info;
     } catch (error) {
-      // console.log(error);
       await conn.query("ROLLBACK");
       return { error: "Can not sign in", status: 500 };
     } finally {
@@ -76,15 +56,12 @@ module.exports = class User {
   }
 
   static async signup(name, email, password) {
-    let conn = await db.getConnection();
+    const conn = await db.getConnection();
     try {
       await conn.query("START TRANSACTION");
       const lastLogin = Date.now();
       // save user
-      let userSql = `
-        INSERT INTO users SET ?
-        `;
-      let userData = {
+      const info = {
         name,
         email,
         password,
@@ -92,33 +69,33 @@ module.exports = class User {
         online: 1,
         last_login: lastLogin,
       };
-      let [user] = await conn.query(userSql, userData);
+      const [user] = await conn.query("INSERT INTO users SET ?", info);
 
       // save picture
-      let picSql = `INSERT INTO pictures(source, source_id, type, image, preset) VALUES ?`;
-      let picData = {
+      const sql = `INSERT INTO pictures(source, source_id, type, image, preset) VALUES ?`;
+      const picData = {
         source: "user",
         source_id: user.insertId,
         type: "picture",
         image: PRESET_PICTURE,
         preset: 1,
       };
-      let bgdData = {
+      const bgdData = {
         source: "user",
         source_id: user.insertId,
         type: "background",
         image: PRESET_BACKGROUND,
         preset: 1,
       };
-      await conn.query(picSql, [[Object.values(picData), Object.values(bgdData)]]);
-      delete userData.password;
-      userData.picture = `${CDN_IP}/preset/1/${picData.type}/${picData.image}`;
-      userData.background = `${CDN_IP}/preset/1/${bgdData.type}/${bgdData.image}`;
-      userData.id = user.insertId;
+      await conn.query(sql, [[Object.values(picData), Object.values(bgdData)]]);
+      delete info.password;
+      info.picture = `${CDN_IP}/preset/1/${picData.type}/${picData.image}`;
+      info.background = `${CDN_IP}/preset/1/${bgdData.type}/${bgdData.image}`;
+      info.id = user.insertId;
+
       await conn.query("COMMIT");
-      return userData;
+      return info;
     } catch (error) {
-      // console.log(error);
       await conn.query("ROLLBACK");
       return {
         error: "Email Already Exists",
@@ -128,9 +105,9 @@ module.exports = class User {
   }
 
   static async findRooms(userId, type) {
-    let sql = `
-    SELECT b.id, b.name, b.host_id, c.id AS channel_id,
-    d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset
+    const sql = `
+    SELECT b.id, b.name, b.host_id, c.id channel_id,
+    d.source pic_src, d.type pic_type, d.image pic_img, d.preset
     FROM room_members a 
     INNER JOIN rooms b ON a.room_id = b.id
     LEFT JOIN channels c ON b.id = c.room_id
@@ -138,27 +115,18 @@ module.exports = class User {
     WHERE a.user_id = ? AND b.type = ?
     ORDER BY b.id, channel_id
     `;
-    let [rooms] = await db.query(sql, [userId, type]);
-    let roomMap = {};
-    rooms.forEach((room) => {
-      if (!roomMap[room.id]) {
-        const roomPic = Util.getImage(
-          room.preset,
-          room.pic_src,
-          room.id,
-          room.pic_type,
-          room.pic_img
-        );
-        let data = {
-          id: room.id,
-          name: room.name,
+    const [rooms] = await db.query(sql, [userId, type]);
+    const roomMap = {};
+    rooms.forEach((r) => {
+      if (!roomMap[r.id]) {
+        const roomPic = Util.getImage(r.preset, r.pic_src, r.id, r.pic_type, r.pic_img);
+        const room = {
+          id: r.id,
+          name: r.name,
           picture: roomPic,
-          host_id: room.host_id,
+          host_id: r.host_id,
         };
-        if (room.channel_id) {
-          data.channel_id = room.channel_id;
-        }
-        roomMap[room.id] = data;
+        roomMap[room.id] = room;
       }
     });
     return Object.values(roomMap);
@@ -175,46 +143,34 @@ module.exports = class User {
     await db.query(sql, [userId]);
   }
 
-  static async getInfo(hostId, userId) {
-    let infoSql = `
+  static async getInfo(userId) {
+    const sql = `
     SELECT a.* ,
-    b.source AS pic_src, b.type AS pic_type, b.image AS pic_img, b.preset pic_preset,
-    c.source AS bgd_src, c.type AS bgd_type, c.image AS bgd_img, c.preset bgd_preset
+    b.source pic_src, b.type pic_type, b.image pic_img, b.preset pic_preset,
+    c.source bgd_src, c.type bgd_type, c.image bgd_img, c.preset bgd_preset
     FROM users a
     INNER JOIN pictures b ON a.id = b.source_id AND b.source = "user" AND b.type = "picture"
     INNER JOIN pictures c ON a.id = c.source_id AND c.source = "user" AND c.type = "background"
     WHERE a.id = ?
     `;
-    let [infos] = await db.query(infoSql, userId);
-    const infoData = infos[0];
-    const userPic = Util.getImage(
-      infoData.pic_preset,
-      infoData.pic_src,
-      infoData.id,
-      infoData.pic_type,
-      infoData.pic_img
-    );
-    const userBgd = Util.getImage(
-      infoData.bgd_preset,
-      infoData.bgd_src,
-      infoData.id,
-      infoData.bgd_type,
-      infoData.bgd_img
-    );
+    let [result] = await db.query(sql, userId);
+    result = result[0];
+    const userPic = Util.getImage(result.pic_preset, result.pic_src, result.id, result.pic_type, result.pic_img);
+    const userBgd = Util.getImage(result.bgd_preset, result.bgd_src, result.id, result.bgd_type, result.bgd_img);
     const info = {
-      id: infoData.id,
-      name: infoData.name,
+      id: result.id,
+      name: result.name,
       picture: userPic,
       background: userBgd,
-      introduction: infoData.introduction,
-      online: infoData.online,
-      last_login: infoData.last_login,
+      introduction: result.introduction,
+      online: result.online,
+      last_login: result.last_login,
     };
     return info;
   }
 
   static async getRooms(hostId, userId) {
-    let roomSql = `
+    const sql = `
     SELECT c.id, c.name ,
     d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset pic_preset
     FROM
@@ -226,32 +182,24 @@ module.exports = class User {
     INNER JOIN pictures d ON c.id = d.source_id AND d.source = "room" AND d.type = "picture"
     WHERE c.type = "public"
     `;
-    const [roomsData] = await db.query(roomSql, [hostId, userId]);
-    let rooms = [];
-    roomsData.forEach((room) => {
-      let roomPic = Util.getImage(
-        room.pic_preset,
-        room.pic_src,
-        room.id,
-        room.pic_type,
-        room.pic_img
-      );
-
-      let roomData = {
-        id: room.id,
-        name: room.name,
+    let [rooms] = await db.query(sql, [hostId, userId]);
+    rooms = rooms.map((r) => {
+      const roomPic = Util.getImage(r.pic_preset, r.pic_src, r.id, r.pic_type, r.pic_img);
+      const room = {
+        id: r.id,
+        name: r.name,
         picture: roomPic,
       };
-      rooms.push(roomData);
+      return room;
     });
 
     return rooms;
   }
 
   static async getFriends(hostId, userId) {
-    let friendSql = `
+    const sql = `
     SELECT c.id, c.name ,
-    d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset pic_preset
+    d.source pic_src, d.type pic_type, d.image pic_img, d.preset pic_preset
     FROM
     (SELECT friend_id FROM friends WHERE user_id = ?) a
     INNER JOIN 
@@ -260,23 +208,15 @@ module.exports = class User {
     INNER JOIN users c ON b.friend_id = c.id
     INNER JOIN pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
     `;
-    const [friendsData] = await db.query(friendSql, [hostId, userId]);
-    let friends = [];
-    friendsData.forEach((friend) => {
-      let friendPic = Util.getImage(
-        friend.pic_preset,
-        friend.pic_src,
-        friend.id,
-        friend.pic_type,
-        friend.pic_img
-      );
-
-      let friendData = {
-        id: friend.id,
-        name: friend.name,
+    let [friends] = await db.query(sql, [hostId, userId]);
+    friends = friends.map((f) => {
+      const friendPic = Util.getImage(f.pic_preset, f.pic_src, f.id, f.pic_type, f.pic_img);
+      const friend = {
+        id: f.id,
+        name: f.name,
         picture: friendPic,
       };
-      friends.push(friendData);
+      return friend;
     });
     return friends;
   }
@@ -288,10 +228,7 @@ module.exports = class User {
       await conn.query("SET SQL_SAFE_UPDATES=0;");
       // update info
       if (name || introduction) {
-        let infoSql = `
-        UPDATE users SET name = ?, introduction = ? WHERE id = ?
-        `;
-        await conn.query(infoSql, [name, introduction, userId]);
+        await conn.query("UPDATE users SET name = ?, introduction = ? WHERE id = ?", [name, introduction, userId]);
       }
 
       // update picture
@@ -299,11 +236,11 @@ module.exports = class User {
       if (files.picture) {
         const fileName = Date.now();
         Util.imageUpload(files.picture, "user", userId, "picture", fileName);
-        let picSql = `
+        pic = Util.getImage(0, "user", userId, "picture", fileName);
+        const sql = `
         UPDATE pictures SET image = ?, preset = 0 WHERE source = "user" AND type = "picture" AND source_id = ?
         `;
-        await conn.query(picSql, [fileName, userId]);
-        pic = Util.getImage(0, "user", userId, "picture", fileName);
+        await conn.query(sql, [fileName, userId]);
       }
 
       // update background
@@ -311,15 +248,15 @@ module.exports = class User {
       if (files.background) {
         const fileName = Date.now();
         Util.imageUpload(files.background, "user", userId, "background", fileName);
-        let bgdSql = `
+        bgd = Util.getImage(0, "user", userId, "background", fileName);
+        const sql = `
         UPDATE pictures SET image = ?, preset = 0 WHERE source = "user" AND type = "background" AND source_id = ?
         `;
-        await conn.query(bgdSql, [fileName, userId]);
-        bgd = Util.getImage(0, "user", userId, "background", fileName);
+        await conn.query(sql, [fileName, userId]);
       }
 
-      let [user] = await conn.query("SELECT * FROM users WHERE id = ?", [userId]);
-      let info = {
+      const [user] = await conn.query("SELECT * FROM users WHERE id = ?", [userId]);
+      const info = {
         id: user[0].id,
         name: user[0].name,
         email: user[0].email,
@@ -334,7 +271,6 @@ module.exports = class User {
 
       return info;
     } catch (error) {
-      // console.log(error);
       await conn.query("ROLLBACK");
       return { error: "Can not update user info", status: 403 };
     } finally {

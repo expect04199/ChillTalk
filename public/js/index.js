@@ -1204,9 +1204,6 @@ function createRoomfn(room) {
   roomDiv.classList.add("room");
   roomDiv.id = room.id;
   roomDiv.style.backgroundImage = `url('${room.picture}')`;
-  if (room.channel_id) {
-    roomDiv.dataset.channel = room.channel_id;
-  }
   return roomDiv;
 }
 

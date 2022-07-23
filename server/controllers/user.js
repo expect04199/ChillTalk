@@ -15,9 +15,9 @@ module.exports.postSignin = async (req, res) => {
     return res.status(info.status).json({ error: info.error });
   }
   const payload = { info: info };
-  let rooms = await User.findRooms(info.id, "public");
+  const rooms = await User.findRooms(info.id, "public");
   const access_token = jwt.sign(payload, TOKEN_SECRET, { expiresIn: "24h" });
-  let data = {
+  const data = {
     access_token,
     info,
     rooms,
@@ -38,7 +38,6 @@ module.exports.postSignup = async (req, res) => {
   if (!validator.isEmail(email)) {
     return res.status(400).json({ error: "Name, email or password is invalid" });
   }
-  userName = validator.escape(userName);
 
   const salt = bcrypt.genSaltSync(10);
   const hashPwd = bcrypt.hashSync(password, salt);
@@ -61,7 +60,7 @@ module.exports.postSignup = async (req, res) => {
 module.exports.getInfo = async (req, res) => {
   const hostId = req.user.id;
   const userId = +req.query.userId;
-  const info = await User.getInfo(hostId, userId);
+  const info = await User.getInfo(userId);
   const rooms = await User.getRooms(hostId, userId);
   const friends = await User.getFriends(hostId, userId);
   return res.status(200).json({ info, rooms, friends });
@@ -70,7 +69,7 @@ module.exports.getInfo = async (req, res) => {
 module.exports.updateInfo = async (req, res) => {
   const { name, introduction, original_picture, original_background } = req.body;
   const userId = req.user.id;
-  let info = await User.update(req.files, userId, name, introduction);
+  const info = await User.update(req.files, userId, name, introduction);
   if (info.error) {
     return res.status(info.status).json({ error: info.error });
   }
@@ -81,9 +80,9 @@ module.exports.updateInfo = async (req, res) => {
     info.background = original_background;
   }
 
-  let payload = { info: info };
-  let access_token = jwt.sign(payload, TOKEN_SECRET, { expiresIn: "24h" });
-  let data = {
+  const payload = { info: info };
+  const access_token = jwt.sign(payload, TOKEN_SECRET, { expiresIn: "24h" });
+  const data = {
     access_token,
     info,
   };

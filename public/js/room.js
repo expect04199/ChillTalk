@@ -1904,7 +1904,6 @@ async function showUserInfo(e) {
   let mask = document.querySelector(".mask");
   mask.classList.add("enable");
   mask.append(userInfo);
-
   let data = await (
     await fetch(`/api/users/info?userId=${userId}`, {
       headers: {
