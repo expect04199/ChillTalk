@@ -602,11 +602,7 @@ createRoom.addEventListener("click", (e) => {
     }
     updateStorage("room", roomData);
     roomSocket.emit("join-room", { roomId: roomData.id, user });
-    if (roomData.channelId) {
-      window.location.href = `/room.html?roomId=${roomData.id}&channelId=${roomData.channel_id}`;
-    } else {
-      window.location.href = `/room.html?roomId=${roomData.id}`;
-    }
+    window.location.href = `/room.html?roomId=${roomData.id}`;
   });
 });
 

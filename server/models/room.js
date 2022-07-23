@@ -5,7 +5,7 @@ const PRESET_PICTURE = "dogee.png";
 
 module.exports = class Room {
   static async getDetail(roomId, userId) {
-    let sql = `
+    const sql = `
     SELECT a.id, a.name, a.host_id,
     c.source AS pic_src, c.type AS pic_type, c.image AS pic_img, c.preset
     FROM rooms a 
@@ -13,10 +13,10 @@ module.exports = class Room {
     INNER JOIN pictures c ON a.id = c.source_id AND c.source = "room" AND c.type = "picture"
     WHERE a.id = ? AND b.user_id = ?
     `;
-    let [result] = await db.query(sql, [roomId, userId]);
-    let room = result[0];
+    const [result] = await db.query(sql, [roomId, userId]);
+    const room = result[0];
     const roomPic = Util.getImage(room.preset, room.pic_src, room.id, room.pic_type, room.pic_img);
-    let data = {
+    const data = {
       id: room.id,
       name: room.name,
       picture: roomPic,
@@ -26,15 +26,12 @@ module.exports = class Room {
   }
 
   static async getChannels(roomId) {
-    let sql = `
-    SELECT id, type, name FROM channels WHERE room_id = ?
-    `;
-    let [channels] = await db.query(sql, [roomId]);
+    const [channels] = await db.query(`SELECT id, type, name FROM channels WHERE room_id = ?`, [roomId]);
     return channels;
   }
 
   static async getMembers(roomId) {
-    let sql = `
+    const sql = `
     SELECT b.id, b.name, b.email, b.introduction, b.online,
     c.source AS pic_src, c.type AS pic_type, c.image AS pic_img, c.preset AS pic_preset,
     d.source AS bgd_src, d.type AS bgd_type, d.image AS bgd_img, d.preset AS bgd_preset
@@ -46,23 +43,9 @@ module.exports = class Room {
     `;
     let [members] = await db.query(sql, [roomId]);
     members = members.map((member) => {
-      const memberPic = Util.getImage(
-        member.pic_preset,
-        member.pic_src,
-        member.id,
-        member.pic_type,
-        member.pic_img
-      );
-
-      const memberBgd = Util.getImage(
-        member.bgd_preset,
-        member.bgd_src,
-        member.id,
-        member.bgd_type,
-        member.bgd_img
-      );
-
-      let user = {
+      const memberPic = Util.getImage(member.pic_preset, member.pic_src, member.id, member.pic_type, member.pic_img);
+      const memberBgd = Util.getImage(member.bgd_preset, member.bgd_src, member.id, member.bgd_type, member.bgd_img);
+      const user = {
         id: member.id,
         name: member.name,
         email: member.email,
@@ -77,28 +60,24 @@ module.exports = class Room {
   }
 
   static async isExisted(roomId) {
-    let sql = "SELECT * FROM rooms WHERE id = ?";
-    let [rooms] = await db.query(sql, [roomId]);
+    const [rooms] = await db.query("SELECT * FROM rooms WHERE id = ?", [roomId]);
     return rooms.length !== 0;
   }
 
   static async join(roomId, userId) {
     const conn = await db.getConnection();
     try {
-      let existSql = `SELECT id FROM room_members WHERE room_id = ? AND user_id = ?`;
-      let [isExist] = await conn.query(existSql, [roomId, userId]);
-      if (isExist.length) {
+      const [isJoin] = await conn.query(`SELECT id FROM room_members WHERE room_id = ? AND user_id = ?`, [roomId, userId]);
+      if (isJoin.length) {
         return { error: "You have joined the room", status: 403 };
       }
-      let sql = `INSERT INTO room_members SET ?`;
-      let data = {
+      const data = {
         room_id: roomId,
         user_id: userId,
       };
-      await conn.query(sql, data);
+      await conn.query(`INSERT INTO room_members SET ?`, data);
       return true;
     } catch (error) {
-      console.log(error);
       return { error: "Can not join room.", status: 500 };
     } finally {
       await conn.release();
@@ -110,31 +89,25 @@ module.exports = class Room {
     try {
       // create room
       await conn.query("START TRANSACTION");
-      let roomSql = `
-        INSERT INTO rooms SET ?
-      `;
-      let room = {
+      const room = {
         name: roomName,
         host_id: userId,
         type,
       };
-      let [roomResult] = await conn.query(roomSql, room);
+      const [roomResult] = await conn.query("INSERT INTO rooms SET ?", room);
       const roomId = roomResult.insertId;
+
       // create membership
-      let memberSql = `
-        INSERT INTO room_members SET ?
-      `;
-      let member = {
+      const member = {
         room_id: roomId,
         user_id: userId,
       };
-      await conn.query(memberSql, member);
+      await conn.query("INSERT INTO room_members SET ?", member);
 
       // upload picture
-      let picSql = `INSERT INTO pictures SET ?`;
       let picData;
       if (files[0]) {
-        let picName = Date.now();
+        const picName = Date.now();
         picData = {
           source: "room",
           source_id: roomId,
@@ -152,12 +125,11 @@ module.exports = class Room {
           preset: 1,
         };
       }
-      await conn.query(picSql, picData);
+      await conn.query("INSERT INTO pictures SET ?", picData);
       await conn.query("COMMIT");
-      return roomId;
+      return { roomId };
     } catch (error) {
       await conn.query("ROLLBACK");
-      console.log(error);
       return { error: "Can not create new room", status: 500 };
     } finally {
       await conn.release();
@@ -166,15 +138,15 @@ module.exports = class Room {
 
   static async search(content, roomId, fromUser, channelName, pinned) {
     let sql = `
-    SELECT  a.id, a.channel_id, a.initial_time, b.type, b.description, c.id AS user_id, c.name AS user_name,
-    d.source AS pic_src, d.type AS pic_type, d.image AS pic_img, d.preset
+    SELECT a.id, a.channel_id, a.initial_time, b.type, b.description, c.id user_id, c.name user_name,
+    d.source pic_src, d.type pic_type, d.image pic_img, d.preset
     FROM messages a
     LEFT JOIN message_contents b ON a.id = b.message_id
     INNER JOIN (SELECT max(id) id FROM message_contents GROUP BY message_id) b1 ON b.id = b1.id
     LEFT JOIN users c ON a.user_id = c.id
     LEFT JOIN pictures d ON c.id = d.source_id AND d.source = "user" AND d.type = "picture"
     LEFT JOIN channels e ON a.channel_id = e.id WHERE e.room_id = ? `;
-    let constraints = [roomId];
+    const constraints = [roomId];
 
     if (content) {
       sql += "AND b.description LIKE BINARY(?) ";
@@ -195,28 +167,7 @@ module.exports = class Room {
       sql += "AND a.pinned = 1";
     }
 
-    let [result] = await db.query(sql, constraints);
-    let messages = [];
-    result.forEach((data) => {
-      const userPic = Util.getImage(
-        data.preset,
-        data.pic_src,
-        data.user_id,
-        data.pic_type,
-        data.pic_img
-      );
-      let message = {
-        id: data.id,
-        type: data.type,
-        channel_id: data.channel_id,
-        description: data.description,
-        time: data.initial_time,
-        user_id: data.user_id,
-        name: data.user_name,
-        picture: userPic,
-      };
-      messages.push(message);
-    });
+    const [messages] = await db.query(sql, constraints);
     return messages;
   }
 
@@ -225,44 +176,43 @@ module.exports = class Room {
     try {
       await conn.query("START TRANSACTION");
       await conn.query("SET SQL_SAFE_UPDATES=0;");
+
       if (name) {
-        let nameSql = `
-          UPDATE rooms SET name = ? WHERE id = ? AND host_id = ?
-        `;
-        let [result] = await conn.query(nameSql, [name, id, userId]);
+        const [result] = await conn.query("UPDATE rooms SET name = ? WHERE id = ? AND host_id = ?", [name, id, userId]);
         if (result.affectedRows === 0) {
-          throw new Error("Room does not exist.");
+          throw new Error();
         }
       }
 
       let pic;
       if (files.length) {
-        let fileSql = `
+        const fileName = Date.now();
+        const fileSql = `
         UPDATE pictures a 
         INNER JOIN rooms b ON a.source_id = b.id AND a.source = "room" AND a.type = "picture"
         SET a.image = ?, a.preset = 0 WHERE b.id = ? AND b.host_id = ?;
         `;
-        let fileName = Date.now();
-        let [result] = await conn.query(fileSql, [fileName, id, userId]);
 
+        const [result] = await conn.query(fileSql, [fileName, id, userId]);
         if (result.affectedRows === 0) {
-          throw new Error("File does not exist.");
+          throw new Error();
         }
         pic = Util.getImage(0, "room", id, "picture", fileName);
         Util.imageUpload(files, "room", id, "picture", fileName);
       }
-      let data = {
+
+      const data = {
         id,
         name,
         picture: pic,
       };
+
       await conn.query("SET SQL_SAFE_UPDATES=1;");
       await conn.query("COMMIT");
       return data;
     } catch (error) {
-      console.log(error);
       await conn.query("ROLLBACK");
-      return { error: "Can not update room info.", status: 403 };
+      return { error: "Can not update room info.", status: 500 };
     } finally {
       await conn.release();
     }

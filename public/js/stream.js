@@ -63,9 +63,7 @@ window.onload = async () => {
   });
   // render host info
   document.querySelector(".host-thumbnail").style.backgroundImage = `url("${user.picture}")`;
-  document.querySelector(".host-online").style.backgroundColor = user.online
-    ? "#00EE00"
-    : "#8E8E8E";
+  document.querySelector(".host-online").style.backgroundColor = user.online ? "#00EE00" : "#8E8E8E";
   document.querySelector(".host-name").innerHTML = user.name;
   let hostSetting = document.querySelector(".host-setting");
   hostSetting.addEventListener("click", (e) => {
@@ -255,8 +253,7 @@ window.onload = async () => {
 
   // render channel-name
   let channelName = document.querySelector(".channel-name");
-  channelName.innerHTML =
-    "<i class='volume up icon'></i> " + channels.find((channel) => +channel.id === +channelId).name;
+  channelName.innerHTML = "<i class='volume up icon'></i> " + channels.find((channel) => +channel.id === +channelId).name;
 };
 
 let participantBox = document.querySelector(".participant-box");
@@ -423,11 +420,7 @@ createRoom.addEventListener("click", (e) => {
     }
     updateStorage("room", roomData);
     roomSocket.emit("join-room", { roomId: roomData.id, user });
-    if (roomData.channelId) {
-      window.location.href = `/room.html?roomId=${roomData.id}&channelId=${roomData.channel_id}`;
-    } else {
-      window.location.href = `/room.html?roomId=${roomData.id}`;
-    }
+    window.location.href = `/room.html?roomId=${roomData.id}`;
   });
 });
 
@@ -845,16 +838,13 @@ function createPeer(userSocketIdToCall) {
       },
     ],
   });
-  peer.onnegotiationneeded = () =>
-    userSocketIdToCall ? handleNegotiationNeededEvent(peer, userSocketIdToCall) : null;
+  peer.onnegotiationneeded = () => (userSocketIdToCall ? handleNegotiationNeededEvent(peer, userSocketIdToCall) : null);
   peer.onicecandidate = handleICECandidateEvent;
 
   peer.ontrack = (e) => {
     let stream = e.streams[0];
     const participantBox = document.querySelector(".participant-box");
-    let participant = participantBox.querySelector(
-      `.participant[data-socket-id="${userSocketIdToCall}"]`
-    );
+    let participant = participantBox.querySelector(`.participant[data-socket-id="${userSocketIdToCall}"]`);
     const video = participant.children[0];
     video.srcObject = stream;
     video.autoplay = true;
@@ -889,8 +879,7 @@ async function handleReceiveOffer({ sdp, callerId }, stream) {
   let arr = answer.sdp.split("\r\n");
   arr.forEach((str, i) => {
     if (/^a=fmtp:\d*/.test(str)) {
-      arr[i] =
-        str + ";x-google-max-bitrate=10000;x-google-min-bitrate=0;x-google-start-bitrate=6000";
+      arr[i] = str + ";x-google-max-bitrate=10000;x-google-min-bitrate=0;x-google-start-bitrate=6000";
     } else if (/^a=mid:(1|video)/.test(str)) {
       arr[i] += "\r\nb=AS:10000";
     }
@@ -963,10 +952,8 @@ camera.children[0].style.color = "#454545";
 currVideo.style.display = "block";
 camera.addEventListener("mousedown", (e) => {
   const videoTrack = userStream.getTracks().find((track) => track.kind === "video");
-  camera.style.backgroundColor =
-    camera.style.backgroundColor === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
-  camera.children[0].style.color =
-    camera.children[0].style.color === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
+  camera.style.backgroundColor = camera.style.backgroundColor === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
+  camera.children[0].style.color = camera.children[0].style.color === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
   currVideo.style.display = currVideo.style.display === "block" ? "none" : "block";
   videoTrack.enabled = !videoTrack.enabled;
 
@@ -985,10 +972,8 @@ voice.addEventListener("mousedown", (e) => {
   const audioTrack = userStream.getTracks().find((track) => track.kind === "audio");
   audioTrack.enabled = !audioTrack.enabled;
 
-  voice.style.backgroundColor =
-    voice.style.backgroundColor === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
-  voice.children[0].style.color =
-    voice.children[0].style.color === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
+  voice.style.backgroundColor = voice.style.backgroundColor === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
+  voice.children[0].style.color = voice.children[0].style.color === "rgb(255, 255, 255)" ? "#454545" : "#ffffff";
 });
 
 function hideCam(socketId) {
@@ -1029,9 +1014,7 @@ async function init() {
 
   camSocket.on("ice-candidate", handleReceiveIce);
 
-  camSocket.on("offer user info", (userSocketIdToAnswer, user) =>
-    createOfferUserBox(userSocketIdToAnswer, user)
-  );
+  camSocket.on("offer user info", (userSocketIdToAnswer, user) => createOfferUserBox(userSocketIdToAnswer, user));
 
   camSocket.on("answer user info", (socketId, user) => createAnswerUserBox(socketId, user));
 

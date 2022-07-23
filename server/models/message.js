@@ -1,6 +1,5 @@
 const db = require("../../util/database");
 const Util = require("../../util/util");
-const PAGESIZE = 12; // use read session as basis
 const maxMailCount = 30;
 
 module.exports = class Message {

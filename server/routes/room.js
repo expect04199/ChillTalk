@@ -16,22 +16,12 @@ const upload = multer({
 
 router.get("/rooms/details", Util.isAuth, Util.errorCatcher(roomController.getDetail));
 
-router.post("/rooms/join", Util.isAuth, Util.errorCatcher(roomController.postJoinRoom));
+router.post("/rooms/join", Util.isAuth, Util.errorCatcher(roomController.joinRoom));
 
-router.post(
-  "/rooms/create",
-  upload.array("picture"),
-  Util.isAuth,
-  Util.errorCatcher(roomController.postCreateRoom)
-);
+router.post("/rooms/create", Util.isAuth, upload.array("picture"), Util.errorCatcher(roomController.createRoom));
 
 router.get("/rooms/search", Util.isAuth, Util.errorCatcher(roomController.getSearchResult));
 
-router.patch(
-  "/rooms/info",
-  Util.isAuth,
-  upload.array("picture"),
-  Util.errorCatcher(roomController.updateInfo)
-);
+router.patch("/rooms/info", Util.isAuth, upload.array("picture"), Util.errorCatcher(roomController.updateInfo));
 
 module.exports = router;
