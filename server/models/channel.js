@@ -3,7 +3,7 @@ const db = require("../../util/database");
 module.exports = class Channel {
   static async getPinMessages(channelId) {
     const sql = `
-    SELECT a.id, a.name, a.type, b.id msg_id, b.reply msg_reply, b.pinned msg_pinned, 
+    SELECT a.id, a.name, a.type, b.id msg_id, b.reply_id msg_reply, b.pinned msg_pinned, 
     c.type msg_type, c.description msg_desc, c.time msg_time, 
     d.id user_id, d.name user_name,
     e.source pic_src, e.type pic_type, e.image pic_img, e.preset pic_preset

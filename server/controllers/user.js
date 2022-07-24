@@ -8,6 +8,7 @@ const { TOKEN_SECRET } = process.env;
 module.exports.postSignin = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
+    console.log("hihi");
     return res.status(403).json({ error: "Wrong email or password" });
   }
   const info = await User.signin(email, password);

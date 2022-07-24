@@ -4,16 +4,6 @@ const MAXMAILCOUNT = 30;
 const MSGINTERVAL = 3000;
 
 module.exports = class Message {
-  constructor(userId, channelId, time, isDeleted, reply, pinned, description) {
-    this.user_id = userId;
-    this.channel_id = channelId;
-    this.time = time;
-    this.is_deleted = isDeleted;
-    this.reply = reply;
-    this.pinned = pinned;
-    this.description = description;
-  }
-
   static async isExisted(id) {
     let sql = "SELECT * FROM messages WHERE id = ?";
     let result = await db.query(sql, [id]);
@@ -47,7 +37,7 @@ module.exports = class Message {
         user_id: message.userId,
         channel_id: message.channelId,
         initial_time: message.time,
-        reply: message.reply,
+        reply_id: message.reply,
         session,
       };
       const result = await conn.query("INSERT INTO messages SET ?", msg);
@@ -90,7 +80,7 @@ module.exports = class Message {
       LEFT JOIN users h ON f.user_id = h.id
       LEFT JOIN pictures i ON h.id = i.source_id AND i.source = "user" AND i.type = "picture"
     ) as r 
-    ON a.reply = r.reply_id 
+    ON a.reply_id = r.reply_id 
     INNER JOIN (
       SELECT session FROM messages WHERE channel_id = ? GROUP BY session ORDER BY session DESC LIMIT ? OFFSET ?
     ) z ON a.session = z.session
@@ -129,7 +119,6 @@ module.exports = class Message {
       await conn.query("START TRANSACTION");
       await conn.query("SET SQL_SAFE_UPDATES=0;");
       await conn.query("DELETE FROM messages WHERE id = ?", [id]);
-      await conn.query("DELETE FROM message_contents WHERE message_id = ?", [id]);
       await conn.query("SET SQL_SAFE_UPDATES=1;");
       await conn.query("COMMIT");
       return true;
