@@ -2,8 +2,8 @@ if (!localStorage.length) {
   window.location.href = "/signin.html";
 }
 const urlParams = new URLSearchParams(window.location.search);
-const roomId = urlParams.get("roomId");
-const channelId = urlParams.get("channelId");
+const roomId = +urlParams.get("roomId");
+const channelId = +urlParams.get("channelId");
 
 const roomSocket = io.connect("http://localhost:3000/room");
 const camSocket = io.connect("http://localhost:3000/cam");

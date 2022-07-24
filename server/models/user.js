@@ -133,14 +133,11 @@ module.exports = class User {
   }
 
   static async online(userId) {
-    let time = Date.now();
-    let sql = `UPDATE users SET online = 1, last_login = ${time} WHERE id = ?`;
-    await db.query(sql, [userId]);
+    await db.query(`UPDATE users SET online = 1, last_login = ? WHERE id = ?`, [Date.now(), userId]);
   }
 
   static async offline(userId) {
-    let sql = `UPDATE users SET online = 0 WHERE id = ?`;
-    await db.query(sql, [userId]);
+    await db.query(`UPDATE users SET online = 0 WHERE id = ?`, [userId]);
   }
 
   static async getInfo(userId) {

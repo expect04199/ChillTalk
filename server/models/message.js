@@ -1,6 +1,7 @@
 const db = require("../../util/database");
 const Util = require("../../util/util");
-const maxMailCount = 30;
+const MAXMAILCOUNT = 30;
+const MSGINTERVAL = 3000;
 
 module.exports = class Message {
   constructor(userId, channelId, time, isDeleted, reply, pinned, description) {
@@ -23,47 +24,48 @@ module.exports = class Message {
     const conn = await db.getConnection();
     try {
       await conn.query("START TRANSACTION");
-      let messageSql = "INSERT INTO messages SET ?";
-      let msg = {
-        user_id: message.userId,
-        channel_id: message.channelId,
-        initial_time: message.time,
-      };
 
       // find which session message in
-      let sessionSql = `
+      const sql = `
       SELECT a.id, a.user_id, a.initial_time, a.session FROM messages a
       INNER JOIN (
         SELECT MAX(session) session FROM messages WHERE channel_id = ?
       ) b ON a.session = b.session WHERE a.channel_id = ?
       `;
-      let [sessions] = await conn.query(sessionSql, [message.channelId, message.channelId]);
+      const [sessions] = await conn.query(sql, [message.channelId, message.channelId]);
+      let session;
       if (sessions.length === 0) {
-        msg.session = 1;
-      } else if (msg.initial_time < sessions[0].initial_time + 3000 && msg.user_id === sessions[0].user_id) {
-        msg.session = sessions[0].session;
+        session = 1;
+      } else if (message.time < sessions[0].initial_time + MSGINTERVAL && message.userId === sessions[0].user_id) {
+        session = sessions[0].session;
       } else {
-        msg.session = sessions[0].session + 1;
+        session = sessions[0].session + 1;
       }
-      if (message.reply) {
-        msg.reply = +message.reply;
-      }
-      let result = await conn.query(messageSql, msg);
-      let insertId = +result[0].insertId;
 
-      let contentSql = "INSERT INTO message_contents SET ?";
-      let content = {
-        message_id: insertId,
+      // insert message
+      const msg = {
+        user_id: message.userId,
+        channel_id: message.channelId,
+        initial_time: message.time,
+        reply: message.reply,
+        session,
+      };
+      const result = await conn.query("INSERT INTO messages SET ?", msg);
+      const messageId = +result[0].insertId;
+
+      // insert content
+      const content = {
+        message_id: messageId,
         type: message.type,
         description: message.description,
         time: message.time,
       };
-      await conn.query(contentSql, content);
+      await conn.query("INSERT INTO message_contents SET ?", content);
+
       await conn.query("COMMIT");
-      return insertId;
+      return messageId;
     } catch (error) {
       await conn.query("ROLLBACK");
-      console.log(error);
     } finally {
       await conn.release();
     }
@@ -258,7 +260,7 @@ module.exports = class Message {
       let tempCount = 0;
       const messagesArr = [];
       for (let channelId of channels) {
-        if (messagesArr.length >= maxMailCount) break;
+        if (messagesArr.length >= MAXMAILCOUNT) break;
         tempCount++;
         // take all unread messages in channel
         let sql = `

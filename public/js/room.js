@@ -671,7 +671,7 @@ createChannel.addEventListener("click", (e) => {
         alert(channelDetail.error);
         return;
       }
-      roomSocket.emit("create-channel", roomId, channelDetail);
+      roomSocket.emit("create-channel", +roomId, channelDetail);
       createChannelInput.value = "";
       maskDiv.classList.remove("enable");
       maskDiv.innerHTML = "";
