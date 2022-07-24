@@ -5,7 +5,7 @@ const { SERVER_PORT, NODE_ENV, REDIS_NAME, REDIS_PORT } = process.env;
 
 if (NODE_ENV === "production") {
   // connect to redis adapter
-  const pubClient = createClient({ host: REDIS_NAME, port: REDIS_PORT });
+  const pubClient = createClient({ url: `${REDIS_NAME}:${REDIS_PORT}}` });
   const subClient = pubClient.duplicate();
   io.adapter(createAdapter(pubClient, subClient));
 
