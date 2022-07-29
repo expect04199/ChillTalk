@@ -180,7 +180,7 @@ module.exports = class Room {
       if (name) {
         const [result] = await conn.query("UPDATE rooms SET name = ? WHERE id = ? AND host_id = ?", [name, id, userId]);
         if (result.affectedRows === 0) {
-          throw new Error();
+          throw "error";
         }
       }
 
@@ -195,7 +195,7 @@ module.exports = class Room {
 
         const [result] = await conn.query(fileSql, [fileName, id, userId]);
         if (result.affectedRows === 0) {
-          throw new Error();
+          throw "error";
         }
         pic = Util.getImage(0, "room", id, "picture", fileName);
         Util.imageUpload(files, "room", id, "picture", fileName);

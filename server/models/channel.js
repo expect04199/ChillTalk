@@ -22,16 +22,10 @@ module.exports = class Channel {
   static async save(type, name, roomId, userId) {
     const conn = await db.getConnection();
     try {
-      // check if room exists and is public
-      const [room] = await conn.query("SELECT * FROM rooms WHERE id = ? AND type = 'public'", [roomId]);
-      if (!room.length) {
-        throw error;
-      }
-
       // check if user is in the room
       const [status] = await conn.query("SELECT * FROM room_members WHERE room_id = ? AND user_id = ?", [roomId, userId]);
       if (!status.length) {
-        throw error;
+        return { error: "Can not create channel", status: 500 };
       }
 
       const data = {

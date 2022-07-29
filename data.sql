@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.28, for Win64 (x86_64)
 --
--- Host: stylishshop.cqrmkf07klla.ap-northeast-2.rds.amazonaws.com    Database: test
+-- Host: stylishshop.cqrmkf07klla.ap-northeast-2.rds.amazonaws.com    Database: chilltalk
 -- ------------------------------------------------------
 -- Server version	8.0.28
 
@@ -293,7 +293,7 @@ CREATE TABLE `user_read_status` (
 
 LOCK TABLES `user_read_status` WRITE;
 /*!40000 ALTER TABLE `user_read_status` DISABLE KEYS */;
-INSERT INTO `user_read_status` VALUES (1,1,3,3,1007),(2,5,3,3,1007),(3,1,1,1,1000);
+INSERT INTO `user_read_status` VALUES (1,1,3,3,1007),(2,5,3,3,1007),(3,1,1,1,900);
 /*!40000 ALTER TABLE `user_read_status` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -337,4 +337,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-07-24 18:25:03
+-- Dump completed on 2022-07-28 14:09:22

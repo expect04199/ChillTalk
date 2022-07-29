@@ -1,4 +1,4 @@
-const app = require("./app");
+const app = require("../app");
 const http = require("http");
 const server = http.createServer(app);
 const io = require("socket.io")(server, {
@@ -8,8 +8,8 @@ const io = require("socket.io")(server, {
 });
 
 // models
-const Message = require("./server/models/message");
-const User = require("./server/models/user");
+const Message = require("../server/models/message");
+const User = require("../server/models/user");
 
 // channel socket
 const channelIO = io.of("/channel");

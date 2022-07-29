@@ -1,4 +1,4 @@
-const { io, server } = require("./socket");
+const { io, server } = require("./util/socket");
 const { createClient } = require("redis");
 const { createAdapter } = require("@socket.io/redis-adapter");
 const { SERVER_PORT, NODE_ENV, REDIS_NAME, REDIS_PORT } = process.env;

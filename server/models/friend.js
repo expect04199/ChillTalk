@@ -28,7 +28,7 @@ module.exports = class Friend {
           case "OK":
             return { error: "You have already be friend.", status: 403 };
           default:
-            throw new Error();
+            return { error: "Unable to send friend request.", status: 500 };
         }
       }
 
@@ -94,12 +94,20 @@ module.exports = class Friend {
 
       // create a new room for private chat
       const roomName = `${hostId}/${userId}`;
-      const roomId = await Room.create([], roomName, hostId, "private");
+      const roomData = await Room.create([], roomName, hostId, "private");
+      if (roomData.error) {
+        throw "error";
+      }
+      const roomId = roomData.roomId;
       await Room.join(roomId, userId);
 
       // create a new channel for private chat
       const channelName = `${hostId}/${userId}`;
-      const channelId = await Channel.save("text", channelName, roomId);
+      const channelData = await Channel.save("text", channelName, roomId, hostId);
+      if (channelData.error) {
+        throw "error";
+      }
+      const channelId = channelData.id;
 
       const sql = `UPDATE friends SET status = "OK", room_id = ?, channel_id = ? WHERE user_id = ? AND friend_id = ?`;
       await conn.query(sql, [roomId, channelId, hostId, userId]);
@@ -110,6 +118,7 @@ module.exports = class Friend {
       return { room_id: roomId, channel_id: channelId };
     } catch (error) {
       await conn.query("ROLLBACK");
+      console.log(error);
       return { error: "Can not accept request.", status: 500 };
     } finally {
       await conn.release();
