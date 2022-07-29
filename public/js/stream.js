@@ -665,7 +665,7 @@ async function showMailBox(e) {
 // when not click mailbox, remove mailbox
 document.addEventListener("mousedown", (e) => {
   let messagesBox = document.querySelector(".mail-messages-box");
-  if (messagesBox && !messagesBox.contains(e.target)) {
+  if (messagesBox && !messagesBox.contains(e.target) && !mail.contains(e.target)) {
     messagesBox.remove();
     document.querySelector(".tool-enable").classList.remove("tool-enable");
   }

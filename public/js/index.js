@@ -622,7 +622,7 @@ roomPin.addEventListener("click", async (e) => {
 // when not click pinbox, remove pinbox
 document.addEventListener("mousedown", (e) => {
   let pinMessagesBox = document.querySelector(".pin-messages-box");
-  if (pinMessagesBox && !pinMessagesBox.contains(e.target)) {
+  if (pinMessagesBox && !pinMessagesBox.contains(e.target) && !roomPin.contains(e.target)) {
     pinMessagesBox.remove();
     document.querySelector(".tool-enable").classList.remove("tool-enable");
   }
@@ -870,7 +870,7 @@ async function showMailBox(e) {
 // when not click mailbox, remove mailbox
 document.addEventListener("mousedown", (e) => {
   let messagesBox = document.querySelector(".mail-messages-box");
-  if (messagesBox && !messagesBox.contains(e.target)) {
+  if (messagesBox && !messagesBox.contains(e.target) && !mail.contains(e.target)) {
     messagesBox.remove();
     document.querySelector(".tool-enable").classList.remove("tool-enable");
   }

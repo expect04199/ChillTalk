@@ -2,6 +2,8 @@
 
 ChillTalk is a Web App for you to chill with friends real-time over messages and video.
 
+https://chilltalk.space
+
 ## Test Account
 
 User1
