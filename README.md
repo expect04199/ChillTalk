@@ -6,6 +6,7 @@ https://chilltalk.space
 
 ## Test Account
 
+
 User1
 
 - Account: test123@test.com
@@ -38,12 +39,16 @@ User2
 
 ### Room / Channel Design
 
+https://user-images.githubusercontent.com/57524411/181711955-096b69a0-424f-454a-b20d-2a86cfb217bc.mp4
+
 - Create / join rooms with customized titles and with different users.
 - Allow users to choose between voice and text channels.
 - Provide room members with online status and their personal info, mutual friends and rooms.
 - Room hosts are able to update room picture and name.
 
 ### Text Channel
+
+https://user-images.githubusercontent.com/57524411/181712388-45fb11f7-6077-4646-a430-ae5d50532d5d.mp4
 
 - Chat with your friend or other members in real time.
 - Like, pin, edit, reply and delete messages.
@@ -54,11 +59,15 @@ User2
 
 ### Voice Channel
 
+https://user-images.githubusercontent.com/57524411/181713461-aaa3c4a1-6549-4a68-bd82-4d41be40166b.mp4
+
 - Users are able to communicate in video stream.
 - Choose the main stream source to display in the center of the screen from diffrent users.
 - Turn on / off camera or microphone.
 
 ### Friend
+
+https://user-images.githubusercontent.com/57524411/181713490-a97e798a-242d-4619-b346-5f595a13b95d.mp4
 
 - Allow the user to friend another user.
 - Accept / reject friend request.
