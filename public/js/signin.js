@@ -35,9 +35,9 @@ userSignIn.addEventListener("click", async (e) => {
     alert(user.error);
     return;
   }
-  localStorage.setItem("token", user.access_token);
-  localStorage.setItem("info", JSON.stringify(user.info));
-  localStorage.setItem("rooms", JSON.stringify(user.rooms));
+  sessionStorage.setItem("token", user.access_token);
+  sessionStorage.setItem("info", JSON.stringify(user.info));
+  sessionStorage.setItem("rooms", JSON.stringify(user.rooms));
   window.location.href = "/index.html";
 });
 
@@ -69,8 +69,8 @@ userSignUp.addEventListener("click", async (e) => {
     alert(user.error);
     return;
   }
-  localStorage.setItem("token", user.access_token);
-  localStorage.setItem("info", JSON.stringify(user.info));
-  localStorage.setItem("rooms", JSON.stringify([]));
+  sessionStorage.setItem("token", user.access_token);
+  sessionStorage.setItem("info", JSON.stringify(user.info));
+  sessionStorage.setItem("rooms", JSON.stringify([]));
   window.location.href = "/index.html";
 });

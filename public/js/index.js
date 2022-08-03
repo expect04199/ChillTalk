@@ -1,4 +1,4 @@
-if (!localStorage.length) {
+if (!sessionStorage.length) {
   window.location.href = "/signin.html";
 }
 const urlParams = new URLSearchParams(window.location.search);
@@ -10,9 +10,9 @@ const channelSocket = io.connect("http://localhost:3000/channel");
 const roomSocket = io.connect("http://localhost:3000/room");
 
 // user info
-const user = JSON.parse(localStorage.getItem("info"));
-const roomsData = JSON.parse(localStorage.getItem("rooms"));
-const token = localStorage.getItem("token");
+const user = JSON.parse(sessionStorage.getItem("info"));
+const roomsData = JSON.parse(sessionStorage.getItem("rooms"));
+const token = sessionStorage.getItem("token");
 
 window.onload = async () => {
   // render room side bar
@@ -165,8 +165,8 @@ window.onload = async () => {
           alert(userData.error);
           return;
         }
-        localStorage.setItem("info", JSON.stringify(userData.info));
-        localStorage.setItem("token", userData.access_token);
+        sessionStorage.setItem("info", JSON.stringify(userData.info));
+        sessionStorage.setItem("token", userData.access_token);
         history.go(0);
         return;
       });
@@ -1068,7 +1068,7 @@ window.addEventListener("beforeunload", async () => {
 // log out button
 let singOutDiv = document.querySelector(".sign-out");
 singOutDiv.addEventListener("click", (e) => {
-  localStorage.clear();
+  sessionStorage.clear();
   roomSocket.emit("self-signout", { userId: user.id, rooms: roomsData });
   window.location.href = "/signin.html";
 });
@@ -1209,14 +1209,14 @@ function createRoomfn(room) {
 
 function updateStorage(scope, data) {
   if (scope === "room") {
-    let rooms = JSON.parse(localStorage.getItem("rooms"));
+    let rooms = JSON.parse(sessionStorage.getItem("rooms"));
     rooms.push(data);
-    localStorage.setItem("rooms", JSON.stringify(rooms));
+    sessionStorage.setItem("rooms", JSON.stringify(rooms));
   } else if (scope === "channel") {
-    let rooms = JSON.parse(localStorage.getItem("rooms"));
+    let rooms = JSON.parse(sessionStorage.getItem("rooms"));
     let currentRoom = rooms.find((room) => +room.id === +roomId);
     currentRoom.channel_id = data.id;
-    localStorage.setItem("rooms", JSON.stringify(rooms));
+    sessionStorage.setItem("rooms", JSON.stringify(rooms));
   }
 }
 
