@@ -30,6 +30,11 @@ User2
 ## Architecture
 
 ![image](./docs/structure.jpg)
+### Artillery Test Result
+- Single server: 120 arrival rate / 60 seconds
+- Two servers: 180 arrival rate / 60 seconds
+### WebRTC Test Result
+- 8 participants at most
 
 ## Database Schema
 
